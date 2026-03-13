@@ -1,58 +1,391 @@
 """
-Vega-Lite visualization specification generator.
-Uses deterministic logic to select chart types based on dataset templates.
+Visualization type selection and Vega-Lite specification generation.
+Deterministic logic selects chart types based on the matched template,
+then generates validated Vega-Lite specs for the client to render.
 """
 
+import logging
 from typing import Optional
 
+from pydantic import BaseModel, Field
 
-def select_chart_type(column_types: dict) -> str:
-    """Select the appropriate chart type based on column types.
+from data.profiling.template_definitions import TemplateType, TEMPLATE_MAP
 
-    Uses deterministic logic — no LLM involved in chart selection.
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Models
+# ---------------------------------------------------------------------------
+
+class VegaLiteSpec(BaseModel):
+    """A validated Vega-Lite specification."""
+    schema_url: str = Field(
+        default="https://vega.github.io/schema/vega-lite/v5.json",
+        alias="$schema",
+    )
+    title: str = ""
+    description: str = ""
+    width: str | int = "container"
+    height: int = 400
+    data: dict = Field(default_factory=dict)
+    mark: dict = Field(default_factory=dict)
+    encoding: dict = Field(default_factory=dict)
+    layer: Optional[list[dict]] = None
+    selection: Optional[dict] = None
+    config: dict = Field(default_factory=dict)
+
+    class Config:
+        populate_by_name = True
+
+    def to_dict(self) -> dict:
+        """Export as a clean dict for JSON serialization."""
+        d = self.model_dump(by_alias=True, exclude_none=True)
+        # Remove empty dicts
+        return {k: v for k, v in d.items() if v}
+
+
+class ChartSelection(BaseModel):
+    """Result of the chart type selection process."""
+    primary_chart: str
+    secondary_chart: Optional[str] = None
+    reason: str
+
+
+# ---------------------------------------------------------------------------
+# Chart type selection
+# ---------------------------------------------------------------------------
+
+def select_chart_type(
+    template_type: TemplateType,
+    metrics: dict,
+) -> ChartSelection:
     """
-    has_temporal = any(t == "temporal" for t in column_types.values())
-    has_numerical = any(t == "numerical" for t in column_types.values())
-    has_categorical = any(t == "categorical" for t in column_types.values())
-    has_geospatial = any(t == "geospatial" for t in column_types.values())
+    Select the best chart type based on the template and metrics.
+    Uses deterministic rules — no LLM involved.
 
-    if has_geospatial:
-        return "map"
-    elif has_temporal and has_numerical:
-        return "line"
-    elif has_categorical and has_numerical:
-        return "bar"
-    elif has_numerical:
-        return "scatter"
+    Args:
+        template_type: The matched template type.
+        metrics: The analytics metrics dict.
+
+    Returns:
+        ChartSelection with primary and optional secondary chart type.
+    """
+    template = TEMPLATE_MAP[template_type]
+
+    if template_type == TemplateType.TIME_SERIES:
+        return _select_time_series_chart(metrics)
+    elif template_type == TemplateType.CATEGORICAL:
+        return _select_categorical_chart(metrics)
+    elif template_type == TemplateType.GEOSPATIAL:
+        return _select_geospatial_chart(metrics)
     else:
-        return "table"
+        # Fallback to template's primary recommendation
+        primary = template.chart_recommendations[0]
+        return ChartSelection(
+            primary_chart=primary.chart_type,
+            reason=primary.description,
+        )
 
 
-def generate_vega_spec(
+def _select_time_series_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for time-series data."""
+    group_col = metrics.get("group_column")
+    measure_count = len(metrics.get("measure_columns", []))
+
+    if group_col and measure_count == 1:
+        return ChartSelection(
+            primary_chart="line",
+            secondary_chart="area",
+            reason="Multi-series line chart grouped by category over time.",
+        )
+    elif measure_count > 1:
+        return ChartSelection(
+            primary_chart="line",
+            secondary_chart="bar",
+            reason="Multi-measure line chart showing parallel trends.",
+        )
+    else:
+        total_periods = metrics.get("total_periods", 0)
+        if total_periods <= 12:
+            return ChartSelection(
+                primary_chart="bar",
+                secondary_chart="line",
+                reason="Bar chart for small number of time periods.",
+            )
+        return ChartSelection(
+            primary_chart="line",
+            reason="Line chart showing trend over time.",
+        )
+
+
+def _select_categorical_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for categorical data."""
+    total_cats = metrics.get("total_categories", 0)
+    measure_count = len(metrics.get("measure_columns", []))
+
+    if total_cats > 15:
+        return ChartSelection(
+            primary_chart="bar",
+            secondary_chart="scatter",
+            reason="Horizontal bar chart for many categories.",
+        )
+    elif measure_count >= 2:
+        return ChartSelection(
+            primary_chart="bar",
+            secondary_chart="scatter",
+            reason="Grouped bar chart for multi-measure comparison.",
+        )
+    else:
+        return ChartSelection(
+            primary_chart="bar",
+            reason="Bar chart comparing values across categories.",
+        )
+
+
+def _select_geospatial_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for geospatial data."""
+    has_measure = metrics.get("measure_column") is not None
+    has_category = metrics.get("category_column") is not None
+    has_geometry = metrics.get("geometry_column") is not None
+
+    if has_geometry:
+        return ChartSelection(
+            primary_chart="choropleth",
+            reason="Choropleth map using geometry boundaries.",
+        )
+    elif has_measure and has_category:
+        return ChartSelection(
+            primary_chart="bubble_map",
+            secondary_chart="map",
+            reason="Bubble map with size from measure and color from category.",
+        )
+    elif has_measure:
+        return ChartSelection(
+            primary_chart="bubble_map",
+            reason="Bubble map with size encoding measure values.",
+        )
+    else:
+        return ChartSelection(
+            primary_chart="map",
+            reason="Point map showing locations.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Vega-Lite spec generation
+# ---------------------------------------------------------------------------
+
+def generate_spec(
     chart_type: str,
     data: list[dict],
-    x_field: str,
-    y_field: str,
-    title: Optional[str] = None,
+    columns: dict[str, str],
+    metrics: dict,
+    title: str = "",
 ) -> dict:
-    """Generate a Vega-Lite specification for the given chart type and data."""
-    base_spec = {
+    """
+    Generate a Vega-Lite specification.
+
+    Args:
+        chart_type: The chart type (line, bar, scatter, area, map, etc.).
+        data: The aggregation table rows.
+        columns: Matched column mapping {role: column_name}.
+        metrics: The analytics metrics.
+        title: Chart title.
+
+    Returns:
+        Vega-Lite spec as a dict.
+    """
+    generators = {
+        "line": _gen_line_spec,
+        "bar": _gen_bar_spec,
+        "area": _gen_area_spec,
+        "scatter": _gen_scatter_spec,
+        "map": _gen_point_map_spec,
+        "bubble_map": _gen_bubble_map_spec,
+        "heatmap": _gen_heatmap_spec,
+    }
+
+    generator = generators.get(chart_type, _gen_bar_spec)
+    spec = generator(data, columns, metrics, title)
+
+    logger.info(f"Generated {chart_type} Vega-Lite spec: '{title}'")
+    return spec
+
+
+def _base_spec(data: list[dict], title: str) -> dict:
+    """Create a base Vega-Lite spec."""
+    return {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-        "title": title or "",
+        "title": title,
         "width": "container",
         "height": 400,
         "data": {"values": data},
-        "mark": {"type": chart_type, "tooltip": True},
-        "encoding": {
-            "x": {"field": x_field, "type": "nominal"},
-            "y": {"field": y_field, "type": "quantitative"},
+        "config": {
+            "view": {"stroke": "transparent"},
+            "axis": {"labelFontSize": 12, "titleFontSize": 13},
+            "title": {"fontSize": 16},
         },
     }
 
-    # Adjust encoding based on chart type
-    if chart_type == "line":
-        base_spec["encoding"]["x"]["type"] = "temporal"
-    elif chart_type == "scatter":
-        base_spec["encoding"]["x"]["type"] = "quantitative"
 
-    return base_spec
+def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
+    """Generate a line chart spec."""
+    spec = _base_spec(data, title)
+    time_col = columns.get("time_axis", "")
+    measure_cols = metrics.get("measure_columns", [])
+    group_col = columns.get("series_group")
+
+    if group_col and len(measure_cols) == 1:
+        # Multi-series: color by group
+        spec["mark"] = {"type": "line", "point": True, "tooltip": True}
+        spec["encoding"] = {
+            "x": {"field": time_col, "type": "temporal", "title": time_col},
+            "y": {"field": measure_cols[0], "type": "quantitative", "title": measure_cols[0]},
+            "color": {"field": group_col, "type": "nominal", "title": group_col},
+        }
+    elif len(measure_cols) > 1:
+        # Multi-measure: fold into long format
+        spec["transform"] = [
+            {"fold": measure_cols, "as": ["measure", "value"]}
+        ]
+        spec["mark"] = {"type": "line", "point": True, "tooltip": True}
+        spec["encoding"] = {
+            "x": {"field": time_col, "type": "temporal", "title": time_col},
+            "y": {"field": "value", "type": "quantitative", "title": "Value"},
+            "color": {"field": "measure", "type": "nominal", "title": "Measure"},
+        }
+    else:
+        spec["mark"] = {"type": "line", "point": True, "tooltip": True}
+        spec["encoding"] = {
+            "x": {"field": time_col, "type": "temporal", "title": time_col},
+            "y": {"field": measure_cols[0] if measure_cols else "", "type": "quantitative"},
+        }
+
+    return spec
+
+
+def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
+    """Generate a bar chart spec."""
+    spec = _base_spec(data, title)
+    cat_col = columns.get("category", columns.get("time_axis", ""))
+    measure_cols = metrics.get("measure_columns", [])
+
+    total_cats = metrics.get("total_categories", len(data))
+
+    if total_cats > 10:
+        # Horizontal bars for many categories
+        spec["mark"] = {"type": "bar", "tooltip": True}
+        spec["encoding"] = {
+            "y": {"field": cat_col, "type": "nominal", "sort": "-x", "title": cat_col},
+            "x": {"field": measure_cols[0] if measure_cols else "", "type": "quantitative"},
+        }
+    elif len(measure_cols) > 1:
+        # Grouped bars
+        spec["transform"] = [
+            {"fold": measure_cols, "as": ["measure", "value"]}
+        ]
+        spec["mark"] = {"type": "bar", "tooltip": True}
+        spec["encoding"] = {
+            "x": {"field": cat_col, "type": "nominal", "title": cat_col},
+            "y": {"field": "value", "type": "quantitative", "title": "Value"},
+            "color": {"field": "measure", "type": "nominal"},
+            "xOffset": {"field": "measure"},
+        }
+    else:
+        spec["mark"] = {"type": "bar", "tooltip": True}
+        spec["encoding"] = {
+            "x": {"field": cat_col, "type": "nominal", "title": cat_col},
+            "y": {"field": measure_cols[0] if measure_cols else "", "type": "quantitative"},
+        }
+
+    return spec
+
+
+def _gen_area_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
+    """Generate an area chart spec."""
+    spec = _gen_line_spec(data, columns, metrics, title)
+    # Convert line to area
+    if isinstance(spec.get("mark"), dict):
+        spec["mark"]["type"] = "area"
+        spec["mark"]["opacity"] = 0.6
+        spec["mark"]["line"] = True
+    else:
+        spec["mark"] = {"type": "area", "opacity": 0.6, "line": True, "tooltip": True}
+    return spec
+
+
+def _gen_scatter_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
+    """Generate a scatter plot spec."""
+    spec = _base_spec(data, title)
+    measure_cols = metrics.get("measure_columns", [])
+    cat_col = columns.get("category")
+
+    x_field = measure_cols[0] if len(measure_cols) > 0 else ""
+    y_field = measure_cols[1] if len(measure_cols) > 1 else x_field
+
+    spec["mark"] = {"type": "circle", "tooltip": True, "size": 100}
+    spec["encoding"] = {
+        "x": {"field": x_field, "type": "quantitative"},
+        "y": {"field": y_field, "type": "quantitative"},
+    }
+    if cat_col:
+        spec["encoding"]["color"] = {"field": cat_col, "type": "nominal"}
+
+    return spec
+
+
+def _gen_point_map_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
+    """Generate a point map spec."""
+    spec = _base_spec(data, title)
+    lat_col = metrics.get("lat_column", "latitude")
+    lon_col = metrics.get("lon_column", "longitude")
+    cat_col = metrics.get("category_column")
+
+    spec["mark"] = {"type": "circle", "tooltip": True, "size": 80}
+    spec["encoding"] = {
+        "longitude": {"field": lon_col, "type": "quantitative"},
+        "latitude": {"field": lat_col, "type": "quantitative"},
+    }
+    if cat_col:
+        spec["encoding"]["color"] = {"field": cat_col, "type": "nominal"}
+
+    # Map projection
+    spec["projection"] = {"type": "mercator"}
+    spec["height"] = 500
+
+    return spec
+
+
+def _gen_bubble_map_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
+    """Generate a bubble map spec."""
+    spec = _gen_point_map_spec(data, columns, metrics, title)
+    measure_col = metrics.get("measure_column")
+
+    if measure_col:
+        spec["encoding"]["size"] = {
+            "field": measure_col,
+            "type": "quantitative",
+            "scale": {"range": [50, 500]},
+        }
+
+    return spec
+
+
+def _gen_heatmap_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
+    """Generate a heatmap spec."""
+    spec = _base_spec(data, title)
+    cat_col = columns.get("category", "")
+    measure_cols = metrics.get("measure_columns", [])
+
+    spec["transform"] = [
+        {"fold": measure_cols, "as": ["measure", "value"]}
+    ]
+    spec["mark"] = {"type": "rect", "tooltip": True}
+    spec["encoding"] = {
+        "x": {"field": "measure", "type": "nominal"},
+        "y": {"field": cat_col, "type": "nominal"},
+        "color": {"field": "value", "type": "quantitative", "scale": {"scheme": "blues"}},
+    }
+
+    return spec
