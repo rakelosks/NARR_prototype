@@ -1,0 +1,46 @@
+"""
+Application configuration.
+Loads settings from environment variables with sensible defaults.
+"""
+
+import os
+from dataclasses import dataclass
+
+
+@dataclass
+class Settings:
+    """Application settings."""
+
+    # API
+    app_name: str = "Smart City Narrative Visualization Platform"
+    debug: bool = False
+
+    # LLM
+    llm_provider: str = "ollama"
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "llama3"
+    openai_api_key: str = ""
+
+    # Storage
+    metadata_db_path: str = "metadata.sqlite"
+    cache_dir: str = "data/cache/snapshots"
+
+    # Streamlit
+    api_base_url: str = "http://localhost:8000"
+
+
+def load_settings() -> Settings:
+    """Load settings from environment variables."""
+    return Settings(
+        debug=os.getenv("DEBUG", "false").lower() == "true",
+        llm_provider=os.getenv("LLM_PROVIDER", "ollama"),
+        ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        ollama_model=os.getenv("OLLAMA_MODEL", "llama3"),
+        openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+        metadata_db_path=os.getenv("METADATA_DB_PATH", "metadata.sqlite"),
+        cache_dir=os.getenv("CACHE_DIR", "data/cache/snapshots"),
+        api_base_url=os.getenv("API_BASE_URL", "http://localhost:8000"),
+    )
+
+
+settings = load_settings()
