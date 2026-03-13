@@ -180,8 +180,23 @@ def match_template(
             f"viable={match.is_viable}, matched={match.matched_columns}"
         )
 
-    # Sort by viability first, then score
-    all_matches.sort(key=lambda m: (m.is_viable, m.score), reverse=True)
+    # Sort by viability first, then score, then specificity (number of
+    # distinct semantic types matched) to break ties in favour of more
+    # specialised templates (e.g. geospatial over categorical).
+    def _specificity(m: TemplateMatch) -> int:
+        """Count distinct semantic types among the matched columns."""
+        if not m.matched_columns:
+            return 0
+        matched_col_names = set(m.matched_columns.values())
+        return len({
+            col.semantic_type for col in profile.columns
+            if col.name in matched_col_names
+        })
+
+    all_matches.sort(
+        key=lambda m: (m.is_viable, m.score, _specificity(m)),
+        reverse=True,
+    )
 
     best = all_matches[0] if all_matches and all_matches[0].is_viable else None
 
