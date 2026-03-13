@@ -184,7 +184,9 @@ cython_debug/
 *.sqlite
 *.db
 .streamlit/
-data/
+data/cache/snapshots/
+data/raw/
+data/uploads/
 ollama_models/
 .cursorignore
 .cursorindexingignore
