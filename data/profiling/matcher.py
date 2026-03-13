@@ -9,7 +9,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from data.profiling.profiler import DatasetProfile
-from visualization.templates.definitions import (
+from data.profiling.template_definitions import (
     DatasetTemplate,
     TemplateType,
     ALL_TEMPLATES,
