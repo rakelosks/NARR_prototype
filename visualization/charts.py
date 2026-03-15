@@ -11,7 +11,43 @@ from pydantic import BaseModel, Field
 
 from data.profiling.template_definitions import TemplateType, TEMPLATE_MAP
 
+from datetime import datetime
+
 logger = logging.getLogger(__name__)
+
+
+def _infer_time_unit(metrics: dict) -> str | None:
+    """
+    Infer the Vega-Lite timeUnit from date_range and total_periods.
+
+    Returns a timeUnit string (e.g. 'yearmonth', 'yearmonthdate', 'year')
+    or None if indeterminate.
+    """
+    date_range = metrics.get("date_range", {})
+    total_periods = metrics.get("total_periods", 0)
+    if not date_range or total_periods < 2:
+        return None
+
+    try:
+        min_dt = datetime.fromisoformat(str(date_range["min"]))
+        max_dt = datetime.fromisoformat(str(date_range["max"]))
+    except (ValueError, KeyError):
+        return None
+
+    span_days = (max_dt - min_dt).days
+    if span_days == 0:
+        return None
+
+    avg_gap_days = span_days / (total_periods - 1)
+
+    if avg_gap_days >= 300:        # ~yearly
+        return "year"
+    elif avg_gap_days >= 20:       # ~monthly
+        return "yearmonth"
+    elif avg_gap_days >= 5:        # ~weekly
+        return "yearmonthdate"
+    else:                          # daily or finer
+        return "yearmonthdate"
 
 
 # ---------------------------------------------------------------------------
@@ -203,6 +239,7 @@ def generate_spec(
         "scatter": _gen_scatter_spec,
         "map": _gen_point_map_spec,
         "bubble_map": _gen_bubble_map_spec,
+        "choropleth": _gen_bubble_map_spec,  # fallback until GeoJSON topology is supported
         "heatmap": _gen_heatmap_spec,
     }
 
@@ -236,11 +273,17 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
     measure_cols = metrics.get("measure_columns", [])
     group_col = columns.get("series_group")
 
+    # Build x-axis encoding with proper timeUnit for clean labels
+    x_enc = {"field": time_col, "type": "temporal", "title": time_col}
+    time_unit = _infer_time_unit(metrics)
+    if time_unit:
+        x_enc["timeUnit"] = time_unit
+
     if group_col and len(measure_cols) == 1:
         # Multi-series: color by group
         spec["mark"] = {"type": "line", "point": True, "tooltip": True}
         spec["encoding"] = {
-            "x": {"field": time_col, "type": "temporal", "title": time_col},
+            "x": x_enc,
             "y": {"field": measure_cols[0], "type": "quantitative", "title": measure_cols[0]},
             "color": {"field": group_col, "type": "nominal", "title": group_col},
         }
@@ -251,15 +294,16 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
         ]
         spec["mark"] = {"type": "line", "point": True, "tooltip": True}
         spec["encoding"] = {
-            "x": {"field": time_col, "type": "temporal", "title": time_col},
+            "x": x_enc,
             "y": {"field": "value", "type": "quantitative", "title": "Value"},
             "color": {"field": "measure", "type": "nominal", "title": "Measure"},
         }
     else:
+        y_field = measure_cols[0] if measure_cols else ""
         spec["mark"] = {"type": "line", "point": True, "tooltip": True}
         spec["encoding"] = {
-            "x": {"field": time_col, "type": "temporal", "title": time_col},
-            "y": {"field": measure_cols[0] if measure_cols else "", "type": "quantitative"},
+            "x": x_enc,
+            "y": {"field": y_field, "type": "quantitative", "title": y_field},
         }
 
     return spec
@@ -271,10 +315,24 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
     cat_col = columns.get("category", columns.get("time_axis", ""))
     measure_cols = metrics.get("measure_columns", [])
 
+    # Detect if x-axis is temporal (time-series shown as bars)
+    is_temporal = "time_axis" in columns and cat_col == columns["time_axis"]
+    time_unit = _infer_time_unit(metrics) if is_temporal else None
+
+    def _x_enc() -> dict:
+        """Build the x/y encoding for the category/time axis."""
+        if is_temporal:
+            enc = {"field": cat_col, "type": "temporal", "title": cat_col}
+            if time_unit:
+                enc["timeUnit"] = time_unit
+        else:
+            enc = {"field": cat_col, "type": "nominal", "title": cat_col}
+        return enc
+
     total_cats = metrics.get("total_categories", len(data))
 
-    if total_cats > 10:
-        # Horizontal bars for many categories
+    if not is_temporal and total_cats > 10:
+        # Horizontal bars for many categories (not for temporal data)
         spec["mark"] = {"type": "bar", "tooltip": True}
         spec["encoding"] = {
             "y": {"field": cat_col, "type": "nominal", "sort": "-x", "title": cat_col},
@@ -286,17 +344,21 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
             {"fold": measure_cols, "as": ["measure", "value"]}
         ]
         spec["mark"] = {"type": "bar", "tooltip": True}
-        spec["encoding"] = {
-            "x": {"field": cat_col, "type": "nominal", "title": cat_col},
+        enc = {
+            "x": _x_enc(),
             "y": {"field": "value", "type": "quantitative", "title": "Value"},
             "color": {"field": "measure", "type": "nominal"},
-            "xOffset": {"field": "measure"},
         }
+        # xOffset only works with nominal/ordinal x-axis, not temporal
+        if not is_temporal:
+            enc["xOffset"] = {"field": "measure"}
+        spec["encoding"] = enc
     else:
+        y_field = measure_cols[0] if measure_cols else ""
         spec["mark"] = {"type": "bar", "tooltip": True}
         spec["encoding"] = {
-            "x": {"field": cat_col, "type": "nominal", "title": cat_col},
-            "y": {"field": measure_cols[0] if measure_cols else "", "type": "quantitative"},
+            "x": _x_enc(),
+            "y": {"field": y_field, "type": "quantitative", "title": y_field},
         }
 
     return spec
@@ -321,16 +383,32 @@ def _gen_scatter_spec(data: list[dict], columns: dict, metrics: dict, title: str
     measure_cols = metrics.get("measure_columns", [])
     cat_col = columns.get("category")
 
-    x_field = measure_cols[0] if len(measure_cols) > 0 else ""
-    y_field = measure_cols[1] if len(measure_cols) > 1 else x_field
+    if len(measure_cols) >= 2:
+        x_field = measure_cols[0]
+        y_field = measure_cols[1]
+    elif len(measure_cols) == 1 and cat_col:
+        # Only 1 measure: use category on x, measure on y (dot strip)
+        x_field = None
+        y_field = measure_cols[0]
+    else:
+        x_field = measure_cols[0] if measure_cols else ""
+        y_field = x_field
 
     spec["mark"] = {"type": "circle", "tooltip": True, "size": 100}
-    spec["encoding"] = {
-        "x": {"field": x_field, "type": "quantitative"},
-        "y": {"field": y_field, "type": "quantitative"},
-    }
-    if cat_col:
-        spec["encoding"]["color"] = {"field": cat_col, "type": "nominal"}
+
+    if x_field is None:
+        # Dot strip: category vs measure
+        spec["encoding"] = {
+            "x": {"field": cat_col, "type": "nominal", "title": cat_col},
+            "y": {"field": y_field, "type": "quantitative", "title": y_field},
+        }
+    else:
+        spec["encoding"] = {
+            "x": {"field": x_field, "type": "quantitative", "title": x_field},
+            "y": {"field": y_field, "type": "quantitative", "title": y_field},
+        }
+        if cat_col:
+            spec["encoding"]["color"] = {"field": cat_col, "type": "nominal", "title": cat_col}
 
     return spec
 
@@ -338,9 +416,10 @@ def _gen_scatter_spec(data: list[dict], columns: dict, metrics: dict, title: str
 def _gen_point_map_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
     """Generate a point map spec."""
     spec = _base_spec(data, title)
-    lat_col = metrics.get("lat_column", "latitude")
-    lon_col = metrics.get("lon_column", "longitude")
-    cat_col = metrics.get("category_column")
+    # Prefer columns dict, fall back to metrics for lat/lon/category
+    lat_col = columns.get("latitude", metrics.get("lat_column", "latitude"))
+    lon_col = columns.get("longitude", metrics.get("lon_column", "longitude"))
+    cat_col = columns.get("category", metrics.get("category_column"))
 
     spec["mark"] = {"type": "circle", "tooltip": True, "size": 80}
     spec["encoding"] = {
@@ -348,7 +427,7 @@ def _gen_point_map_spec(data: list[dict], columns: dict, metrics: dict, title: s
         "latitude": {"field": lat_col, "type": "quantitative"},
     }
     if cat_col:
-        spec["encoding"]["color"] = {"field": cat_col, "type": "nominal"}
+        spec["encoding"]["color"] = {"field": cat_col, "type": "nominal", "title": cat_col}
 
     # Map projection
     spec["projection"] = {"type": "mercator"}
@@ -383,9 +462,9 @@ def _gen_heatmap_spec(data: list[dict], columns: dict, metrics: dict, title: str
     ]
     spec["mark"] = {"type": "rect", "tooltip": True}
     spec["encoding"] = {
-        "x": {"field": "measure", "type": "nominal"},
-        "y": {"field": cat_col, "type": "nominal"},
-        "color": {"field": "value", "type": "quantitative", "scale": {"scheme": "blues"}},
+        "x": {"field": "measure", "type": "nominal", "title": "Measure"},
+        "y": {"field": cat_col, "type": "nominal", "title": cat_col},
+        "color": {"field": "value", "type": "quantitative", "scale": {"scheme": "blues"}, "title": "Value"},
     }
 
     return spec
