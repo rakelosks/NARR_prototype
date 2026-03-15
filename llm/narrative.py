@@ -238,10 +238,11 @@ class NarrativeGenerator:
     def __init__(
         self,
         llm_provider: LLMProvider,
+        intent_llm_provider: Optional[LLMProvider] = None,
         max_retries: int = 2,
     ):
         self.llm = llm_provider
-        self.intent_parser = IntentParser(llm_provider)
+        self.intent_parser = IntentParser(intent_llm_provider or llm_provider)
         self.prompt_assembler = PromptAssembler()
         self.validator = OutputValidator()
         self.max_retries = max_retries
@@ -364,17 +365,19 @@ async def generate_narrative(
     llm_provider: LLMProvider,
     bundle: EvidenceBundle,
     user_message: Optional[str] = None,
+    intent_llm_provider: Optional[LLMProvider] = None,
 ) -> GenerationResult:
     """
     Convenience function for one-shot narrative generation.
 
     Args:
-        llm_provider: The LLM provider to use.
+        llm_provider: The LLM provider to use for generation.
         bundle: Evidence bundle.
         user_message: Optional user question.
+        intent_llm_provider: Optional separate provider for intent parsing.
 
     Returns:
         GenerationResult.
     """
-    generator = NarrativeGenerator(llm_provider)
+    generator = NarrativeGenerator(llm_provider, intent_llm_provider=intent_llm_provider)
     return await generator.generate(bundle, user_message=user_message)

@@ -254,7 +254,8 @@ async def test_live_intent_parsing():
     print("=" * 60)
 
     from llm.providers.ollama import OllamaProvider
-    provider = OllamaProvider()
+    from config import settings
+    provider = OllamaProvider(model=settings.ollama_intent_model)
     parser = IntentParser(provider)
 
     test_queries = [
@@ -284,8 +285,10 @@ async def test_live_narrative_generation():
     print("=" * 60)
 
     from llm.providers.ollama import OllamaProvider
-    provider = OllamaProvider()
-    generator = NarrativeGenerator(provider, max_retries=2)
+    from config import settings
+    intent_provider = OllamaProvider(model=settings.ollama_intent_model)
+    generation_provider = OllamaProvider(model=settings.ollama_generation_model)
+    generator = NarrativeGenerator(generation_provider, intent_llm_provider=intent_provider, max_retries=2)
 
     bundle, _ = make_sample_bundle()
 

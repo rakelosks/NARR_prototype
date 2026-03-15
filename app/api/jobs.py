@@ -102,11 +102,11 @@ async def run_generation_job(job_id: str):
         # Try LLM generation
         pkg_builder = PackageBuilder()
         try:
-            from llm.interface import get_provider
+            from llm.interface import get_providers
             from llm.narrative import NarrativeGenerator
 
-            provider = get_provider()
-            generator = NarrativeGenerator(provider)
+            intent_provider, generation_provider = get_providers()
+            generator = NarrativeGenerator(generation_provider, intent_llm_provider=intent_provider)
             result = await generator.generate(bundle, user_message=job.user_message)
 
             if result.success:

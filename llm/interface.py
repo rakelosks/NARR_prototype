@@ -31,3 +31,25 @@ def get_provider(provider_name: str = "ollama", **kwargs) -> LLMProvider:
         return OpenAIProvider(**kwargs)
     else:
         raise ValueError(f"Unknown provider: {provider_name}")
+
+
+def get_providers() -> tuple[LLMProvider, LLMProvider]:
+    """
+    Get separate LLM providers for intent parsing and narrative generation.
+
+    Returns:
+        (intent_provider, generation_provider)
+    """
+    from config import settings
+
+    intent = get_provider(
+        settings.llm_provider,
+        base_url=settings.ollama_base_url,
+        model=settings.ollama_intent_model,
+    )
+    generation = get_provider(
+        settings.llm_provider,
+        base_url=settings.ollama_base_url,
+        model=settings.ollama_generation_model,
+    )
+    return intent, generation
