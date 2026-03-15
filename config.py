@@ -20,6 +20,9 @@ class Settings:
     ollama_base_url: str = "http://localhost:11434"
     ollama_intent_model: str = "qwen3:4b"
     ollama_generation_model: str = "qwen3:8b"
+    ollama_intent_think: bool = False      # thinking off for fast intent parsing
+    ollama_generation_think: bool = True   # thinking on for richer narratives
+    ollama_timeout: float = 300.0          # seconds per request
     openai_api_key: str = ""
 
     # Storage

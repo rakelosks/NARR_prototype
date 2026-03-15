@@ -45,7 +45,7 @@ def api_get(path: str, params: dict = None) -> dict | None:
 def api_post(path: str, data: dict) -> dict | None:
     """POST request to the API."""
     try:
-        r = requests.post(f"{API_BASE}{path}", json=data, timeout=120)
+        r = requests.post(f"{API_BASE}{path}", json=data, timeout=360)
         r.raise_for_status()
         return r.json()
     except requests.ConnectionError:

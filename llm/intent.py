@@ -159,7 +159,9 @@ class IntentParser:
         prompt = build_intent_prompt(user_message)
 
         try:
-            raw_output = await self.llm.generate(
+            # Use JSON format mode if available (much faster with thinking models)
+            generate_fn = getattr(self.llm, "generate_json", self.llm.generate)
+            raw_output = await generate_fn(
                 prompt=prompt,
                 system_prompt=INTENT_SYSTEM_PROMPT,
             )

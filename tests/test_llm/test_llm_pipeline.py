@@ -1,19 +1,20 @@
 """
-Test script for the LLM narrative generation pipeline.
-Run from project root: python -m tests.test_llm_pipeline
+Offline tests for the LLM narrative generation pipeline.
+Run from project root: python -m tests.test_llm.test_llm_pipeline
 
 Tests intent parsing, prompt assembly, output validation,
-and (optionally) live narrative generation with Ollama.
+and LLM context formatting — all without needing a running LLM.
 
-Offline tests run without an LLM. Live tests require Ollama running.
+For live tests see:
+  python -m tests.test_llm.test_intent
+  python -m tests.test_llm.test_narrative
 """
 
-import asyncio
 import json
 import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import pandas as pd
 
@@ -30,7 +31,6 @@ from llm.prompts import PromptAssembler
 from llm.narrative import (
     OutputValidator,
     GeneratedNarrative,
-    NarrativeGenerator,
 )
 
 
@@ -244,111 +244,27 @@ def test_llm_context_format():
 
 
 # ---------------------------------------------------------------------------
-# Live tests (require Ollama running)
-# ---------------------------------------------------------------------------
-
-async def test_live_intent_parsing():
-    """Test intent parsing with a live LLM."""
-    print("\n" + "=" * 60)
-    print("TEST: Live intent parsing (requires Ollama)")
-    print("=" * 60)
-
-    from llm.providers.ollama import OllamaProvider
-    from config import settings
-    provider = OllamaProvider(model=settings.ollama_intent_model)
-    parser = IntentParser(provider)
-
-    test_queries = [
-        "How has the city budget changed over the last 3 years?",
-        "Compare complaint rates across districts",
-        "Where are the swimming pools located in Reykjavik?",
-    ]
-
-    for query in test_queries:
-        print(f"\n  Query: '{query}'")
-        result = await parser.parse(query)
-        if result.success:
-            print(f"    Analysis type: {result.intent.analysis_type.value}")
-            print(f"    Dataset query: {result.intent.dataset_query}")
-            print(f"    Focus columns: {result.intent.focus_columns}")
-        else:
-            print(f"    Failed (using fallback): {result.error}")
-            print(f"    Fallback type: {result.intent.analysis_type.value}")
-
-    print("\n  Live intent parsing tests complete ✓")
-
-
-async def test_live_narrative_generation():
-    """Test full narrative generation with a live LLM."""
-    print("\n" + "=" * 60)
-    print("TEST: Live narrative generation (requires Ollama)")
-    print("=" * 60)
-
-    from llm.providers.ollama import OllamaProvider
-    from config import settings
-    intent_provider = OllamaProvider(model=settings.ollama_intent_model)
-    generation_provider = OllamaProvider(model=settings.ollama_generation_model)
-    generator = NarrativeGenerator(generation_provider, intent_llm_provider=intent_provider, max_retries=2)
-
-    bundle, _ = make_sample_bundle()
-
-    result = await generator.generate(
-        bundle,
-        user_message="How has the city budget changed over time?",
-    )
-
-    print(f"  Success: {result.success}")
-    print(f"  Attempts: {result.attempts}")
-    if result.success and result.narrative:
-        print(f"  Title: {result.narrative.title}")
-        print(f"  Summary: {result.narrative.summary}")
-        print(f"  Sections: {len(result.narrative.sections)}")
-        for s in result.narrative.sections:
-            print(f"    - {s.heading}: {s.body[:80]}...")
-        print(f"  Limitations: {result.narrative.data_limitations}")
-        print(f"  Follow-up: {result.narrative.suggested_followup}")
-    else:
-        print(f"  Error: {result.error}")
-        if result.validation:
-            print(f"  Validation errors: {result.validation.errors}")
-            print(f"  Raw output: {result.validation.raw_output[:300]}...")
-
-    print("\n  Live narrative generation test complete ✓")
-
-
-# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
-async def main():
+def main():
     print("=" * 60)
-    print("LLM NARRATIVE PIPELINE TESTS")
+    print("LLM PIPELINE OFFLINE TESTS")
     print("=" * 60)
 
-    # Offline tests (always run)
     test_intent_models()
     test_prompt_assembly()
     test_output_validation()
     test_llm_context_format()
 
-    # Live tests (only if Ollama is running)
-    run_live = "--live" in sys.argv
-    if run_live:
-        print("\n\n>>> Running LIVE tests (Ollama required) <<<")
-        try:
-            await test_live_intent_parsing()
-            await test_live_narrative_generation()
-        except Exception as e:
-            print(f"\n  Live test failed: {e}")
-            print("  Make sure Ollama is running: ollama serve")
-    else:
-        print("\n\nSkipping live tests. Run with --live flag to test with Ollama:")
-        print("  python -m tests.test_llm_pipeline --live")
-
     print("\n" + "=" * 60)
-    print("ALL TESTS PASSED")
+    print("ALL OFFLINE TESTS PASSED")
     print("=" * 60)
+
+    print("\nFor live tests run separately:")
+    print("  python -m tests.test_llm.test_intent      # intent parsing")
+    print("  python -m tests.test_llm.test_narrative    # narrative generation")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

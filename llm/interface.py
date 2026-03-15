@@ -46,10 +46,14 @@ def get_providers() -> tuple[LLMProvider, LLMProvider]:
         settings.llm_provider,
         base_url=settings.ollama_base_url,
         model=settings.ollama_intent_model,
+        think=settings.ollama_intent_think,
+        timeout=settings.ollama_timeout,
     )
     generation = get_provider(
         settings.llm_provider,
         base_url=settings.ollama_base_url,
         model=settings.ollama_generation_model,
+        think=settings.ollama_generation_think,
+        timeout=settings.ollama_timeout,
     )
     return intent, generation
