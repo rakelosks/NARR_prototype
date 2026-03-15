@@ -7,6 +7,7 @@ Uses pandas for initial profiling and DuckDB for aggregate statistics
 on larger datasets.
 """
 
+import re
 import logging
 from typing import Optional
 from datetime import datetime
@@ -119,7 +120,86 @@ class DatasetProfile(BaseModel):
 GEO_KEYWORDS = {
     "lat", "lon", "lng", "latitude", "longitude",
     "geom", "geometry", "wkt", "coord", "x_coord", "y_coord",
+    "x", "y",
 }
+
+_CAMEL_SPLIT = re.compile(r"(?<=[a-z])(?=[A-Z])")
+
+
+def _column_name_words(col_name: str) -> set[str]:
+    """
+    Split a column name into a set of lowercase word tokens.
+
+    Handles common separators (_, -, ., whitespace) and camelCase.
+    E.g. "myLatitude_value" → {"my", "latitude", "value"}
+         "flat_rate" → {"flat", "rate"}
+    """
+    # Split camelCase first
+    expanded = _CAMEL_SPLIT.sub("_", col_name)
+    # Split on _, -, ., whitespace
+    tokens = re.split(r"[_\-.\s]+", expanded.lower())
+    return {t for t in tokens if t}
+
+
+# Keywords that suggest a column is an ID, not a measure
+_ID_KEYWORDS = {"id", "index", "idx", "key", "code", "nr", "num", "number", "pk"}
+
+# Keywords that override ID detection (these are real measures)
+_MEASURE_KEYWORDS = {
+    "amount", "count", "total", "value", "budget", "spending", "revenue",
+    "rate", "score", "price", "cost", "salary", "income", "population",
+    "quantity", "sum", "avg", "average", "median", "percent", "percentage",
+}
+
+# Keywords for year-like column names
+_YEAR_KEYWORDS = {"year", "yr", "anno", "aar"}
+
+
+def is_viable_measure(series: pd.Series, col_name: str, total_rows: int) -> bool:
+    """
+    Check whether a numerical column is a viable measure for charting.
+
+    Returns False for ID columns, boolean/binary columns, constant columns,
+    and columns with very high null rates.
+    """
+    clean = series.dropna()
+    n_clean = len(clean)
+
+    # High null rate (>80%)
+    if total_rows > 0 and (total_rows - n_clean) / total_rows > 0.8:
+        return False
+
+    if n_clean == 0:
+        return False
+
+    nunique = clean.nunique()
+
+    # Constant column (no variance)
+    if nunique <= 1:
+        return False
+
+    # Boolean/binary (only 2 unique values that are 0/1 or True/False)
+    if nunique == 2:
+        unique_vals = set(clean.unique())
+        if unique_vals <= {0, 1, True, False, 0.0, 1.0}:
+            return False
+
+    # ID detection
+    words = _column_name_words(col_name)
+
+    # If name contains measure-like words, it's a real measure
+    if words & _MEASURE_KEYWORDS:
+        return True
+
+    # If name contains ID-like words, it's not a measure
+    if words & _ID_KEYWORDS:
+        return False
+
+    # High cardinality with no repeats → likely an ID/index
+    if total_rows > 10 and nunique / total_rows > 0.95:
+        return False
+
+    return True
 
 
 def infer_semantic_type(series: pd.Series, col_name: str) -> str:
@@ -129,9 +209,10 @@ def infer_semantic_type(series: pd.Series, col_name: str) -> str:
     Returns one of: numerical, categorical, temporal, geospatial
     """
     col_lower = col_name.lower().strip()
+    words = _column_name_words(col_lower)
 
-    # Geospatial by name
-    if col_lower in GEO_KEYWORDS or any(kw in col_lower for kw in GEO_KEYWORDS):
+    # Geospatial by name (word-boundary matching, not substring)
+    if words & GEO_KEYWORDS:
         return "geospatial"
 
     # Check for geometry objects (dicts with 'type' and 'coordinates')
@@ -148,6 +229,16 @@ def infer_semantic_type(series: pd.Series, col_name: str) -> str:
 
     # Numeric
     if pd.api.types.is_numeric_dtype(series):
+        # Check if this looks like a year column (integers in 1900-2100)
+        if pd.api.types.is_integer_dtype(series):
+            clean = series.dropna()
+            if len(clean) > 0:
+                vals = clean.astype(int)
+                name_hints = bool(words & _YEAR_KEYWORDS)
+                in_year_range = int(vals.min()) >= 1900 and int(vals.max()) <= 2100
+                few_unique = clean.nunique() < 200
+                if in_year_range and (name_hints or few_unique):
+                    return "temporal"
         return "numerical"
 
     # String columns — check if temporal
@@ -164,7 +255,7 @@ def _looks_temporal(series: pd.Series, col_name: str) -> bool:
         "date", "time", "timestamp", "created", "modified",
         "updated", "year", "month", "day", "period",
     }
-    if any(kw in col_name for kw in date_keywords):
+    if _column_name_words(col_name) & date_keywords:
         return True
 
     sample = series.dropna().head(30)
@@ -277,8 +368,9 @@ def _profile_geospatial(series: pd.Series, col_name: str) -> GeospatialStats:
 
     # Numeric lat/lon
     if pd.api.types.is_numeric_dtype(series):
-        is_lat = any(kw in col_lower for kw in {"lat", "latitude", "y_coord"})
-        is_lon = any(kw in col_lower for kw in {"lon", "lng", "longitude", "x_coord"})
+        words = _column_name_words(col_lower)
+        is_lat = bool(words & {"lat", "latitude", "y_coord", "y"})
+        is_lon = bool(words & {"lon", "lng", "longitude", "x_coord", "x"})
 
         vals = clean.astype(float)
         if is_lat:

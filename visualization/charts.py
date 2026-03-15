@@ -330,14 +330,26 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
         return enc
 
     total_cats = metrics.get("total_categories", len(data))
+    MAX_CHART_CATEGORIES = 30
 
     if not is_temporal and total_cats > 10:
         # Horizontal bars for many categories (not for temporal data)
+        measure_field = measure_cols[0] if measure_cols else ""
         spec["mark"] = {"type": "bar", "tooltip": True}
         spec["encoding"] = {
             "y": {"field": cat_col, "type": "nominal", "sort": "-x", "title": cat_col},
-            "x": {"field": measure_cols[0] if measure_cols else "", "type": "quantitative"},
+            "x": {"field": measure_field, "type": "quantitative"},
         }
+        # Cap to top N categories for readability
+        if total_cats > MAX_CHART_CATEGORIES and measure_field:
+            spec["transform"] = [
+                {
+                    "window": [{"op": "rank", "as": "_rank"}],
+                    "sort": [{"field": measure_field, "order": "descending"}],
+                },
+                {"filter": f"datum._rank <= {MAX_CHART_CATEGORIES}"},
+            ]
+            spec["title"] = f"{spec.get('title', '')} (top {MAX_CHART_CATEGORIES})"
     elif len(measure_cols) > 1:
         # Grouped bars
         spec["transform"] = [

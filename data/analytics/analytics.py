@@ -318,8 +318,12 @@ class AnalyticsEngine:
         dataset_id: str,
         columns: dict[str, str],
     ) -> AnalyticsResult:
-        # Find lat/lon columns
-        lat_col, lon_col, geom_col = self._find_geo_columns(df)
+        # Use matcher-provided columns first, fall back to name scan
+        lat_col = columns.get("latitude")
+        lon_col = columns.get("longitude")
+        geom_col = columns.get("geometry")
+        if not lat_col and not lon_col and not geom_col:
+            lat_col, lon_col, geom_col = self._find_geo_columns(df)
         measure_col = columns.get("measure")
         category_col = columns.get("category")
 
@@ -387,28 +391,36 @@ class AnalyticsEngine:
     # ------------------------------------------------------------------
 
     def _find_measure_columns(self, df: pd.DataFrame, columns: dict) -> list[str]:
-        """Find all numerical columns suitable as measures."""
-        from data.profiling.profiler import infer_semantic_type
+        """Find all numerical columns suitable as measures.
 
+        Filters out ID columns, boolean/binary columns, constant columns,
+        and columns with very high null rates.
+        """
+        from data.profiling.profiler import infer_semantic_type, is_viable_measure
+
+        total_rows = len(df)
         measures = []
         for col in df.columns:
             if infer_semantic_type(df[col], col) == "numerical":
-                measures.append(col)
+                if is_viable_measure(df[col], col, total_rows):
+                    measures.append(col)
         return measures
 
     def _find_geo_columns(self, df: pd.DataFrame) -> tuple[Optional[str], Optional[str], Optional[str]]:
         """Find latitude, longitude, and geometry columns."""
+        from data.profiling.profiler import _column_name_words
+
         lat_col = None
         lon_col = None
         geom_col = None
 
         for col in df.columns:
-            col_lower = col.lower()
-            if any(kw in col_lower for kw in {"lat", "latitude", "y_coord"}):
+            words = _column_name_words(col)
+            if words & {"lat", "latitude", "y_coord"}:
                 lat_col = col
-            elif any(kw in col_lower for kw in {"lon", "lng", "longitude", "x_coord"}):
+            elif words & {"lon", "lng", "longitude", "x_coord"}:
                 lon_col = col
-            elif any(kw in col_lower for kw in {"geom", "geometry", "wkt"}):
+            elif words & {"geom", "geometry", "wkt"}:
                 geom_col = col
 
         return lat_col, lon_col, geom_col

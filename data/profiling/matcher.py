@@ -8,7 +8,7 @@ import logging
 from typing import Optional
 from pydantic import BaseModel, Field
 
-from data.profiling.profiler import DatasetProfile
+from data.profiling.profiler import DatasetProfile, _column_name_words
 from data.profiling.template_definitions import (
     DatasetTemplate,
     TemplateType,
@@ -125,7 +125,7 @@ def _score_template(profile: DatasetProfile, template: DatasetTemplate) -> Templ
     else:
         score = 0.0
 
-    return TemplateMatch(
+    match = TemplateMatch(
         template_id=template.id,
         template_name=template.name,
         score=round(score, 3),
@@ -134,15 +134,92 @@ def _score_template(profile: DatasetProfile, template: DatasetTemplate) -> Templ
         is_viable=is_viable,
     )
 
+    # Geospatial: resolve generic "location" into lat/lon or geometry
+    if template.id == TemplateType.GEOSPATIAL:
+        match = _enrich_geospatial_match(profile, match)
+
+    return match
+
+
+ROLE_NAME_HINTS: dict[str, set[str]] = {
+    "measure": {
+        "amount", "count", "total", "value", "budget", "spending", "revenue",
+        "population", "score", "price", "cost", "rate", "salary", "income",
+        "quantity", "sum", "avg", "average",
+    },
+    "time_axis": {
+        "date", "time", "timestamp", "period", "year", "month", "day",
+        "created", "updated",
+    },
+    "category": {
+        "type", "category", "group", "class", "district", "department",
+        "region", "name", "status", "sector",
+    },
+    "location": {
+        "lat", "lon", "lng", "latitude", "longitude", "geom", "geometry",
+        "coord", "location",
+    },
+}
+
 
 def _pick_best_candidate(candidates: list, role: str):
     """
     Pick the best column candidate for a given role.
-    Prefers columns with lower null rates and names that
-    hint at the role.
+
+    Scores by:
+      - Name hint bonus (-0.5 if column name words match the role's hints)
+      - Null rate (lower is better)
     """
-    # Simple heuristic: prefer lower null rate
-    return min(candidates, key=lambda c: c.null_rate)
+    hints = ROLE_NAME_HINTS.get(role, set())
+
+    def _score(col):
+        name_bonus = -0.5 if (hints & _column_name_words(col.name)) else 0
+        return col.null_rate + name_bonus
+
+    return min(candidates, key=_score)
+
+
+def _enrich_geospatial_match(
+    profile: DatasetProfile,
+    match: TemplateMatch,
+) -> TemplateMatch:
+    """
+    Post-process a geospatial match to resolve lat/lon pair vs geometry column.
+
+    Replaces the generic "location" role with specific "latitude"/"longitude"
+    or "geometry" roles based on column name analysis.
+    """
+    geo_cols = [c for c in profile.columns if c.semantic_type == "geospatial"]
+
+    lat_kw = {"lat", "latitude", "y_coord", "y"}
+    lon_kw = {"lon", "lng", "longitude", "x_coord", "x"}
+    geom_kw = {"geom", "geometry", "wkt"}
+
+    lat_col = lon_col = geom_col = None
+    for col in geo_cols:
+        words = _column_name_words(col.name)
+        if words & lat_kw:
+            lat_col = col.name
+        elif words & lon_kw:
+            lon_col = col.name
+        elif words & geom_kw:
+            geom_col = col.name
+
+    # Build new column mapping, removing generic "location"
+    new_columns = {k: v for k, v in match.matched_columns.items() if k != "location"}
+
+    if lat_col and lon_col:
+        new_columns["latitude"] = lat_col
+        new_columns["longitude"] = lon_col
+        match.matched_columns = new_columns
+        match.is_viable = True
+    elif geom_col:
+        new_columns["geometry"] = geom_col
+        match.matched_columns = new_columns
+        match.is_viable = True
+    # else: keep whatever the standard matching produced
+
+    return match
 
 
 # ---------------------------------------------------------------------------
