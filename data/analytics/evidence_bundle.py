@@ -64,6 +64,10 @@ class EvidenceBundle(BaseModel):
         default_factory=dict,
         description="Template role → column name mapping",
     )
+    all_columns: dict[str, str] = Field(
+        default_factory=dict,
+        description="All column names → semantic type",
+    )
 
     # Analytics
     metrics: dict = Field(default_factory=dict)
@@ -86,9 +90,15 @@ class EvidenceBundle(BaseModel):
             f"Size: {self.row_count} rows × {self.column_count} columns",
             f"Column types: {self.column_summary}",
             f"Mapped columns: {self.matched_columns}",
-            "",
-            "--- Metrics ---",
         ]
+
+        # List all columns so the LLM knows about every field in the data
+        if self.all_columns:
+            lines.append("All columns:")
+            for col_name, col_type in self.all_columns.items():
+                lines.append(f"  - {col_name} ({col_type})")
+
+        lines.extend(["", "--- Metrics ---"])
 
         # Format metrics based on template type
         if self.template_type == "time_series":
@@ -267,6 +277,8 @@ class BundleBuilder:
         )
 
         # Step 5: Assemble the bundle
+        all_columns = {col.name: col.semantic_type for col in profile.columns}
+
         bundle = EvidenceBundle(
             dataset_id=match.dataset_id,
             source=profile.source,
@@ -275,6 +287,7 @@ class BundleBuilder:
             column_count=profile.column_count,
             column_summary=profile.column_types_summary,
             matched_columns=columns,
+            all_columns=all_columns,
             metrics=analytics_result.metrics,
             visualizations=visualizations,
             narrative_context=narrative_context,

@@ -144,26 +144,18 @@ NARRATIVE_OUTPUT_SCHEMA = {
     "story_blocks": [
         {
             "type": "narrative",
-            "heading": "Section heading describing the insight",
+            "heading": "Section heading describing the first key insight",
             "body": "2-4 sentences introducing and explaining the chart. Describe the pattern the reader should notice.",
             "viz_index": 0,
         },
         {
-            "type": "timeline",
-            "heading": "Timeline heading (optional block — only include if data suggests clear milestones)",
-            "milestones": [
-                {"label": "2009", "description": "What happened this year"},
-                {"label": "2015", "description": "What happened this year"},
-            ],
-        },
-        {
-            "type": "callout",
-            "body": "A sentence explaining the highlighted stat",
-            "highlight_value": "35%",
-            "highlight_label": "Short label for the stat",
+            "type": "narrative",
+            "heading": "Section heading describing the second insight",
+            "body": "2-4 sentences introducing and explaining the chart.",
+            "viz_index": 1,
         },
     ],
-    "data_note": "Brief note on any data limitations (or empty string if none)",
+    "data_note": "Brief note on data limitations, or empty string if none obvious",
     "followup_question": "One suggested follow-up question for the reader",
 }
 
@@ -184,23 +176,30 @@ STORY STRUCTURE — follow this carefully:
       - body: 2-4 sentences that INTRODUCE and EXPLAIN the chart. Describe
         what the chart shows and what pattern to notice BEFORE the reader
         sees it. This is the most important part.
-      - viz_index: which chart to show (0 = primary, 1 = secondary, or omit
-        if no chart accompanies this block). Each chart should only be
-        referenced once.
+      - viz_index: REQUIRED when charts are available. Assign each available
+        chart to exactly one narrative block. The chart appears directly
+        after the body text. Use 0 for the primary chart, 1 for the
+        secondary chart, etc.
 
    b) "timeline" block (optional, max 1):
-      - Only include if the data suggests clear milestones, policy changes,
+      - Only include if the data clearly suggests milestones, policy changes,
         or turning points. Do NOT invent milestones — only use if the data
         or context supports it.
       - milestones: at least 2 entries with label (year/date) and description.
 
-   c) "callout" block (optional, max 1):
-      - For the single most striking number or finding.
+   c) "callout" block (optional — OMIT unless there is a genuinely striking
+      standalone statistic worth highlighting):
+      - Only include if there is a number that is surprising or important
+        enough to stand on its own. Do NOT force a callout for every story.
+      - Can appear anywhere in the block sequence, not just at the end.
       - highlight_value: the number/percentage (e.g. "35%", "150 kg")
       - highlight_label: short label (e.g. "decrease since 2005")
       - body: one sentence of context.
 
 4. DATA NOTE: Brief mention of limitations, or empty string if none obvious.
+   IMPORTANT: Do NOT claim the data is "single-period" or "cross-sectional"
+   if the column types include date or temporal columns — check the column
+   information provided.
 
 5. FOLLOWUP QUESTION: One question the reader might want to explore next.
 """
