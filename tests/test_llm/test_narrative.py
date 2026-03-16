@@ -83,15 +83,18 @@ async def main():
     print(f"  Time:     {elapsed:.1f}s")
 
     if result.success and result.narrative:
-        print(f"  Title:    {result.narrative.title}")
-        print(f"  Summary:  {result.narrative.summary[:120]}...")
-        print(f"  Sections: {len(result.narrative.sections)}")
-        for s in result.narrative.sections:
-            print(f"    - {s.heading}: {s.body[:80]}...")
-        if result.narrative.data_limitations:
-            print(f"  Limitations: {result.narrative.data_limitations[:100]}...")
-        if result.narrative.suggested_followup:
-            print(f"  Follow-up:   {result.narrative.suggested_followup[:100]}...")
+        print(f"  Headline:      {result.narrative.headline}")
+        print(f"  Lede:          {result.narrative.lede[:120]}...")
+        print(f"  Story blocks:  {len(result.narrative.story_blocks)}")
+        for b in result.narrative.story_blocks:
+            heading = b.heading or b.type
+            body_preview = (b.body or "")[:80]
+            viz_tag = f" [chart {b.viz_index}]" if b.viz_index is not None else ""
+            print(f"    - [{b.type}] {heading}: {body_preview}...{viz_tag}")
+        if result.narrative.data_note:
+            print(f"  Data note:     {result.narrative.data_note[:100]}...")
+        if result.narrative.followup_question:
+            print(f"  Follow-up:     {result.narrative.followup_question[:100]}...")
         print("\n" + "=" * 60)
         print("NARRATIVE GENERATION PASSED ✓")
         print("=" * 60)

@@ -6,6 +6,7 @@ Run with: uvicorn app.main:app --reload
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from config import settings
 from app.api.datasets import router as datasets_router
 from app.api.narratives import router as narratives_router
 from app.api.visualizations import router as visualizations_router
@@ -36,4 +37,8 @@ app.include_router(jobs_router)
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "portal_url": settings.ckan_portal_url,
+        "portal_language": settings.ckan_portal_language,
+    }

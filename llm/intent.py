@@ -67,6 +67,10 @@ class UserIntent(BaseModel):
         default="en",
         description="Language for the narrative output (ISO 639-1 code).",
     )
+    dataset_query_local: Optional[str] = Field(
+        default=None,
+        description="The dataset_query translated to the portal's language for catalog search.",
+    )
     custom_question: Optional[str] = Field(
         default=None,
         description="The user's original question, preserved verbatim.",
@@ -97,8 +101,9 @@ Your job is to parse a user's natural language question into a structured JSON i
 
 You must respond with ONLY valid JSON matching this exact schema, no other text:
 
-{
-    "dataset_query": "keywords describing the dataset",
+{{
+    "dataset_query": "keywords describing the dataset in the user's language",
+    "dataset_query_local": "the same keywords translated to {portal_language}",
     "analysis_type": "trend|comparison|distribution|summary|spatial|correlation",
     "focus_columns": ["column1", "column2"],
     "time_range": "time period or null",
@@ -106,10 +111,16 @@ You must respond with ONLY valid JSON matching this exact schema, no other text:
     "audience": "citizen|policy|technical",
     "language": "en",
     "custom_question": "the user's original question"
-}
+}}
 
 Rules:
 - dataset_query: Extract the core data topic (e.g. "budget", "traffic", "air quality")
+- dataset_query_local: Translate the dataset_query keywords into {portal_language}.
+  This is used to search the city's open data catalog which is in {portal_language}.
+  Use natural terms a data publisher would use, not literal translations.
+  Example: if the user asks about "waste collection" and portal language is Icelandic,
+  use "úrgangur sorphirða" (not a word-for-word translation).
+  If the user's language already matches {portal_language}, copy dataset_query as-is.
 - analysis_type: Infer from the question:
   - "trend" for questions about change over time
   - "comparison" for questions comparing categories
@@ -123,9 +134,26 @@ Rules:
 - Respond ONLY with the JSON object, no markdown, no explanation"""
 
 
-def build_intent_prompt(user_message: str) -> str:
+# Map ISO 639-1 codes to language names for the prompt
+_LANGUAGE_NAMES: dict[str, str] = {
+    "is": "Icelandic", "en": "English", "es": "Spanish", "fr": "French",
+    "de": "German", "pt": "Portuguese", "it": "Italian", "nl": "Dutch",
+    "sv": "Swedish", "no": "Norwegian", "da": "Danish", "fi": "Finnish",
+    "pl": "Polish", "cs": "Czech", "ro": "Romanian", "hu": "Hungarian",
+    "el": "Greek", "tr": "Turkish", "ar": "Arabic", "zh": "Chinese",
+    "ja": "Japanese", "ko": "Korean", "hi": "Hindi", "th": "Thai",
+}
+
+
+def build_intent_prompt(user_message: str, portal_language: str = "en") -> str:
     """Build the prompt for intent parsing."""
     return f"Parse this user question into a structured intent:\n\n\"{user_message}\""
+
+
+def get_intent_system_prompt(portal_language: str = "en") -> str:
+    """Build the intent system prompt with the portal language filled in."""
+    lang_name = _LANGUAGE_NAMES.get(portal_language, portal_language)
+    return INTENT_SYSTEM_PROMPT.format(portal_language=lang_name)
 
 
 # ---------------------------------------------------------------------------
@@ -144,26 +172,29 @@ class IntentParser:
         """
         self.llm = llm_provider
 
-    async def parse(self, user_message: str) -> IntentParseResult:
+    async def parse(self, user_message: str, portal_language: str = "en") -> IntentParseResult:
         """
         Parse a user's natural language message into a structured intent.
 
         Args:
             user_message: The user's question or request.
+            portal_language: ISO 639-1 code for the portal's catalog language.
+                The parser will translate dataset_query into this language.
 
         Returns:
             IntentParseResult with the parsed intent or error.
         """
-        logger.info(f"Parsing intent from: '{user_message[:80]}...'")
+        logger.info(f"Parsing intent from: '{user_message[:80]}...' (portal_lang={portal_language})")
 
-        prompt = build_intent_prompt(user_message)
+        prompt = build_intent_prompt(user_message, portal_language)
+        system_prompt = get_intent_system_prompt(portal_language)
 
         try:
             # Use JSON format mode if available (much faster with thinking models)
             generate_fn = getattr(self.llm, "generate_json", self.llm.generate)
             raw_output = await generate_fn(
                 prompt=prompt,
-                system_prompt=INTENT_SYSTEM_PROMPT,
+                system_prompt=system_prompt,
             )
 
             intent = self._parse_json_response(raw_output, user_message)

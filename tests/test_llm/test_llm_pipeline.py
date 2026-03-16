@@ -113,9 +113,11 @@ def test_prompt_assembly():
         custom_question="How has the budget changed?",
     )
     prompt1 = assembler.assemble(bundle, intent1)
-    assert "city data storyteller" in prompt1.system_prompt
+    assert "data storyteller" in prompt1.system_prompt
     assert "EVIDENCE CONTEXT" in prompt1.user_prompt
+    assert "AVAILABLE CHARTS" in prompt1.user_prompt
     assert "GUARDRAILS" in prompt1.system_prompt.upper() or "IMPORTANT RULES" in prompt1.system_prompt
+    assert "STORY STRUCTURE" in prompt1.system_prompt
     print(f"  Citizen+trend prompt: system={len(prompt1.system_prompt)}, user={len(prompt1.user_prompt)} chars")
 
     # Policy + comparison
@@ -155,37 +157,41 @@ def test_output_validation():
     bundle, _ = make_sample_bundle()
     validator = OutputValidator()
 
-    # Valid output
+    # Valid output — editorial data story format
     valid_output = json.dumps({
-        "title": "Reykjavik Budget Shows Steady Growth",
-        "summary": "The city budget has increased consistently over the past three years, with expenditure tracking closely behind allocation.",
-        "sections": [
+        "headline": "Reykjavik Budget Shows Steady Growth",
+        "lede": "Over the past three years, the city budget has increased consistently, with expenditure tracking closely behind allocation. This steady pattern reflects planned expansion of city services.",
+        "story_blocks": [
             {
+                "type": "narrative",
                 "heading": "Overall trend",
                 "body": "Budget allocation has grown from 150,000 ISK to 185,000 ISK over 36 months, representing a steady upward trajectory. This consistent growth pattern suggests planned expansion of city services.",
-                "key_metric": {
-                    "label": "Budget growth",
-                    "value": "+23.3%",
-                    "context": "Over the full 36-month period",
-                },
+                "viz_index": 0,
             },
             {
+                "type": "narrative",
                 "heading": "Expenditure tracking",
                 "body": "Expenditure has followed a similar pattern, growing from 142,000 ISK to 173,500 ISK. The gap between budget and actual spending has remained relatively stable throughout the period.",
             },
+            {
+                "type": "callout",
+                "body": "Budget grew by nearly a quarter over the full period.",
+                "highlight_value": "+23.3%",
+                "highlight_label": "Budget growth over 36 months",
+            },
         ],
-        "data_limitations": "The dataset covers 36 months which provides a reasonable trend view but may not capture longer cyclical patterns.",
-        "suggested_followup": "How does spending vary across departments over time?",
+        "data_note": "The dataset covers 36 months which provides a reasonable trend view but may not capture longer cyclical patterns.",
+        "followup_question": "How does spending vary across departments over time?",
     })
 
     result = validator.validate(valid_output, bundle)
     assert result.is_valid, f"Valid output should pass: {result.errors}"
     assert result.narrative is not None
-    assert result.narrative.title == "Reykjavik Budget Shows Steady Growth"
-    assert len(result.narrative.sections) == 2
+    assert result.narrative.headline == "Reykjavik Budget Shows Steady Growth"
+    assert len(result.narrative.story_blocks) == 3
     print(f"  Valid output: passed ✓")
-    print(f"    Title: {result.narrative.title}")
-    print(f"    Sections: {len(result.narrative.sections)}")
+    print(f"    Headline: {result.narrative.headline}")
+    print(f"    Story blocks: {len(result.narrative.story_blocks)}")
 
     # Invalid: not JSON
     result2 = validator.validate("This is just text, not JSON.", bundle)
@@ -193,7 +199,7 @@ def test_output_validation():
     print(f"  Non-JSON output: rejected ✓ ({result2.errors})")
 
     # Invalid: missing required fields
-    result3 = validator.validate(json.dumps({"title": "Test"}), bundle)
+    result3 = validator.validate(json.dumps({"headline": "Test"}), bundle)
     assert not result3.is_valid
     print(f"  Incomplete output: rejected ✓ ({result3.errors})")
 

@@ -62,22 +62,26 @@ IMPORTANT RULES — you must follow these strictly:
 # ---------------------------------------------------------------------------
 
 AUDIENCE_PROMPTS = {
-    AudienceLevel.CITIZEN: """You are a city data storyteller. Your job is to explain
-open data findings to everyday citizens in clear, accessible language.
-Avoid jargon. Use concrete examples. Write as if explaining to someone
-who reads the local newspaper but has no data background.
-Keep paragraphs short. Use simple sentence structures.""",
+    AudienceLevel.CITIZEN: """You are an editorial data storyteller for a city open data portal.
+Write as if composing a short article for the city's website — accessible to
+anyone who lives in the city, regardless of their background.
+Use clear, conversational language. Avoid jargon and statistical terms.
+Explain WHY the data matters to everyday residents.
+Each paragraph should introduce and explain its accompanying chart before
+the reader sees it — describe the pattern they should notice.""",
 
-    AudienceLevel.POLICY: """You are a policy analysis assistant. Your job is to
-present data findings to city officials and policymakers. Be precise with
-numbers. Highlight actionable insights. Structure the narrative around
-implications for city services, resource allocation, and planning.
-Use professional but accessible language.""",
+    AudienceLevel.POLICY: """You are a policy-focused data storyteller for a city open data portal.
+Write as if composing a briefing for city officials and policymakers.
+Be precise with numbers. Highlight actionable insights and implications
+for city services, resource allocation, and planning.
+Each paragraph should introduce and explain its accompanying chart,
+pointing out what is most relevant for policy decisions.""",
 
-    AudienceLevel.TECHNICAL: """You are a data analysis assistant. Your job is to
-present data findings to analysts and technical staff. You can use
-statistical terminology. Include specific metrics and methodology notes.
-Reference column names and data types when relevant. Be concise and precise.""",
+    AudienceLevel.TECHNICAL: """You are a technical data storyteller for a city open data portal.
+Write for analysts and technical staff. You may use statistical terminology
+and reference column names. Include specific metrics and methodology notes.
+Each paragraph should introduce and explain its accompanying chart,
+noting data distributions, outliers, and analytical implications.""",
 }
 
 
@@ -135,22 +139,71 @@ ANALYSIS_PROMPTS = {
 # ---------------------------------------------------------------------------
 
 NARRATIVE_OUTPUT_SCHEMA = {
-    "title": "A concise title for the narrative (max 10 words)",
-    "summary": "A 1-2 sentence executive summary of the key finding",
-    "sections": [
+    "headline": "A concise headline for the data story (max 10 words)",
+    "lede": "An opening paragraph (2-4 sentences) that gives context — WHY this data matters to a citizen, not just what it contains.",
+    "story_blocks": [
         {
-            "heading": "Section heading",
-            "body": "Section narrative text (2-4 sentences)",
-            "key_metric": {
-                "label": "Metric name",
-                "value": "Metric value as string",
-                "context": "Brief context for the metric",
-            },
-        }
+            "type": "narrative",
+            "heading": "Section heading describing the insight",
+            "body": "2-4 sentences introducing and explaining the chart. Describe the pattern the reader should notice.",
+            "viz_index": 0,
+        },
+        {
+            "type": "timeline",
+            "heading": "Timeline heading (optional block — only include if data suggests clear milestones)",
+            "milestones": [
+                {"label": "2009", "description": "What happened this year"},
+                {"label": "2015", "description": "What happened this year"},
+            ],
+        },
+        {
+            "type": "callout",
+            "body": "A sentence explaining the highlighted stat",
+            "highlight_value": "35%",
+            "highlight_label": "Short label for the stat",
+        },
     ],
-    "data_limitations": "Brief note on any data limitations observed",
-    "suggested_followup": "One suggested follow-up question for the user",
+    "data_note": "Brief note on any data limitations (or empty string if none)",
+    "followup_question": "One suggested follow-up question for the reader",
 }
+
+
+STORY_STRUCTURE_GUIDE = """
+STORY STRUCTURE — follow this carefully:
+
+1. HEADLINE: A short, engaging title (max 10 words). Think newspaper headline.
+
+2. LEDE: An opening paragraph that frames WHY this data matters to a city
+   resident. Don't start with numbers — start with context, then weave in
+   the key finding. This is what hooks the reader.
+
+3. STORY BLOCKS: 2-4 blocks that form the body of the story. Types:
+
+   a) "narrative" blocks (required, at least 2):
+      - heading: a descriptive section title
+      - body: 2-4 sentences that INTRODUCE and EXPLAIN the chart. Describe
+        what the chart shows and what pattern to notice BEFORE the reader
+        sees it. This is the most important part.
+      - viz_index: which chart to show (0 = primary, 1 = secondary, or omit
+        if no chart accompanies this block). Each chart should only be
+        referenced once.
+
+   b) "timeline" block (optional, max 1):
+      - Only include if the data suggests clear milestones, policy changes,
+        or turning points. Do NOT invent milestones — only use if the data
+        or context supports it.
+      - milestones: at least 2 entries with label (year/date) and description.
+
+   c) "callout" block (optional, max 1):
+      - For the single most striking number or finding.
+      - highlight_value: the number/percentage (e.g. "35%", "150 kg")
+      - highlight_label: short label (e.g. "decrease since 2005")
+      - body: one sentence of context.
+
+4. DATA NOTE: Brief mention of limitations, or empty string if none obvious.
+
+5. FOLLOWUP QUESTION: One question the reader might want to explore next.
+"""
 
 
 # ---------------------------------------------------------------------------
@@ -200,7 +253,7 @@ class PromptAssembler:
         )
 
     def _build_system_prompt(self, intent: UserIntent) -> str:
-        """Build the system prompt from audience and guardrails."""
+        """Build the system prompt from audience, guardrails, and story structure."""
         audience_prompt = AUDIENCE_PROMPTS.get(
             intent.audience,
             AUDIENCE_PROMPTS[AudienceLevel.CITIZEN],
@@ -209,6 +262,8 @@ class PromptAssembler:
         return f"""{audience_prompt}
 
 {GUARDRAILS}
+
+{STORY_STRUCTURE_GUIDE}
 
 You must respond with ONLY a valid JSON object matching this schema:
 {_format_schema(NARRATIVE_OUTPUT_SCHEMA)}
@@ -233,6 +288,22 @@ You must respond with ONLY a valid JSON object matching this schema:
             "=== ANALYSIS GUIDANCE ===",
             analysis_guidance,
         ]
+
+        # Add chart inventory so the LLM knows what viz_index values are valid
+        parts.append("")
+        parts.append("=== AVAILABLE CHARTS ===")
+        if bundle.visualizations:
+            for i, viz in enumerate(bundle.visualizations):
+                primary_tag = " (primary)" if viz.is_primary else " (secondary)"
+                parts.append(
+                    f"Chart {i}{primary_tag}: {viz.chart_type} — \"{viz.title}\""
+                )
+            parts.append(
+                f"Use viz_index 0-{len(bundle.visualizations)-1} in your story blocks "
+                f"to place these charts. Each chart should appear at most once."
+            )
+        else:
+            parts.append("No charts available. Omit viz_index from all blocks.")
 
         # Add user's custom question if present
         if intent.custom_question:
@@ -269,7 +340,8 @@ You must respond with ONLY a valid JSON object matching this schema:
         parts.extend([
             "",
             "=== INSTRUCTION ===",
-            "Generate a data narrative based on the evidence context above.",
+            "Generate an editorial data story based on the evidence context above.",
+            "Write it as a cohesive article, not a mechanical report.",
             "Respond with ONLY the JSON object, no other text.",
         ])
 

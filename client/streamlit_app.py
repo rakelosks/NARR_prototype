@@ -1,13 +1,12 @@
 """
-Streamlit proof-of-concept client.
-Consumes the backend API to provide a complete narrative visualization interface.
+Streamlit client — single-prompt data story interface.
+A citizen types a question, the system finds the right dataset,
+analyzes it, and returns an editorial data story with embedded charts.
 
 Run with: streamlit run client/streamlit_app.py
 """
 
-import time
-import json
-
+import pandas as pd
 import streamlit as st
 import requests
 
@@ -18,9 +17,9 @@ import requests
 API_BASE = "http://localhost:8000"
 
 st.set_page_config(
-    page_title="Smart City Data Narratives",
+    page_title="Smart City Data Stories",
     page_icon="🏙️",
-    layout="wide",
+    layout="centered",
 )
 
 
@@ -42,17 +41,25 @@ def api_get(path: str, params: dict = None) -> dict | None:
         return None
 
 
-def api_post(path: str, data: dict) -> dict | None:
+def api_post(path: str, data: dict, timeout: int = 600) -> dict | None:
     """POST request to the API."""
     try:
-        r = requests.post(f"{API_BASE}{path}", json=data, timeout=360)
+        r = requests.post(f"{API_BASE}{path}", json=data, timeout=timeout)
         r.raise_for_status()
         return r.json()
     except requests.ConnectionError:
         st.error("Cannot connect to API. Make sure it's running: `uvicorn app.main:app --reload`")
         return None
     except requests.HTTPError as e:
-        st.error(f"API error: {e.response.status_code} — {e.response.text}")
+        detail = ""
+        try:
+            detail = e.response.json().get("detail", e.response.text)
+        except Exception:
+            detail = e.response.text
+        st.error(f"Error: {detail}")
+        return None
+    except requests.ReadTimeout:
+        st.error("The request timed out. The story generation may take a few minutes — please try again.")
         return None
 
 
@@ -61,286 +68,164 @@ def render_vega_lite(spec: dict):
     st.vega_lite_chart(spec["data"]["values"], spec, use_container_width=True)
 
 
-# ---------------------------------------------------------------------------
-# Sidebar — Data source management
-# ---------------------------------------------------------------------------
+def ensure_catalog(portal_url: str):
+    """Ensure the catalog is populated. Auto-refresh if empty."""
+    if "catalog_ready" in st.session_state:
+        return True
 
-with st.sidebar:
-    st.title("🏙️ Data sources")
+    # Check if catalog has entries
+    result = api_get("/datasets/catalog/search", {"limit": 1})
+    if result and result.get("count", 0) > 0:
+        st.session_state["catalog_ready"] = True
+        return True
 
-    # API health
-    health = api_get("/health")
-    if health:
-        st.success("API connected")
-    else:
-        st.stop()
-
-    st.divider()
-
-    # CKAN catalog refresh
-    st.subheader("CKAN portal")
-    portal_url = st.text_input(
-        "Portal API URL",
-        value="https://gagnagatt.reykjavik.is/en/api/3",
-    )
-    if st.button("Refresh catalog"):
-        with st.spinner("Fetching catalog..."):
-            result = api_post("/datasets/catalog/refresh", {
-                "portal_url": portal_url,
-                "full": False,
-            })
-            if result:
-                st.success(f"Indexed {result['datasets_indexed']} datasets")
-
-    st.divider()
-
-    # Catalog search
-    st.subheader("Search catalog")
-    search_query = st.text_input("Search datasets", placeholder="e.g. transport, budget")
-    if search_query:
-        results = api_get("/datasets/catalog/search", {"q": search_query, "limit": 10})
-        if results and results["results"]:
-            for entry in results["results"]:
-                with st.expander(entry["title"] or entry["name"]):
-                    st.write(entry.get("description", "")[:200])
-                    st.caption(f"Formats: {entry.get('resource_formats', [])}")
-                    if st.button("Ingest", key=f"ingest_{entry['dataset_id']}"):
-                        with st.spinner("Ingesting..."):
-                            ingest_result = api_post("/datasets/ingest/ckan", {
-                                "portal_url": portal_url,
-                                "dataset_id": entry["name"],
-                            })
-                            if ingest_result:
-                                st.success(
-                                    f"Ingested: {ingest_result['name']} "
-                                    f"({ingest_result['row_count']} rows)"
-                                )
-                                st.rerun()
-        elif results:
-            st.info("No results found")
-
-    st.divider()
-
-    # Direct URL ingestion
-    st.subheader("Direct URL")
-    with st.form("url_ingest"):
-        url = st.text_input("Data file URL")
-        name = st.text_input("Dataset name")
-        fmt = st.selectbox("Format", ["auto", "csv", "json", "geojson", "xlsx"])
-        submitted = st.form_submit_button("Ingest")
-        if submitted and url and name:
-            with st.spinner("Downloading..."):
-                payload = {"url": url, "name": name}
-                if fmt != "auto":
-                    payload["format"] = fmt
-                result = api_post("/datasets/ingest/url", payload)
-                if result:
-                    st.success(f"Ingested: {result['row_count']} rows")
-                    st.rerun()
-
-    st.divider()
-
-    # List ingested datasets
-    st.subheader("Ingested datasets")
-    datasets_resp = api_get("/datasets/")
-    datasets = datasets_resp["datasets"] if datasets_resp else []
-
-    if not datasets:
-        st.info("No datasets ingested yet")
-
-    selected_dataset_id = None
-    for ds in datasets:
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.write(f"**{ds['name']}**")
-            st.caption(f"{ds.get('row_count', '?')} rows")
-        with col2:
-            if st.button("Select", key=f"sel_{ds['id']}"):
-                st.session_state["selected_dataset"] = ds["id"]
-                st.session_state["selected_name"] = ds["name"]
-                st.rerun()
+    # Auto-refresh catalog from the configured portal
+    with st.spinner("Connecting to open data portal..."):
+        refresh = api_post("/datasets/catalog/refresh", {
+            "portal_url": portal_url,
+            "full": False,
+        }, timeout=60)
+        if refresh and refresh.get("datasets_indexed", 0) > 0:
+            st.session_state["catalog_ready"] = True
+            return True
+        else:
+            st.warning("Could not load dataset catalog. Please try again later.")
+            return False
 
 
 # ---------------------------------------------------------------------------
-# Main area
+# Page header
 # ---------------------------------------------------------------------------
 
-st.title("Smart City Data Narratives")
+st.title("🏙️ Smart City Data Stories")
+st.caption("Ask a question and get an AI-generated data story with visualizations")
 
-if "selected_dataset" not in st.session_state:
-    st.markdown(
-        """
-        Welcome! This platform generates AI-powered narrative visualizations
-        from city open data.
-
-        **Get started:**
-        1. Refresh the CKAN catalog in the sidebar
-        2. Search for a dataset and ingest it
-        3. Select a dataset to explore
-        """
-    )
+# Check API health and get portal URL
+health = api_get("/health")
+if not health:
     st.stop()
 
+portal_url = health.get("portal_url", "")
 
-# Dataset is selected
-dataset_id = st.session_state["selected_dataset"]
-dataset_name = st.session_state.get("selected_name", dataset_id)
-
-st.header(dataset_name)
 
 # ---------------------------------------------------------------------------
-# Tabs: Preview | Narrative | Raw
+# Prompt input
 # ---------------------------------------------------------------------------
 
-tab_preview, tab_narrative, tab_raw = st.tabs(["📊 Preview", "📝 Narrative", "🔧 Raw data"])
+user_message = st.text_area(
+    "What would you like to know?",
+    placeholder="e.g. How has waste collection changed over the years? What are the budget trends?",
+    height=80,
+    label_visibility="collapsed",
+)
 
-# --- Preview tab ---
-with tab_preview:
-    st.subheader("Automated analysis")
-    if st.button("Generate preview", key="preview_btn"):
-        with st.spinner("Profiling and analyzing..."):
-            result = api_post("/narratives/preview", {"dataset_id": dataset_id})
-            if result:
-                st.session_state["preview"] = result
+generate_clicked = st.button("Generate story", type="primary", use_container_width=True)
 
-    if "preview" in st.session_state:
-        preview = st.session_state["preview"]
+if generate_clicked and user_message.strip():
+    # Ensure catalog is available
+    if not ensure_catalog(portal_url):
+        st.stop()
 
-        # Dataset info
-        ds_info = preview["dataset"]
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Rows", ds_info["row_count"])
-        col2.metric("Columns", ds_info["column_count"])
-        col3.metric("Template", ds_info["template_type"].replace("_", " ").title())
+    with st.spinner("Finding the right dataset and generating your story..."):
+        result = api_post("/narratives/ask", {
+            "user_message": user_message.strip(),
+        }, timeout=600)
 
-        st.caption(f"Column types: {ds_info['column_types']}")
-        st.caption(f"Matched columns: {ds_info['matched_columns']}")
-
-        # Visualizations
-        for viz in preview["visualizations"]:
-            st.subheader(viz["title"])
-            st.caption(viz["description"])
-            try:
-                render_vega_lite(viz["vega_lite_spec"])
-            except Exception as e:
-                st.error(f"Chart rendering error: {e}")
-                with st.expander("Raw spec"):
-                    st.json(viz["vega_lite_spec"])
-
-        # Key findings
-        if preview.get("sections"):
-            st.subheader("Key findings")
-            for section in preview["sections"]:
-                st.markdown(f"**{section.get('heading', '')}**")
-                st.write(section.get("body", ""))
-
-
-# --- Narrative tab ---
-with tab_narrative:
-    st.subheader("AI-generated narrative")
-    user_message = st.text_area(
-        "Ask a question about this dataset",
-        placeholder="e.g. How has the budget changed over time? Compare districts by complaints.",
-    )
-    title_override = st.text_input("Custom title (optional)")
-
-    col_sync, col_async = st.columns(2)
-
-    # Synchronous generation
-    with col_sync:
-        if st.button("Generate (sync)", key="gen_sync"):
-            with st.spinner("Generating narrative... (this may take a minute)"):
-                payload = {"dataset_id": dataset_id}
-                if user_message:
-                    payload["user_message"] = user_message
-                if title_override:
-                    payload["title"] = title_override
-                result = api_post("/narratives/generate", payload)
-                if result:
-                    st.session_state["narrative"] = result
-
-    # Async generation
-    with col_async:
-        if st.button("Generate (async)", key="gen_async"):
-            payload = {"dataset_id": dataset_id}
-            if user_message:
-                payload["user_message"] = user_message
-            if title_override:
-                payload["title"] = title_override
-            job = api_post("/jobs/generate", payload)
-            if job:
-                st.session_state["active_job"] = job["job_id"]
-                st.info(f"Job created: {job['job_id']}")
-
-    # Poll active job
-    if "active_job" in st.session_state:
-        job_id = st.session_state["active_job"]
-        status = api_get(f"/jobs/{job_id}")
-        if status:
-            if status["status"] == "completed":
-                st.success("Generation complete!")
-                st.session_state["narrative"] = status["result"]
-                del st.session_state["active_job"]
-            elif status["status"] == "failed":
-                st.error(f"Job failed: {status.get('error')}")
-                del st.session_state["active_job"]
-            else:
-                st.info(f"Job status: {status['status']}...")
-                time.sleep(2)
-                st.rerun()
-
-    # Display narrative
-    if "narrative" in st.session_state:
-        pkg = st.session_state["narrative"]
-
-        st.markdown(f"## {pkg.get('title', '')}")
-        st.markdown(f"*{pkg.get('summary', '')}*")
-
-        # Sections
-        for section in pkg.get("sections", []):
-            st.markdown(f"### {section.get('heading', '')}")
-            st.write(section.get("body", ""))
-            if "key_metric" in section and section["key_metric"]:
-                km = section["key_metric"]
-                st.metric(
-                    label=km.get("label", ""),
-                    value=km.get("value", ""),
-                    help=km.get("context", ""),
-                )
-
-        # Visualizations
-        for viz in pkg.get("visualizations", []):
-            st.markdown(f"#### {viz['title']}")
-            try:
-                render_vega_lite(viz["vega_lite_spec"])
-            except Exception as e:
-                st.error(f"Chart rendering error: {e}")
-
-        # Footer
-        if pkg.get("data_limitations"):
-            st.caption(f"⚠️ Limitations: {pkg['data_limitations']}")
-        if pkg.get("suggested_followup"):
-            st.info(f"💡 Follow-up: {pkg['suggested_followup']}")
-
-        # Provenance
-        with st.expander("Provenance"):
-            prov = pkg.get("provenance", {})
-            st.json(prov)
-
-
-# --- Raw data tab ---
-with tab_raw:
-    st.subheader("Raw API responses")
-
-    if st.button("Fetch visualization spec"):
-        result = api_post("/visualizations/generate", {"dataset_id": dataset_id})
         if result:
-            st.json(result)
+            st.session_state["story"] = result
+            st.rerun()
 
-    if "preview" in st.session_state:
-        with st.expander("Preview package (JSON)"):
-            st.json(st.session_state["preview"])
+elif generate_clicked and not user_message.strip():
+    st.warning("Please type a question first.")
 
-    if "narrative" in st.session_state:
-        with st.expander("Narrative package (JSON)"):
-            st.json(st.session_state["narrative"])
+
+# ---------------------------------------------------------------------------
+# Story display
+# ---------------------------------------------------------------------------
+
+if "story" in st.session_state:
+    pkg = st.session_state["story"]
+    vizs = pkg.get("visualizations", [])
+
+    # Dataset info caption
+    dataset_name = pkg.get("dataset_name", "")
+    if dataset_name:
+        st.caption(f"📊 Dataset: {dataset_name}")
+
+    st.divider()
+
+    # Headline + lede
+    headline = pkg.get("headline", "")
+    lede = pkg.get("lede", "")
+
+    if headline:
+        st.markdown(f"## {headline}")
+    if lede:
+        st.markdown(lede)
+
+    # Story blocks — editorial flow with inline charts
+    for block in pkg.get("story_blocks", []):
+        block_type = block.get("type", "narrative")
+
+        if block_type == "narrative":
+            if block.get("heading"):
+                st.markdown(f"### {block['heading']}")
+            if block.get("body"):
+                st.write(block["body"])
+            # Render chart inline if viz_index is set
+            viz_idx = block.get("viz_index")
+            if viz_idx is not None and 0 <= viz_idx < len(vizs):
+                try:
+                    render_vega_lite(vizs[viz_idx]["vega_lite_spec"])
+                except Exception as e:
+                    st.error(f"Chart rendering error: {e}")
+
+        elif block_type == "timeline":
+            if block.get("heading"):
+                st.markdown(f"### {block['heading']}")
+            for ms in block.get("milestones", []):
+                st.markdown(f"**{ms.get('label', '')}** — {ms.get('description', '')}")
+
+        elif block_type == "callout":
+            col_metric, col_text = st.columns([1, 3])
+            with col_metric:
+                st.metric(
+                    label=block.get("highlight_label", ""),
+                    value=block.get("highlight_value", ""),
+                )
+            with col_text:
+                if block.get("body"):
+                    st.write(block["body"])
+
+    # Footer
+    if pkg.get("data_note"):
+        st.caption(f"⚠️ {pkg['data_note']}")
+    if pkg.get("followup_question"):
+        st.info(f"💡 {pkg['followup_question']}")
+
+    st.divider()
+
+    # Raw data — extract from primary visualization spec
+    with st.expander("View raw data"):
+        if vizs:
+            raw_data = vizs[0].get("vega_lite_spec", {}).get("data", {}).get("values", [])
+            if raw_data:
+                st.dataframe(pd.DataFrame(raw_data), use_container_width=True)
+            else:
+                st.info("No tabular data available.")
+        else:
+            st.info("No data available.")
+
+    # Provenance
+    with st.expander("Provenance"):
+        prov = pkg.get("provenance", {})
+        st.json(prov)
+
+    # Full JSON response
+    with st.expander("Full API response"):
+        st.json(pkg)
+
+    # New question button
+    if st.button("Ask another question"):
+        del st.session_state["story"]
+        st.rerun()

@@ -22,47 +22,50 @@ logger = logging.getLogger(__name__)
 # Output models
 # ---------------------------------------------------------------------------
 
-class KeyMetric(BaseModel):
-    """A single key metric within a narrative section."""
+class Milestone(BaseModel):
+    """A single milestone in a timeline block."""
     label: str = ""
-    value: str = ""
-    context: str = ""
+    description: str = ""
 
 
-class NarrativeSection(BaseModel):
-    """A section of the generated narrative."""
-    heading: str = ""
-    body: str = ""
-    key_metric: Optional[KeyMetric] = None
+class StoryBlock(BaseModel):
+    """A block in the editorial data story."""
+    type: str = "narrative"                        # "narrative" | "timeline" | "callout"
+    heading: Optional[str] = None
+    body: Optional[str] = None
+    viz_index: Optional[int] = None                # index into evidence bundle visualizations
+    milestones: Optional[list[Milestone]] = None   # for timeline blocks
+    highlight_value: Optional[str] = None          # for callout blocks
+    highlight_label: Optional[str] = None          # for callout blocks
 
 
 class GeneratedNarrative(BaseModel):
-    """The validated output of narrative generation."""
-    title: str = ""
-    summary: str = ""
-    sections: list[NarrativeSection] = []
-    data_limitations: str = ""
-    suggested_followup: str = ""
+    """The validated output of narrative generation — editorial data story format."""
+    headline: str = ""
+    lede: str = ""
+    story_blocks: list[StoryBlock] = []
+    data_note: str = ""
+    followup_question: str = ""
 
-    @field_validator("title")
+    @field_validator("headline")
     @classmethod
-    def title_not_empty(cls, v):
+    def headline_not_empty(cls, v):
         if not v.strip():
-            raise ValueError("Narrative title cannot be empty")
+            raise ValueError("Narrative headline cannot be empty")
         return v.strip()
 
-    @field_validator("summary")
+    @field_validator("lede")
     @classmethod
-    def summary_not_empty(cls, v):
+    def lede_not_empty(cls, v):
         if not v.strip():
-            raise ValueError("Narrative summary cannot be empty")
+            raise ValueError("Narrative lede cannot be empty")
         return v.strip()
 
-    @field_validator("sections")
+    @field_validator("story_blocks")
     @classmethod
-    def sections_not_empty(cls, v):
-        if not v:
-            raise ValueError("Narrative must have at least one section")
+    def story_blocks_not_empty(cls, v):
+        if len(v) < 2:
+            raise ValueError("Narrative must have at least two story blocks")
         return v
 
 
@@ -186,19 +189,28 @@ class OutputValidator:
         """Check basic content quality."""
         errors = []
 
-        if len(narrative.title) > 100:
-            errors.append("Title exceeds 100 characters")
+        if len(narrative.headline) > 100:
+            errors.append("Headline exceeds 100 characters")
 
-        if len(narrative.summary) < 20:
-            errors.append("Summary is too short (< 20 chars)")
+        if len(narrative.lede) < 30:
+            errors.append("Lede is too short (< 30 chars)")
 
-        for i, section in enumerate(narrative.sections):
-            if not section.heading.strip():
-                errors.append(f"Section {i+1} has empty heading")
-            if not section.body.strip():
-                errors.append(f"Section {i+1} has empty body")
-            if len(section.body) < 20:
-                errors.append(f"Section {i+1} body is too short (< 20 chars)")
+        num_vizs = len(bundle.visualizations)
+        for i, block in enumerate(narrative.story_blocks):
+            if block.type == "narrative":
+                if not block.body or len(block.body.strip()) < 20:
+                    errors.append(f"Story block {i+1} body is too short (< 20 chars)")
+                if block.viz_index is not None and block.viz_index >= num_vizs:
+                    errors.append(
+                        f"Story block {i+1} viz_index={block.viz_index} "
+                        f"is out of range (only {num_vizs} charts available)"
+                    )
+            elif block.type == "timeline":
+                if not block.milestones or len(block.milestones) < 2:
+                    errors.append(f"Story block {i+1} timeline needs at least 2 milestones")
+            elif block.type == "callout":
+                if not block.highlight_value:
+                    errors.append(f"Story block {i+1} callout missing highlight_value")
 
         return errors
 
@@ -342,8 +354,10 @@ class NarrativeGenerator:
         correction += (
             "\nPlease fix these issues. Remember:\n"
             "- Respond with ONLY valid JSON\n"
-            "- Include all required fields: title, summary, sections\n"
-            "- Each section needs a heading, body, and optional key_metric\n"
+            "- Include all required fields: headline, lede, story_blocks\n"
+            "- Each story block needs a type ('narrative', 'timeline', or 'callout')\n"
+            "- Narrative blocks need heading, body, and optional viz_index\n"
+            "- You must produce at least 2 story blocks\n"
             "- Do not include any text outside the JSON object\n"
         )
 

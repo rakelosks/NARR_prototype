@@ -48,17 +48,17 @@ class DatasetSummary(BaseModel):
 class NarrativePackage(BaseModel):
     """
     The complete deliverable package.
-    Contains everything the frontend needs to render a narrative visualization.
+    Contains everything the frontend needs to render an editorial data story.
     """
     package_id: str
     created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
-    # Narrative content
-    title: str = ""
-    summary: str = ""
-    sections: list[dict] = Field(default_factory=list)
-    data_limitations: str = ""
-    suggested_followup: str = ""
+    # Narrative content — editorial data story format
+    headline: str = ""
+    lede: str = ""
+    story_blocks: list[dict] = Field(default_factory=list)
+    data_note: str = ""
+    followup_question: str = ""
 
     # Visualizations
     visualizations: list[dict] = Field(default_factory=list)
@@ -135,25 +135,19 @@ class PackageBuilder:
                 "is_primary": viz.is_primary,
             })
 
-        # Assemble sections
-        sections = []
+        # Assemble story blocks
+        story_blocks = []
         if narrative:
-            for section in narrative.sections:
-                s = {
-                    "heading": section.heading,
-                    "body": section.body,
-                }
-                if section.key_metric:
-                    s["key_metric"] = section.key_metric.model_dump()
-                sections.append(s)
+            for block in narrative.story_blocks:
+                story_blocks.append(block.model_dump(exclude_none=True))
 
         package = NarrativePackage(
             package_id=package_id,
-            title=narrative.title if narrative else f"Analysis of {bundle.dataset_id}",
-            summary=narrative.summary if narrative else "",
-            sections=sections,
-            data_limitations=narrative.data_limitations if narrative else "",
-            suggested_followup=narrative.suggested_followup if narrative else "",
+            headline=narrative.headline if narrative else f"Analysis of {bundle.dataset_id}",
+            lede=narrative.lede if narrative else "",
+            story_blocks=story_blocks,
+            data_note=narrative.data_note if narrative else "",
+            followup_question=narrative.followup_question if narrative else "",
             visualizations=viz_dicts,
             dataset=dataset_summary,
             provenance=provenance,
@@ -161,7 +155,7 @@ class PackageBuilder:
 
         logger.info(
             f"Package built: {package_id} — "
-            f"{len(sections)} sections, {len(viz_dicts)} visualizations"
+            f"{len(story_blocks)} story blocks, {len(viz_dicts)} visualizations"
         )
         return package
 
@@ -210,19 +204,42 @@ class PackageBuilder:
             for viz in bundle.visualizations
         ]
 
-        # Auto-generate sections from key findings
-        sections = []
+        # Auto-generate story blocks from key findings + chart references
+        story_blocks = []
+        findings_text = ""
         if bundle.narrative_context and bundle.narrative_context.key_findings:
-            sections.append({
+            findings_text = " ".join(bundle.narrative_context.key_findings)
+
+        # Primary chart block
+        if viz_dicts:
+            story_blocks.append({
+                "type": "narrative",
+                "heading": "Overview",
+                "body": findings_text or f"Automated analysis of {bundle.row_count} rows.",
+                "viz_index": 0,
+            })
+        # Secondary chart block (if available)
+        if len(viz_dicts) > 1:
+            story_blocks.append({
+                "type": "narrative",
+                "heading": "Alternative view",
+                "body": viz_dicts[1].get("description", "An alternative visualization of the data."),
+                "viz_index": 1,
+            })
+
+        # Ensure at least a basic block if no charts
+        if not story_blocks:
+            story_blocks.append({
+                "type": "narrative",
                 "heading": "Key findings",
-                "body": " ".join(bundle.narrative_context.key_findings),
+                "body": findings_text or f"Dataset contains {bundle.row_count} rows across {bundle.column_count} columns.",
             })
 
         return NarrativePackage(
             package_id=package_id,
-            title=f"Analysis of {bundle.dataset_id}",
-            summary=f"Automated analysis of {bundle.row_count} rows across {bundle.column_count} columns.",
-            sections=sections,
+            headline=f"Analysis of {bundle.dataset_id}",
+            lede=f"Automated analysis of {bundle.row_count} rows across {bundle.column_count} columns.",
+            story_blocks=story_blocks,
             visualizations=viz_dicts,
             dataset=dataset_summary,
             provenance=provenance,

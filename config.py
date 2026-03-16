@@ -25,6 +25,10 @@ class Settings:
     ollama_timeout: float = 300.0          # seconds per request
     openai_api_key: str = ""
 
+    # CKAN portal
+    ckan_portal_url: str = "https://gagnagatt.reykjavik.is/en/api/3"
+    ckan_portal_language: str = "is"  # ISO 639-1 code for portal metadata language
+
     # Storage
     metadata_db_path: str = "metadata.sqlite"
     cache_dir: str = "data/cache/snapshots"
@@ -42,6 +46,8 @@ def load_settings() -> Settings:
         ollama_intent_model=os.getenv("OLLAMA_INTENT_MODEL", "qwen3:4b"),
         ollama_generation_model=os.getenv("OLLAMA_GENERATION_MODEL", "qwen3:8b"),
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+        ckan_portal_url=os.getenv("CKAN_PORTAL_URL", "https://gagnagatt.reykjavik.is/en/api/3"),
+        ckan_portal_language=os.getenv("CKAN_PORTAL_LANGUAGE", "is"),
         metadata_db_path=os.getenv("METADATA_DB_PATH", "metadata.sqlite"),
         cache_dir=os.getenv("CACHE_DIR", "data/cache/snapshots"),
         api_base_url=os.getenv("API_BASE_URL", "http://localhost:8000"),
