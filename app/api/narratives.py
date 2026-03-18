@@ -280,12 +280,15 @@ async def _find_and_ingest_dataset(user_message: str) -> tuple[str, str]:
             detail="No dataset found matching your question. Try different keywords.",
         )
 
-    # Check if already ingested
+    # Check if already ingested AND snapshot still exists
     existing = _metadata_store.list_datasets()
     for ds in existing:
         if ds.get("name") == dataset_name:
-            logger.info(f"Reusing existing dataset: {ds['id']} ({dataset_name})")
-            return ds["id"], dataset_name
+            if snapshot_exists(ds["id"]):
+                logger.info(f"Reusing existing dataset: {ds['id']} ({dataset_name})")
+                return ds["id"], dataset_name
+            else:
+                logger.warning(f"Snapshot missing for {ds['id']} ({dataset_name}), will re-ingest")
 
     # Auto-ingest from CKAN
     logger.info(f"Auto-ingesting dataset: {ckan_dataset_name} ({dataset_name})")
