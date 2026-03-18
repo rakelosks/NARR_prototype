@@ -6,6 +6,7 @@ when data is not sourced through a CKAN portal.
 Supports: CSV, JSON, GeoJSON, XLS, XLSX
 """
 
+import csv
 import os
 import json
 import logging
@@ -138,7 +139,14 @@ def parse_bytes(raw: bytes, fmt: FileFormat) -> pd.DataFrame:
     from io import BytesIO
 
     if fmt == FileFormat.CSV:
-        return pd.read_csv(BytesIO(raw))
+        # Detect delimiter (handles semicolon-delimited CSVs common in EU data)
+        try:
+            sample = raw[:8192].decode("utf-8", errors="replace")
+            dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
+            sep = dialect.delimiter
+        except csv.Error:
+            sep = ","
+        return pd.read_csv(BytesIO(raw), sep=sep)
 
     elif fmt == FileFormat.JSON:
         # Try tabular JSON first, fall back to records

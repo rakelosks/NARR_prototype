@@ -331,7 +331,14 @@ class CKANClient:
         fmt = resource.normalized_format
 
         if fmt == "csv":
-            return pd.read_csv(BytesIO(raw))
+            import csv as _csv
+            try:
+                sample = raw[:8192].decode("utf-8", errors="replace")
+                dialect = _csv.Sniffer().sniff(sample, delimiters=",;\t|")
+                sep = dialect.delimiter
+            except _csv.Error:
+                sep = ","
+            return pd.read_csv(BytesIO(raw), sep=sep)
         elif fmt == "json":
             return pd.read_json(BytesIO(raw))
         elif fmt == "geojson":

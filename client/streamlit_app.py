@@ -65,7 +65,7 @@ def api_post(path: str, data: dict, timeout: int = 600) -> dict | None:
 
 def render_vega_lite(spec: dict):
     """Render a Vega-Lite spec in Streamlit."""
-    st.vega_lite_chart(spec["data"]["values"], spec, use_container_width=True)
+    st.vega_lite_chart(spec, width="stretch")
 
 
 def ensure_catalog(portal_url: str):
