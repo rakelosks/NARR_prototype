@@ -9,14 +9,17 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from data.cache.parquet_cache import load_snapshot, snapshot_exists
+from data.cache.parquet_cache import load_snapshot
 from data.profiling.profiler import profile_dataset
 from data.profiling.matcher import match_template
 from data.analytics.analytics import AnalyticsEngine
+from data.storage.metadata import MetadataStore
 from visualization.charts import select_chart_type, generate_spec
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/visualizations", tags=["visualizations"])
+
+_metadata_store = MetadataStore()
 
 
 class VizRequest(BaseModel):
@@ -29,14 +32,20 @@ class VizRequest(BaseModel):
 async def generate_visualization(request: VizRequest):
     """Generate a Vega-Lite visualization spec for a dataset."""
     try:
-        if not snapshot_exists(request.dataset_id):
-            raise HTTPException(status_code=404, detail=f"Dataset '{request.dataset_id}' not found")
-
         df = load_snapshot(request.dataset_id)
+        if df is None:
+            raise HTTPException(status_code=404, detail=f"Dataset '{request.dataset_id}' not found or cache expired")
 
-        # Profile and match
+        # Profile and match (reuse config if available)
         profile = profile_dataset(df, dataset_id=request.dataset_id)
-        match = match_template(profile)
+
+        config = _metadata_store.get_config(request.dataset_id)
+        if config:
+            from app.api.narratives import _reconstruct_match
+            match = _reconstruct_match(config, profile)
+            _metadata_store.touch_config(request.dataset_id)
+        else:
+            match = match_template(profile)
 
         if not match.best_match or not match.best_match.is_viable:
             raise HTTPException(

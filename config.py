@@ -32,6 +32,7 @@ class Settings:
     # Storage
     metadata_db_path: str = "metadata.sqlite"
     cache_dir: str = "data/cache/snapshots"
+    cache_ttl_hours: int = 24
 
     # Streamlit
     api_base_url: str = "http://localhost:8000"
@@ -50,6 +51,7 @@ def load_settings() -> Settings:
         ckan_portal_language=os.getenv("CKAN_PORTAL_LANGUAGE", "is"),
         metadata_db_path=os.getenv("METADATA_DB_PATH", "metadata.sqlite"),
         cache_dir=os.getenv("CACHE_DIR", "data/cache/snapshots"),
+        cache_ttl_hours=int(os.getenv("CACHE_TTL_HOURS", "24")),
         api_base_url=os.getenv("API_BASE_URL", "http://localhost:8000"),
     )
 
