@@ -16,6 +16,28 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
+def _is_year_only(data: list[dict], field: str) -> bool:
+    """Check if a field contains bare year integers (e.g. 1999, 2012)."""
+    for row in data[:20]:
+        val = row.get(field)
+        if val is None:
+            continue
+        if isinstance(val, (int, float)):
+            if not (1900 <= val <= 2100):
+                return False
+        else:
+            return False
+    return True
+
+
+def _coerce_year_data(data: list[dict], field: str) -> list[dict]:
+    """Convert year-integer values to ISO date strings for Vega-Lite temporal parsing."""
+    return [
+        {**row, field: f"{int(row[field])}-01-01"} if row.get(field) is not None else row
+        for row in data
+    ]
+
+
 def _infer_time_unit(metrics: dict) -> str | None:
     """
     Infer the Vega-Lite timeUnit from date_range and total_periods.
@@ -28,9 +50,21 @@ def _infer_time_unit(metrics: dict) -> str | None:
     if not date_range or total_periods < 2:
         return None
 
+    min_str = str(date_range.get("min", ""))
+    max_str = str(date_range.get("max", ""))
+
+    # Handle bare year values (e.g. "1999", "2012")
     try:
-        min_dt = datetime.fromisoformat(str(date_range["min"]))
-        max_dt = datetime.fromisoformat(str(date_range["max"]))
+        min_year = int(float(min_str))
+        max_year = int(float(max_str))
+        if 1900 <= min_year <= 2100 and 1900 <= max_year <= 2100:
+            return "year"
+    except (ValueError, TypeError):
+        pass
+
+    try:
+        min_dt = datetime.fromisoformat(min_str)
+        max_dt = datetime.fromisoformat(max_str)
     except (ValueError, KeyError):
         return None
 
@@ -268,10 +302,16 @@ def _base_spec(data: list[dict], title: str) -> dict:
 
 def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
     """Generate a line chart spec."""
-    spec = _base_spec(data, title)
     time_col = columns.get("time_axis", "")
     measure_cols = metrics.get("measure_columns", [])
     group_col = columns.get("series_group")
+
+    # Coerce bare year integers (1999 → "1999-01-01") so Vega-Lite parses them correctly
+    chart_data = data
+    if time_col and _is_year_only(data, time_col):
+        chart_data = _coerce_year_data(data, time_col)
+
+    spec = _base_spec(chart_data, title)
 
     # Build x-axis encoding with proper timeUnit for clean labels
     x_enc = {"field": time_col, "type": "temporal", "title": time_col}
@@ -311,13 +351,19 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
 
 def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
     """Generate a bar chart spec."""
-    spec = _base_spec(data, title)
     cat_col = columns.get("category", columns.get("time_axis", ""))
     measure_cols = metrics.get("measure_columns", [])
 
     # Detect if x-axis is temporal (time-series shown as bars)
     is_temporal = "time_axis" in columns and cat_col == columns["time_axis"]
     time_unit = _infer_time_unit(metrics) if is_temporal else None
+
+    # Coerce bare year integers for temporal bar charts
+    chart_data = data
+    if is_temporal and _is_year_only(data, cat_col):
+        chart_data = _coerce_year_data(data, cat_col)
+
+    spec = _base_spec(chart_data, title)
 
     def _x_enc() -> dict:
         """Build the x/y encoding for the category/time axis."""

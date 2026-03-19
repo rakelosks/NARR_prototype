@@ -151,17 +151,54 @@ def _reconstruct_match(config: dict, profile) -> MatchResult:
     )
 
 
-async def _find_dataset(user_message: str) -> tuple[str, str]:
+async def _parse_full_intent(user_message: str):
+    """
+    Parse user intent once and return both the structured intent object
+    (for narrative generation) and search queries (for dataset lookup).
+    Avoids redundant LLM calls.
+    """
+    portal_lang = settings.ckan_portal_language
+    intent = None
+
+    try:
+        from llm.interface import get_providers
+        from llm.intent import IntentParser
+
+        intent_provider, _ = get_providers()
+        parser = IntentParser(intent_provider)
+        result = await parser.parse(user_message, portal_language=portal_lang)
+
+        if result.success and result.intent:
+            intent = result.intent
+            query = intent.dataset_query
+            query_local = intent.dataset_query_local or query
+            logger.info(
+                f"Intent parsed — query: '{query}', "
+                f"query_local ({portal_lang}): '{query_local}'"
+            )
+            return query, query_local, intent
+    except Exception as e:
+        logger.warning(f"Intent parsing unavailable ({e}), using keyword extraction")
+
+    keywords = _extract_keywords(user_message)
+    fallback = " ".join(keywords) if keywords else user_message
+    return fallback, fallback, intent
+
+
+async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, str]:
     """
     Search the catalog for a dataset matching the user's question.
     Returns (dataset_name, ckan_slug).
 
-    Flow:
-    1. Parse intent with LLM → get dataset_query + dataset_query_local
-    2. Search CKAN portal API with the local-language query
-    3. Fall back to local catalog search
+    Args:
+        user_message: The user's question.
+        intent_queries: Optional (dataset_query, dataset_query_local) tuple
+            from a prior intent parse, to avoid redundant LLM calls.
     """
-    dataset_query, dataset_query_local = await _parse_intent(user_message)
+    if intent_queries:
+        dataset_query, dataset_query_local = intent_queries
+    else:
+        dataset_query, dataset_query_local = await _parse_intent(user_message)
 
     # Build search term list: local-language query first, then original keywords
     search_terms = []
@@ -370,16 +407,24 @@ async def ask_narrative(request: AskRequest):
     complete editorial data story.
     """
     try:
-        # Step 1: Find dataset in catalog
-        dataset_name, ckan_slug = await _find_dataset(request.user_message)
+        # Step 1: Parse intent ONCE (reused for both dataset search and narrative)
+        dataset_query, dataset_query_local, intent = await _parse_full_intent(
+            request.user_message
+        )
 
-        # Step 2: Check for existing template configuration
+        # Step 2: Find dataset in catalog (reuses parsed queries)
+        dataset_name, ckan_slug = await _find_dataset(
+            request.user_message,
+            intent_queries=(dataset_query, dataset_query_local),
+        )
+
+        # Step 3: Check for existing template configuration
         config = _metadata_store.get_config(ckan_slug)
 
-        # Step 3: Get data (TTL cache or re-download)
+        # Step 4: Get data (TTL cache or re-download)
         df, resource_url = await _get_dataframe(ckan_slug, config)
 
-        # Step 4: Profile and match (skip matching if config exists)
+        # Step 5: Profile and match (skip matching if config exists)
         profile, match = _profile_and_match(df, ckan_slug, config, resource_url)
 
         if not match.best_match or not match.best_match.is_viable:
@@ -389,21 +434,20 @@ async def ask_narrative(request: AskRequest):
                        f"Column types found: {profile.column_types_summary}",
             )
 
-        # Step 5: Build evidence bundle
+        # Step 6: Build evidence bundle
         builder = BundleBuilder()
         bundle = builder.build(df, profile, match, title=request.title)
 
-        # Step 6: Generate narrative with LLM (fall back to preview if unavailable)
+        # Step 7: Generate narrative with LLM (fall back to preview if unavailable)
         pkg_builder = PackageBuilder()
         try:
             from llm.interface import get_providers
             from llm.narrative import NarrativeGenerator
 
-            intent_provider, generation_provider = get_providers()
-            generator = NarrativeGenerator(
-                generation_provider, intent_llm_provider=intent_provider
-            )
-            result = await generator.generate(bundle, user_message=request.user_message)
+            _, generation_provider = get_providers()
+            generator = NarrativeGenerator(generation_provider)
+            # Pass pre-parsed intent to skip redundant LLM call
+            result = await generator.generate(bundle, intent=intent)
 
             if result.success:
                 package = pkg_builder.build(result, bundle, llm_provider_name="ollama")

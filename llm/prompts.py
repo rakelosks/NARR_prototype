@@ -297,10 +297,18 @@ You must respond with ONLY a valid JSON object matching this schema:
                 parts.append(
                     f"Chart {i}{primary_tag}: {viz.chart_type} — \"{viz.title}\""
                 )
-            parts.append(
-                f"Use viz_index 0-{len(bundle.visualizations)-1} in your story blocks "
-                f"to place these charts. Each chart should appear at most once."
-            )
+            num_viz = len(bundle.visualizations)
+            if num_viz == 1:
+                parts.append(
+                    "There is only 1 chart available. Set viz_index=0 on exactly "
+                    "ONE narrative block. All other blocks must omit viz_index."
+                )
+            else:
+                parts.append(
+                    f"Use viz_index 0-{num_viz - 1} in your story blocks "
+                    f"to place these charts. Each chart should appear exactly once — "
+                    f"do NOT reuse the same viz_index in multiple blocks."
+                )
         else:
             parts.append("No charts available. Omit viz_index from all blocks.")
 

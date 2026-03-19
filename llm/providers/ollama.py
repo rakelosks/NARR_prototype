@@ -10,6 +10,7 @@ Handles qwen3 thinking-model quirks:
 
 import json as json_module
 import logging
+import re
 import httpx
 from typing import Optional
 from llm.interface import LLMProvider
@@ -60,6 +61,8 @@ class OllamaProvider(LLMProvider):
         }
         if system_prompt:
             payload["system"] = system_prompt
+        if self.think is not None:
+            payload["think"] = self.think
 
         async with httpx.AsyncClient() as client:
             response = await client.post(

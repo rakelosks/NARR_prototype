@@ -6,6 +6,7 @@ that drives dataset selection, analysis, and narrative generation.
 
 import json
 import logging
+import re
 from typing import Optional
 from enum import Enum
 
@@ -218,8 +219,9 @@ class IntentParser:
 
     def _parse_json_response(self, raw: str, original_message: str) -> UserIntent:
         """Parse the LLM's JSON response into a UserIntent."""
+        # Strip qwen3 <think>...</think> tags if present
+        cleaned = re.sub(r"<think>[\s\S]*?</think>", "", raw).strip()
         # Strip markdown code fences if present
-        cleaned = raw.strip()
         if cleaned.startswith("```"):
             cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
         if cleaned.endswith("```"):

@@ -19,10 +19,10 @@ class Settings:
     llm_provider: str = "ollama"
     ollama_base_url: str = "http://localhost:11434"
     ollama_intent_model: str = "qwen3:4b"
-    ollama_generation_model: str = "qwen3:8b"
+    ollama_generation_model: str = "qwen3:4b"  # 4b with JSON mode — fast enough for 16GB
     ollama_intent_think: bool = False      # thinking off for fast intent parsing
     ollama_generation_think: bool = True   # thinking on for richer narratives
-    ollama_timeout: float = 300.0          # seconds per request
+    ollama_timeout: float = 180.0          # seconds per request
     openai_api_key: str = ""
 
     # CKAN portal
@@ -45,7 +45,7 @@ def load_settings() -> Settings:
         llm_provider=os.getenv("LLM_PROVIDER", "ollama"),
         ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         ollama_intent_model=os.getenv("OLLAMA_INTENT_MODEL", "qwen3:4b"),
-        ollama_generation_model=os.getenv("OLLAMA_GENERATION_MODEL", "qwen3:8b"),
+        ollama_generation_model=os.getenv("OLLAMA_GENERATION_MODEL", "qwen3:4b"),
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),
         ckan_portal_url=os.getenv("CKAN_PORTAL_URL", "https://gagnagatt.reykjavik.is/en/api/3"),
         ckan_portal_language=os.getenv("CKAN_PORTAL_LANGUAGE", "is"),

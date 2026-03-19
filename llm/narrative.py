@@ -6,6 +6,7 @@ intent → prompt → LLM → validate → (retry if needed) → narrative.
 
 import json
 import logging
+import re
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -157,6 +158,9 @@ class OutputValidator:
         """Parse JSON from LLM output, handling common formatting issues."""
         cleaned = raw.strip()
 
+        # Strip qwen3 <think>...</think> tags (thinking chain before JSON)
+        cleaned = re.sub(r"<think>[\s\S]*?</think>", "", cleaned).strip()
+
         # Strip markdown code fences
         if cleaned.startswith("```"):
             lines = cleaned.split("\n")
@@ -196,15 +200,24 @@ class OutputValidator:
             errors.append("Lede is too short (< 30 chars)")
 
         num_vizs = len(bundle.visualizations)
+        used_viz_indices = []
         for i, block in enumerate(narrative.story_blocks):
             if block.type == "narrative":
                 if not block.body or len(block.body.strip()) < 20:
                     errors.append(f"Story block {i+1} body is too short (< 20 chars)")
-                if block.viz_index is not None and block.viz_index >= num_vizs:
-                    errors.append(
-                        f"Story block {i+1} viz_index={block.viz_index} "
-                        f"is out of range (only {num_vizs} charts available)"
-                    )
+                if block.viz_index is not None:
+                    if block.viz_index >= num_vizs:
+                        errors.append(
+                            f"Story block {i+1} viz_index={block.viz_index} "
+                            f"is out of range (only {num_vizs} charts available)"
+                        )
+                    elif block.viz_index in used_viz_indices:
+                        errors.append(
+                            f"Story block {i+1} reuses viz_index={block.viz_index} "
+                            f"which was already used. Each chart should appear only once."
+                        )
+                    else:
+                        used_viz_indices.append(block.viz_index)
             elif block.type == "timeline":
                 if not block.milestones or len(block.milestones) < 2:
                     errors.append(f"Story block {i+1} timeline needs at least 2 milestones")
@@ -292,9 +305,14 @@ class NarrativeGenerator:
             logger.info(f"Generation attempt {attempt}/{self.max_retries}")
 
             try:
+                # Use regular generate() — the thinking chain produces
+                # much richer narratives than constrained JSON mode
                 raw_output = await self.llm.generate(
                     prompt=prompt.user_prompt,
                     system_prompt=prompt.system_prompt,
+                )
+                logger.info(
+                    f"Attempt {attempt} LLM returned {len(raw_output)} chars"
                 )
 
                 # Step 4: Validate output
@@ -319,10 +337,11 @@ class NarrativeGenerator:
                 prompt = self._add_correction_context(prompt, validation)
 
             except Exception as e:
-                logger.error(f"Generation attempt {attempt} failed: {e}")
+                error_msg = str(e) or f"{type(e).__name__}: (no message)"
+                logger.error(f"Generation attempt {attempt} failed: {error_msg}", exc_info=True)
                 last_validation = ValidationResult(
                     is_valid=False,
-                    errors=[str(e)],
+                    errors=[error_msg],
                     raw_output="",
                 )
 

@@ -230,7 +230,9 @@ class BundleBuilder:
         chart_selection = select_chart_type(template_type, analytics_result.metrics)
 
         # Step 3: Generate visualization specs
-        viz_title = title or f"{profile.dataset_id} — {template.name}"
+        viz_title = title or self._generate_title(
+            profile, template_type, columns, analytics_result.metrics
+        )
         visualizations = []
 
         # Primary chart
@@ -298,6 +300,46 @@ class BundleBuilder:
             f"{len(key_findings)} key findings"
         )
         return bundle
+
+    def _generate_title(
+        self,
+        profile,
+        template_type: TemplateType,
+        columns: dict[str, str],
+        metrics: dict,
+    ) -> str:
+        """Generate a descriptive chart title from the data context."""
+        measure_cols = metrics.get("measure_columns", [])
+        measure_label = measure_cols[0] if measure_cols else ""
+
+        if template_type == TemplateType.TIME_SERIES:
+            date_range = metrics.get("date_range", {})
+            time_span = ""
+            if date_range.get("min") and date_range.get("max"):
+                # Extract just the year portion for cleaner titles
+                min_str = str(date_range["min"])[:4]
+                max_str = str(date_range["max"])[:4]
+                if min_str != max_str:
+                    time_span = f" ({min_str}\u2013{max_str})"
+                else:
+                    time_span = f" ({min_str})"
+            if measure_label:
+                return f"{measure_label}{time_span}"
+            return f"{profile.dataset_id}{time_span}"
+
+        elif template_type == TemplateType.CATEGORICAL:
+            cat_col = columns.get("category", "")
+            if measure_label and cat_col:
+                return f"{measure_label} eftir {cat_col}"
+            elif measure_label:
+                return measure_label
+            return profile.dataset_id
+
+        elif template_type == TemplateType.GEOSPATIAL:
+            total = metrics.get("total_points", 0)
+            return f"{profile.dataset_id} — {total} staðsetningar"
+
+        return profile.dataset_id
 
     def _extract_key_findings(self, template_type: TemplateType, metrics: dict) -> list[str]:
         """Extract human-readable key findings from metrics."""
