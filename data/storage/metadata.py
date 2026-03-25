@@ -1,6 +1,7 @@
 """
 SQLite metadata store.
-Manages template configurations and processing logs.
+Manages template configurations, processing logs,
+and three-tiered metadata provenance.
 """
 
 import json
@@ -26,6 +27,8 @@ class MetadataStore:
                     template_type TEXT NOT NULL,
                     column_mappings TEXT NOT NULL,
                     profiling_summary TEXT NOT NULL,
+                    metadata_tier TEXT DEFAULT 'missing',
+                    normalized_metadata TEXT,
                     last_used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -41,6 +44,23 @@ class MetadataStore:
             """)
             conn.commit()
 
+            # Migration: add columns to existing tables
+            self._migrate(conn)
+
+    def _migrate(self, conn):
+        """Add new columns if they don't exist (safe for existing DBs)."""
+        cursor = conn.execute("PRAGMA table_info(template_configurations)")
+        existing = {row[1] for row in cursor.fetchall()}
+        if "metadata_tier" not in existing:
+            conn.execute(
+                "ALTER TABLE template_configurations ADD COLUMN metadata_tier TEXT DEFAULT 'missing'"
+            )
+        if "normalized_metadata" not in existing:
+            conn.execute(
+                "ALTER TABLE template_configurations ADD COLUMN normalized_metadata TEXT"
+            )
+        conn.commit()
+
     def save_config(
         self,
         dataset_id: str,
@@ -49,14 +69,17 @@ class MetadataStore:
         template_type: str,
         column_mappings: dict,
         profiling_summary: dict,
+        metadata_tier: str = "missing",
+        normalized_metadata: Optional[dict] = None,
     ):
         """Save or update a template configuration for a dataset."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """INSERT OR REPLACE INTO template_configurations
                    (dataset_id, portal_url, resource_url, template_type,
-                    column_mappings, profiling_summary, last_used_at)
-                   VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)""",
+                    column_mappings, profiling_summary,
+                    metadata_tier, normalized_metadata, last_used_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)""",
                 (
                     dataset_id,
                     portal_url,
@@ -64,6 +87,8 @@ class MetadataStore:
                     template_type,
                     json.dumps(column_mappings),
                     json.dumps(profiling_summary),
+                    metadata_tier,
+                    json.dumps(normalized_metadata) if normalized_metadata else None,
                 ),
             )
             conn.commit()
@@ -81,6 +106,8 @@ class MetadataStore:
             result = dict(row)
             result["column_mappings"] = json.loads(result["column_mappings"])
             result["profiling_summary"] = json.loads(result["profiling_summary"])
+            if result.get("normalized_metadata"):
+                result["normalized_metadata"] = json.loads(result["normalized_metadata"])
             return result
 
     def has_config(self, dataset_id: str) -> bool:
@@ -113,5 +140,7 @@ class MetadataStore:
                 d = dict(row)
                 d["column_mappings"] = json.loads(d["column_mappings"])
                 d["profiling_summary"] = json.loads(d["profiling_summary"])
+                if d.get("normalized_metadata"):
+                    d["normalized_metadata"] = json.loads(d["normalized_metadata"])
                 results.append(d)
             return results

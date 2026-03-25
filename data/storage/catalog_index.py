@@ -97,23 +97,27 @@ class CatalogIndex:
 
     def upsert_entries(self, entries: list[CKANCatalogEntry], portal_url: str):
         """Bulk insert or update catalog entries."""
-        with self._get_conn() as conn:
-            conn.executemany("""
-                INSERT OR REPLACE INTO catalog_entries
-                    (dataset_id, name, title, description, tags, organization,
-                     resource_formats, num_resources, metadata_modified, portal_url)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, [
-                (
-                    e.dataset_id, e.name, e.title, e.description,
-                    json.dumps(e.tags), e.organization,
-                    json.dumps(e.resource_formats), e.num_resources,
-                    e.metadata_modified, portal_url,
-                )
-                for e in entries
-            ])
-            conn.commit()
-        logger.info(f"Upserted {len(entries)} catalog entries for {portal_url}")
+        try:
+            with self._get_conn() as conn:
+                conn.executemany("""
+                    INSERT OR REPLACE INTO catalog_entries
+                        (dataset_id, name, title, description, tags, organization,
+                         resource_formats, num_resources, metadata_modified, portal_url)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, [
+                    (
+                        e.dataset_id, e.name, e.title, e.description,
+                        json.dumps(e.tags), e.organization,
+                        json.dumps(e.resource_formats), e.num_resources,
+                        e.metadata_modified, portal_url,
+                    )
+                    for e in entries
+                ])
+                conn.commit()
+            logger.info(f"Upserted {len(entries)} catalog entries for {portal_url}")
+        except sqlite3.Error as e:
+            logger.error(f"Database error upserting catalog entries: {e}")
+            raise
 
     def clear_portal(self, portal_url: str):
         """Remove all catalog entries for a specific portal."""
@@ -199,8 +203,14 @@ class CatalogIndex:
             results = []
             for row in rows:
                 entry = dict(row)
-                entry["tags"] = json.loads(entry["tags"])
-                entry["resource_formats"] = json.loads(entry["resource_formats"])
+                try:
+                    entry["tags"] = json.loads(entry["tags"])
+                except (json.JSONDecodeError, TypeError):
+                    entry["tags"] = []
+                try:
+                    entry["resource_formats"] = json.loads(entry["resource_formats"])
+                except (json.JSONDecodeError, TypeError):
+                    entry["resource_formats"] = []
                 results.append(entry)
             return results
 
@@ -213,8 +223,14 @@ class CatalogIndex:
             ).fetchone()
             if row:
                 entry = dict(row)
-                entry["tags"] = json.loads(entry["tags"])
-                entry["resource_formats"] = json.loads(entry["resource_formats"])
+                try:
+                    entry["tags"] = json.loads(entry["tags"])
+                except (json.JSONDecodeError, TypeError):
+                    entry["tags"] = []
+                try:
+                    entry["resource_formats"] = json.loads(entry["resource_formats"])
+                except (json.JSONDecodeError, TypeError):
+                    entry["resource_formats"] = []
                 return entry
             return None
 

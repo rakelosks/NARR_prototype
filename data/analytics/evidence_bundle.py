@@ -5,6 +5,10 @@ into a structured bundle that feeds into narrative generation.
 
 An evidence bundle is the complete context that the LLM needs
 to generate a data narrative for a dataset.
+
+Includes three-tiered metadata provenance so the narrative
+generator knows which facts are authoritative (portal),
+inferred (profiler), or missing (disclaimer needed).
 """
 
 import logging
@@ -17,6 +21,7 @@ from data.profiling.profiler import DatasetProfile
 from data.profiling.matcher import MatchResult
 from data.profiling.template_definitions import TemplateType, TEMPLATE_MAP
 from data.analytics.analytics import AnalyticsEngine, AnalyticsResult
+from data.metadata_normalize import NormalizedMetadata, MetadataTier
 from visualization.charts import select_chart_type, generate_spec, ChartSelection
 
 logger = logging.getLogger(__name__)
@@ -69,6 +74,9 @@ class EvidenceBundle(BaseModel):
         description="All column names → semantic type",
     )
 
+    # Three-tiered metadata provenance
+    normalized_metadata: Optional[NormalizedMetadata] = None
+
     # Analytics
     metrics: dict = Field(default_factory=dict)
 
@@ -82,15 +90,64 @@ class EvidenceBundle(BaseModel):
         """
         Format the bundle as a text context string for the LLM prompt.
         This is the structured summary the LLM receives to generate narratives.
+
+        Includes metadata provenance so the LLM knows which facts are
+        authoritative (portal), inferred, or missing (needs disclaimer).
         """
-        lines = [
-            f"Dataset: {self.dataset_id}",
-            f"Source: {self.source}",
-            f"Template: {self.template_type}",
-            f"Size: {self.row_count} rows × {self.column_count} columns",
-            f"Column types: {self.column_summary}",
-            f"Mapped columns: {self.matched_columns}",
-        ]
+        meta = self.normalized_metadata
+        lines = []
+
+        # --- Dataset identity (use normalized metadata when available) ---
+        if meta and meta.title.available:
+            lines.append(f"Dataset: {meta.title.value}")
+        else:
+            lines.append(f"Dataset: {self.dataset_id}")
+
+        if meta and meta.organization.available:
+            lines.append(f"Publisher: {meta.organization.value}")
+
+        if meta and meta.source_url.available:
+            lines.append(f"Source: {meta.source_url.value}")
+        else:
+            lines.append(f"Source: {self.source}")
+
+        if meta and meta.licence.available:
+            lines.append(f"Licence: {meta.licence.value}")
+
+        if meta and meta.last_modified.available:
+            lines.append(f"Last updated: {meta.last_modified.value}")
+
+        if meta and meta.description.available:
+            lines.append(f"Description: {meta.description.value}")
+
+        if meta and meta.tags:
+            lines.append(f"Tags: {', '.join(meta.tags)}")
+
+        if meta and meta.portal_language.available:
+            lines.append(f"Data language: {meta.portal_language.value}")
+
+        lines.append(f"Template: {self.template_type}")
+        lines.append(f"Size: {self.row_count} rows × {self.column_count} columns")
+        lines.append(f"Column types: {self.column_summary}")
+        lines.append(f"Mapped columns: {self.matched_columns}")
+
+        # --- Metadata provenance notice ---
+        if meta:
+            tier = meta.overall_tier
+            if tier == MetadataTier.PORTAL:
+                lines.append("Metadata quality: Complete (from open data portal)")
+            elif tier == MetadataTier.INFERRED:
+                lines.append("Metadata quality: Partial (some fields inferred from data)")
+            else:
+                lines.append("Metadata quality: Limited (key fields unavailable)")
+
+            disclaimer = meta.disclaimer
+            if disclaimer:
+                lines.append(f"IMPORTANT — {disclaimer}")
+                lines.append(
+                    "Include a brief data provenance note in the narrative "
+                    "acknowledging the missing information."
+                )
 
         # List all columns so the LLM knows about every field in the data
         if self.all_columns:
@@ -201,6 +258,7 @@ class BundleBuilder:
         profile: DatasetProfile,
         match: MatchResult,
         title: Optional[str] = None,
+        metadata: Optional[NormalizedMetadata] = None,
     ) -> EvidenceBundle:
         """
         Build a complete evidence bundle for a dataset.
@@ -210,6 +268,7 @@ class BundleBuilder:
             profile: The dataset profile.
             match: The template match result.
             title: Optional title for the visualizations.
+            metadata: Optional NormalizedMetadata with tiered provenance.
 
         Returns:
             EvidenceBundle ready for narrative generation.
@@ -290,6 +349,7 @@ class BundleBuilder:
             column_summary=profile.column_types_summary,
             matched_columns=columns,
             all_columns=all_columns,
+            normalized_metadata=metadata,
             metrics=analytics_result.metrics,
             visualizations=visualizations,
             narrative_context=narrative_context,

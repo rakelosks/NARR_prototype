@@ -42,18 +42,32 @@ def get_providers() -> tuple[LLMProvider, LLMProvider]:
     """
     from config import settings
 
-    intent = get_provider(
-        settings.llm_provider,
-        base_url=settings.ollama_base_url,
-        model=settings.ollama_intent_model,
-        think=settings.ollama_intent_think,
-        timeout=settings.ollama_timeout,
-    )
-    generation = get_provider(
-        settings.llm_provider,
-        base_url=settings.ollama_base_url,
-        model=settings.ollama_generation_model,
-        think=settings.ollama_generation_think,
-        timeout=settings.ollama_timeout,
-    )
+    provider = settings.llm_provider
+
+    if provider == "openai":
+        intent = get_provider(
+            provider,
+            api_key=settings.openai_api_key,
+            model=settings.openai_intent_model,
+        )
+        generation = get_provider(
+            provider,
+            api_key=settings.openai_api_key,
+            model=settings.openai_generation_model,
+        )
+    else:
+        intent = get_provider(
+            provider,
+            base_url=settings.ollama_base_url,
+            model=settings.ollama_intent_model,
+            think=settings.ollama_intent_think,
+            timeout=settings.ollama_timeout,
+        )
+        generation = get_provider(
+            provider,
+            base_url=settings.ollama_base_url,
+            model=settings.ollama_generation_model,
+            think=settings.ollama_generation_think,
+            timeout=settings.ollama_timeout,
+        )
     return intent, generation

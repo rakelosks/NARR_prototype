@@ -8,6 +8,7 @@ Handles qwen3 thinking-model quirks:
   checks both fields automatically.
 """
 
+import asyncio
 import json as json_module
 import logging
 import re
@@ -16,6 +17,9 @@ from typing import Optional
 from llm.interface import LLMProvider
 
 logger = logging.getLogger(__name__)
+
+# Ollama runs locally; limit concurrency to avoid overloading the GPU
+_ollama_semaphore = asyncio.Semaphore(2)
 
 
 class OllamaProvider(LLMProvider):
@@ -64,14 +68,28 @@ class OllamaProvider(LLMProvider):
         if self.think is not None:
             payload["think"] = self.think
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{self.base_url}/api/generate",
-                json=payload,
-                timeout=self.timeout,
+        try:
+            async with _ollama_semaphore:
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        f"{self.base_url}/api/generate",
+                        json=payload,
+                        timeout=self.timeout,
+                    )
+                    response.raise_for_status()
+                    return self._extract_response(response.json())
+        except httpx.ConnectError:
+            raise ConnectionError(
+                f"Cannot connect to Ollama at {self.base_url}. Is it running?"
             )
-            response.raise_for_status()
-            return self._extract_response(response.json())
+        except httpx.TimeoutException:
+            raise TimeoutError(
+                f"Ollama request timed out after {self.timeout}s (model: {self.model})"
+            )
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(
+                f"Ollama HTTP {e.response.status_code}: {e.response.text[:200]}"
+            )
 
     async def generate_json(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
@@ -89,17 +107,34 @@ class OllamaProvider(LLMProvider):
         if system_prompt:
             payload["system"] = system_prompt
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{self.base_url}/api/generate",
-                json=payload,
-                timeout=self.timeout,
+        try:
+            async with _ollama_semaphore:
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        f"{self.base_url}/api/generate",
+                        json=payload,
+                        timeout=self.timeout,
+                    )
+                    response.raise_for_status()
+                    return self._extract_response(response.json())
+        except httpx.ConnectError:
+            raise ConnectionError(
+                f"Cannot connect to Ollama at {self.base_url}. Is it running?"
             )
-            response.raise_for_status()
-            return self._extract_response(response.json())
+        except httpx.TimeoutException:
+            raise TimeoutError(
+                f"Ollama JSON request timed out after {self.timeout}s (model: {self.model})"
+            )
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(
+                f"Ollama HTTP {e.response.status_code}: {e.response.text[:200]}"
+            )
 
     async def generate_structured(self, prompt: str, schema: dict, system_prompt: Optional[str] = None) -> dict:
         """Generate structured output via Ollama with JSON mode."""
         json_prompt = f"{prompt}\n\nRespond with valid JSON matching this schema:\n{schema}"
         raw = await self.generate_json(json_prompt, system_prompt=system_prompt)
-        return json_module.loads(raw)
+        try:
+            return json_module.loads(raw)
+        except json_module.JSONDecodeError as e:
+            raise ValueError(f"Ollama returned invalid JSON: {e} — raw: {raw[:200]}")

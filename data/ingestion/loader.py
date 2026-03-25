@@ -17,6 +17,8 @@ import httpx
 import pandas as pd
 from pydantic import BaseModel
 
+from data.ingestion.throttle import Throttle, retry_with_backoff
+
 logger = logging.getLogger(__name__)
 
 
@@ -159,7 +161,10 @@ def parse_bytes(raw: bytes, fmt: FileFormat) -> pd.DataFrame:
             raise ValueError("JSON must be an array of objects or tabular format")
 
     elif fmt == FileFormat.GEOJSON:
-        geojson = json.loads(raw)
+        try:
+            geojson = json.loads(raw)
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            raise ValueError(f"Invalid GeoJSON data: {e}")
         features = geojson.get("features", [])
         if not features:
             raise ValueError("GeoJSON contains no features")
@@ -171,7 +176,10 @@ def parse_bytes(raw: bytes, fmt: FileFormat) -> pd.DataFrame:
         return pd.DataFrame(rows)
 
     elif fmt in (FileFormat.XLS, FileFormat.XLSX):
-        return pd.read_excel(BytesIO(raw))
+        try:
+            return pd.read_excel(BytesIO(raw))
+        except Exception as e:
+            raise ValueError(f"Failed to parse Excel file: {e}")
 
     else:
         raise ValueError(f"Unsupported format: {fmt}")
@@ -264,6 +272,9 @@ def _infer_string_column(series: pd.Series, col_name: str) -> str:
 # Loader functions
 # ---------------------------------------------------------------------------
 
+_download_throttle = Throttle(max_concurrent=3, min_interval=0.2)
+
+
 async def load_from_url(
     url: str,
     format: Optional[str] = None,
@@ -282,11 +293,21 @@ async def load_from_url(
     """
     logger.info(f"Downloading from URL: {url}")
 
-    async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        content_type = response.headers.get("content-type", "")
-        raw = response.content
+    async def _do_download():
+        async with _download_throttle:
+            async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                return response.headers.get("content-type", ""), response.content
+
+    try:
+        content_type, raw = await retry_with_backoff(_do_download, max_retries=3)
+    except httpx.ConnectError:
+        raise ConnectionError(f"Cannot connect to download: {url}")
+    except httpx.TimeoutException:
+        raise TimeoutError(f"Download timed out after {timeout}s: {url}")
+    except httpx.HTTPStatusError as e:
+        raise RuntimeError(f"Download failed (HTTP {e.response.status_code}): {url}")
 
     fmt = detect_format(url, content_type=content_type, explicit_format=format)
     logger.info(f"Detected format: {fmt.value}")

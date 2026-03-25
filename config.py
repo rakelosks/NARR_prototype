@@ -5,6 +5,9 @@ Loads settings from environment variables with sensible defaults.
 
 import os
 from dataclasses import dataclass
+from dotenv import load_dotenv
+
+load_dotenv()  # reads .env from project root
 
 
 @dataclass
@@ -24,6 +27,8 @@ class Settings:
     ollama_generation_think: bool = True   # thinking on for richer narratives
     ollama_timeout: float = 180.0          # seconds per request
     openai_api_key: str = ""
+    openai_intent_model: str = "gpt-4o-mini"
+    openai_generation_model: str = "gpt-4o"
 
     # CKAN portal
     ckan_portal_url: str = "https://gagnagatt.reykjavik.is/en/api/3"
@@ -47,6 +52,8 @@ def load_settings() -> Settings:
         ollama_intent_model=os.getenv("OLLAMA_INTENT_MODEL", "qwen3:4b"),
         ollama_generation_model=os.getenv("OLLAMA_GENERATION_MODEL", "qwen3:4b"),
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+        openai_intent_model=os.getenv("OPENAI_INTENT_MODEL", "gpt-4o-mini"),
+        openai_generation_model=os.getenv("OPENAI_GENERATION_MODEL", "gpt-4o"),
         ckan_portal_url=os.getenv("CKAN_PORTAL_URL", "https://gagnagatt.reykjavik.is/en/api/3"),
         ckan_portal_language=os.getenv("CKAN_PORTAL_LANGUAGE", "is"),
         metadata_db_path=os.getenv("METADATA_DB_PATH", "metadata.sqlite"),
