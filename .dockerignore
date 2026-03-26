@@ -1,0 +1,35 @@
+# Virtual environment
+venv/
+.venv/
+
+# Git
+.git/
+.gitignore
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Data files (rebuilt at runtime)
+*.sqlite
+*.duckdb
+data/cache/snapshots/*.parquet
+
+# Environment (injected via docker-compose)
+.env
+
+# Docker (avoid recursive copy)
+Dockerfile
+docker-compose.yml
+
+# Misc
+*.md
+tests/
+ollama_models/

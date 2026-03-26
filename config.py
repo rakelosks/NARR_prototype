@@ -39,6 +39,10 @@ class Settings:
     cache_dir: str = "data/cache/snapshots"
     cache_ttl_hours: int = 24
 
+    # API security
+    narr_api_key: str = ""           # empty = auth disabled (local dev)
+    rate_limit_rpm: int = 60         # requests per minute per client (0 = disabled)
+
     # Streamlit
     api_base_url: str = "http://localhost:8000"
 
@@ -59,6 +63,8 @@ def load_settings() -> Settings:
         metadata_db_path=os.getenv("METADATA_DB_PATH", "metadata.sqlite"),
         cache_dir=os.getenv("CACHE_DIR", "data/cache/snapshots"),
         cache_ttl_hours=int(os.getenv("CACHE_TTL_HOURS", "24")),
+        narr_api_key=os.getenv("NARR_API_KEY", ""),
+        rate_limit_rpm=int(os.getenv("RATE_LIMIT_RPM", "60")),
         api_base_url=os.getenv("API_BASE_URL", "http://localhost:8000"),
     )
 

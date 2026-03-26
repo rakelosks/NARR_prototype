@@ -6,6 +6,8 @@ analyzes it, and returns an editorial data story with embedded charts.
 Run with: streamlit run client/streamlit_app.py
 """
 
+import os
+
 import pandas as pd
 import streamlit as st
 import requests
@@ -14,7 +16,15 @@ import requests
 # Config
 # ---------------------------------------------------------------------------
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.getenv("API_BASE_URL", "http://localhost:8000")
+API_KEY = os.getenv("NARR_API_KEY", "")
+
+def _headers() -> dict:
+    """Build request headers, including API key if configured."""
+    h = {}
+    if API_KEY:
+        h["X-API-Key"] = API_KEY
+    return h
 
 st.set_page_config(
     page_title="Smart City Data Stories",
@@ -30,7 +40,7 @@ st.set_page_config(
 def api_get(path: str, params: dict = None) -> dict | None:
     """GET request to the API."""
     try:
-        r = requests.get(f"{API_BASE}{path}", params=params, timeout=10)
+        r = requests.get(f"{API_BASE}{path}", params=params, headers=_headers(), timeout=10)
         r.raise_for_status()
         return r.json()
     except requests.ConnectionError:
@@ -44,7 +54,7 @@ def api_get(path: str, params: dict = None) -> dict | None:
 def api_post(path: str, data: dict, timeout: int = 600) -> dict | None:
     """POST request to the API."""
     try:
-        r = requests.post(f"{API_BASE}{path}", json=data, timeout=timeout)
+        r = requests.post(f"{API_BASE}{path}", json=data, headers=_headers(), timeout=timeout)
         r.raise_for_status()
         return r.json()
     except requests.ConnectionError:
