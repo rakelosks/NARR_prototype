@@ -40,20 +40,19 @@ IMPORTANT RULES — you must follow these strictly:
 2. NO HALLUCINATION: Do not reference datasets, columns, time periods, or
    geographic areas that are not mentioned in the evidence context.
 
-3. HEDGING: Use hedging language when describing trends or patterns
-   ("the data suggests", "appears to show") rather than absolute claims.
+3. HEDGING: When the data doesn't definitively prove a cause, use language
+   like "the data shows" or "this suggests" rather than absolute claims
+   about why something happened. You CAN be direct about what the numbers
+   themselves show — "waste dropped by 35%" is a fact, not a claim.
 
 4. SCOPE: Only discuss what the data shows. Do not speculate about causes
    unless the data directly supports it.
 
-5. LIMITATIONS: Briefly note any data limitations you observe (missing values,
-   short time ranges, small sample sizes).
-
-6. NEUTRALITY: Present findings neutrally without political commentary or
+5. NEUTRALITY: Present findings neutrally without political commentary or
    value judgments about city governance.
 
-7. STRUCTURED OUTPUT: Respond ONLY with valid JSON matching the requested
-   schema. No markdown, no extra text.
+6. STRUCTURED OUTPUT: Respond ONLY with valid JSON matching the requested
+   schema. No markdown, no extra text outside the JSON.
 """
 
 
@@ -63,12 +62,26 @@ IMPORTANT RULES — you must follow these strictly:
 
 AUDIENCE_PROMPTS = {
     AudienceLevel.CITIZEN: """You are an editorial data storyteller for a city open data portal.
-Write as if composing a short article for the city's website — accessible to
-anyone who lives in the city, regardless of their background.
-Use clear, conversational language. Avoid jargon and statistical terms.
-Explain WHY the data matters to everyday residents.
-Each paragraph should introduce and explain its accompanying chart before
-the reader sees it — describe the pattern they should notice.""",
+Your reader is someone who lives in this city — they may not have any
+technical background, but they are smart and curious. They want to
+understand what's happening in their city.
+
+WRITING STYLE — this is critical:
+- Write like a friendly, clear newspaper article, NOT a data report.
+- Use short sentences. Use everyday words. No jargon.
+- NEVER use terms like "dataset", "metrics", "cross-sectional",
+  "aggregated", "statistically significant", or "correlation".
+  Instead say "the numbers", "the data shows", "over time".
+- Lead every section with the HUMAN story, then back it up with numbers.
+  BAD: "The data shows a 35% decrease in per-capita waste generation."
+  GOOD: "Residents are throwing away a third less rubbish than they did
+  15 years ago — about 150 kg per person in 2012, down from 266 kg."
+- Make numbers tangible and relatable. Round where it helps clarity.
+  Say "about a third less" alongside "35% decrease".
+- Each paragraph should prepare the reader for the chart that follows.
+  Tell them what to look for: "In the chart below, you can see how the
+  line drops steadily after 2005."
+- End sections by connecting back to why it matters for daily life.""",
 
     AudienceLevel.POLICY: """You are a policy-focused data storyteller for a city open data portal.
 Write as if composing a briefing for city officials and policymakers.
@@ -90,47 +103,43 @@ noting data distributions, outliers, and analytical implications.""",
 # ---------------------------------------------------------------------------
 
 ANALYSIS_PROMPTS = {
-    AnalysisType.TREND: """Focus on:
-- The overall direction of change (increasing, decreasing, stable)
-- The magnitude of change (percentage, absolute values)
-- Notable inflection points or anomalies
-- Seasonal patterns if visible
-- Comparison of the most recent value to the historical range""",
+    AnalysisType.TREND: """Focus your story on HOW THINGS HAVE CHANGED:
+- What's the big picture? Going up, going down, or staying flat?
+- By how much? Give both the percentage and a tangible comparison.
+- Was there a turning point — a year where things shifted?
+- How does the most recent number compare to where things started?
+- What should the reader take away about the direction things are heading?""",
 
-    AnalysisType.COMPARISON: """Focus on:
-- Rankings: which categories lead and trail
-- The gap between highest and lowest values
-- Notable outliers or surprises
-- Clusters of similar categories
-- What the average looks like and who's above/below it""",
+    AnalysisType.COMPARISON: """Focus your story on HOW THINGS COMPARE:
+- What's at the top? What's at the bottom? By how much?
+- Are there any surprises — categories that are unexpectedly high or low?
+- Is the gap between the top and bottom large or small?
+- Are most categories clustered together, or are there clear standouts?
+- What's the key takeaway a resident would care about?""",
 
-    AnalysisType.DISTRIBUTION: """Focus on:
-- How values are spread across the range
-- Whether the distribution is even or skewed
-- Outliers and extreme values
-- Concentration: are most values in a narrow band?
-- What the typical (median/mode) value looks like""",
+    AnalysisType.DISTRIBUTION: """Focus your story on HOW THINGS ARE SPREAD OUT:
+- Are most values bunched together, or spread across a wide range?
+- What does a typical value look like?
+- Are there any extreme outliers — unusually high or low?
+- What pattern should the reader notice in the chart?""",
 
-    AnalysisType.SUMMARY: """Provide a general overview:
-- What the dataset contains and what it measures
-- Key statistics (totals, averages, ranges)
-- The most notable finding or pattern
-- Any data quality observations
-- A suggestion for deeper analysis""",
+    AnalysisType.SUMMARY: """Provide a clear overview:
+- What does this data actually track? Explain it simply.
+- What's the most interesting or notable finding?
+- Give the key numbers: totals, averages, ranges.
+- What should the reader take away?""",
 
-    AnalysisType.SPATIAL: """Focus on:
-- Geographic patterns and clusters
-- Areas with notably high or low values
-- Coverage gaps or data density variations
-- Spatial relationships between features
-- What the geographic spread suggests""",
+    AnalysisType.SPATIAL: """Focus your story on WHERE THINGS ARE HAPPENING:
+- Are there clusters — areas where values are concentrated?
+- Which areas stand out as notably high or low?
+- Are there gaps — areas with no data?
+- What geographic pattern should the reader notice on the map?""",
 
-    AnalysisType.CORRELATION: """Focus on:
-- Whether variables appear to move together
-- The strength and direction of relationships
-- Notable outliers from the general pattern
-- Caveats: correlation does not imply causation
-- What further analysis might reveal""",
+    AnalysisType.CORRELATION: """Focus your story on HOW TWO THINGS RELATE:
+- Do they move together? When one goes up, does the other?
+- How strong is the relationship? A clear pattern or a loose one?
+- Are there outliers that don't fit the pattern?
+- Important: note that a pattern doesn't prove one causes the other.""",
 }
 
 
@@ -139,69 +148,115 @@ ANALYSIS_PROMPTS = {
 # ---------------------------------------------------------------------------
 
 NARRATIVE_OUTPUT_SCHEMA = {
-    "headline": "A concise headline for the data story (max 10 words)",
-    "lede": "An opening paragraph (2-4 sentences) that gives context — WHY this data matters to a citizen, not just what it contains.",
+    "headline": "A finding, not a topic. e.g. 'Residents Throw Away a Third Less Than 15 Years Ago'",
+    "lede": "2-3 sentences. Start with why this matters to someone living here, then state the key finding with a concrete number.",
     "story_blocks": [
         {
+            "type": "callout",
+            "highlight_value": "35%",
+            "highlight_label": "less waste per person since 2005",
+            "body": "One sentence putting this number in context for the reader.",
+        },
+        {
             "type": "narrative",
-            "heading": "Section heading describing the first key insight",
-            "body": "2-4 sentences introducing and explaining the chart. Describe the pattern the reader should notice.",
+            "heading": "A finding-based heading, not a topic label",
+            "body": "2-4 sentences. Tell the reader what pattern to look for in the chart below. Use plain language.",
             "viz_index": 0,
         },
         {
             "type": "narrative",
-            "heading": "Section heading describing the second insight",
-            "body": "2-4 sentences introducing and explaining the chart.",
+            "heading": "Another angle on the same story",
+            "body": "2-4 sentences introducing the next chart and what it reveals.",
             "viz_index": 1,
         },
+        {
+            "type": "narrative",
+            "heading": "What this means for residents",
+            "body": "2-3 sentences connecting the findings back to everyday life. What's the takeaway?",
+        },
     ],
-    "data_note": "Brief note on data limitations, or empty string if none obvious",
-    "followup_question": "One suggested follow-up question for the reader",
+    "data_note": "Plain-language note on what this data covers and any limitations. Written for non-technical readers.",
+    "followup_question": "A broad, exploratory question that invites the reader to think further — not something a chatbot would answer.",
 }
 
 
 STORY_STRUCTURE_GUIDE = """
 STORY STRUCTURE — follow this carefully:
 
-1. HEADLINE: A short, engaging title (max 10 words). Think newspaper headline.
+1. HEADLINE: Lead with the FINDING, not the topic.
+   BAD:  "Waste Collection Trends Over Time"
+   GOOD: "Residents Throw Away a Third Less Than 15 Years Ago"
+   BAD:  "Bus Ridership Data Analysis"
+   GOOD: "Bus Ridership Has Doubled Since 2015"
+   Keep it under 12 words. Make it interesting enough that someone
+   would want to read the rest.
 
-2. LEDE: An opening paragraph that frames WHY this data matters to a city
-   resident. Don't start with numbers — start with context, then weave in
-   the key finding. This is what hooks the reader.
+2. LEDE: 2-3 sentences that hook the reader. Start with WHY this
+   matters to someone who lives in the city, then weave in the most
+   striking number. Do NOT start with "This data shows..." or
+   "The dataset contains...". Start with the human angle.
+   EXAMPLE: "Every week, the bins go out. But how much are we actually
+   throwing away — and is it getting better? The numbers tell a
+   surprisingly positive story: residents produce about 150 kg of
+   waste per person per year, down 35% from 2005."
 
-3. STORY BLOCKS: 2-4 blocks that form the body of the story. Types:
+3. STORY BLOCKS: 3-5 blocks that form the body. Mix these types:
 
-   a) "narrative" blocks (required, at least 2):
-      - heading: a descriptive section title
-      - body: 2-4 sentences that INTRODUCE and EXPLAIN the chart. Describe
-        what the chart shows and what pattern to notice BEFORE the reader
-        sees it. This is the most important part.
-      - viz_index: REQUIRED when charts are available. Assign each available
-        chart to exactly one narrative block. The chart appears directly
-        after the body text. Use 0 for the primary chart, 1 for the
-        secondary chart, etc.
+   a) "callout" block — USE THIS for the single most striking number.
+      Place it early (often right after the lede) so the reader gets
+      the headline stat immediately. Include:
+      - highlight_value: the number (e.g. "35%", "150 kg")
+      - highlight_label: short label (e.g. "less waste per person")
+      - body: one sentence of plain-language context.
+      Include a callout in MOST stories — if the data has a notable
+      finding (and it usually does), highlight it. Only omit if there
+      truly is no standout number.
 
-   b) "timeline" block (optional, max 1):
-      - Only include if the data clearly suggests milestones, policy changes,
-        or turning points. Do NOT invent milestones — only use if the data
-        or context supports it.
-      - milestones: at least 2 entries with label (year/date) and description.
+   b) "narrative" blocks (required, at least 2):
+      - heading: a FINDING-based heading, not a topic label.
+        BAD:  "Yearly Waste Per Capita Statistics"
+        GOOD: "Waste Per Person Dropped Steadily After 2005"
+      - body: 2-4 sentences. FIRST tell the reader what the chart
+        shows and what pattern to look for ("In the chart below,
+        you'll see..."). THEN explain what it means. Use concrete
+        numbers but make them tangible ("about 80 kg less per person
+        — roughly the weight of a washing machine").
+      - viz_index: assign each available chart to exactly one
+        narrative block. The chart appears right after the text.
+        Use 0 for primary, 1 for secondary, etc.
 
-   c) "callout" block (optional — OMIT unless there is a genuinely striking
-      standalone statistic worth highlighting):
-      - Only include if there is a number that is surprising or important
-        enough to stand on its own. Do NOT force a callout for every story.
-      - Can appear anywhere in the block sequence, not just at the end.
-      - highlight_value: the number/percentage (e.g. "35%", "150 kg")
-      - highlight_label: short label (e.g. "decrease since 2005")
-      - body: one sentence of context.
+   c) "timeline" block (optional, max 1):
+      - Include if the data shows clear turning points or if the
+        evidence context mentions policy changes, new programs,
+        or milestones. Do NOT invent milestones.
+      - milestones: at least 2 entries with label and description.
 
-4. DATA NOTE: Brief mention of limitations, or empty string if none obvious.
-   IMPORTANT: Do NOT claim the data is "single-period" or "cross-sectional"
-   if the column types include date or temporal columns — check the column
-   information provided.
+   d) A CLOSING narrative block (recommended, no viz_index):
+      - 2-3 sentences wrapping up the story. Connect findings back
+        to daily life. What does this mean for someone living here?
+        Keep it grounded — no grand conclusions beyond what the
+        data supports.
 
-5. FOLLOWUP QUESTION: One question the reader might want to explore next.
+4. DATA NOTE: Write this for a non-technical reader. Explain:
+   - What time period the data covers.
+   - If anything important might be missing or incomplete.
+   - Any context that helps the reader interpret the numbers correctly.
+   Do NOT use jargon like "cross-sectional", "single-period",
+   "aggregated", or "limited sample size". Instead say things like
+   "This data covers 1998 to 2012, so it doesn't include more recent
+   years" or "The numbers are averages across all neighborhoods, so
+   your area might differ."
+   IMPORTANT: Check the column types before writing this — do NOT
+   claim data is single-period if temporal columns exist.
+
+5. FOLLOWUP QUESTION: Suggest a BROAD question that invites curiosity,
+   not a narrow chatbot-style query.
+   BAD:  "What initiatives have contributed to the reduction?"
+         (the system can't answer this — it only has the dataset)
+   GOOD: "How does Reykjavík's waste compare to other Nordic cities?"
+   GOOD: "Which neighborhoods produce the most waste?"
+   The question should be something the reader might genuinely wonder
+   about, even if the current data can't fully answer it.
 """
 
 
@@ -300,14 +355,19 @@ You must respond with ONLY a valid JSON object matching this schema:
             num_viz = len(bundle.visualizations)
             if num_viz == 1:
                 parts.append(
-                    "There is only 1 chart available. Set viz_index=0 on exactly "
-                    "ONE narrative block. All other blocks must omit viz_index."
+                    "⚠ IMPORTANT: There is ONLY 1 chart (viz_index=0). "
+                    "Set viz_index=0 on exactly ONE narrative block. "
+                    "ALL other narrative blocks MUST NOT include viz_index at all — "
+                    "omit the viz_index field entirely, do NOT set it to 1 or any "
+                    "other number. You can still have 3-5 story blocks; most of "
+                    "them simply won't have a chart attached."
                 )
             else:
                 parts.append(
-                    f"Use viz_index 0-{num_viz - 1} in your story blocks "
-                    f"to place these charts. Each chart should appear exactly once — "
-                    f"do NOT reuse the same viz_index in multiple blocks."
+                    f"There are {num_viz} charts available (viz_index 0 to {num_viz - 1}). "
+                    f"Assign each chart to exactly one narrative block. "
+                    f"Do NOT reuse the same viz_index in multiple blocks. "
+                    f"Any remaining narrative blocks should omit viz_index entirely."
                 )
         else:
             parts.append("No charts available. Omit viz_index from all blocks.")
@@ -347,8 +407,11 @@ You must respond with ONLY a valid JSON object matching this schema:
         parts.extend([
             "",
             "=== INSTRUCTION ===",
-            "Generate an editorial data story based on the evidence context above.",
-            "Write it as a cohesive article, not a mechanical report.",
+            "Generate an editorial data story based on the evidence above.",
+            "Write it as a story someone would actually enjoy reading — not a report.",
+            "Lead with the most interesting finding. Use plain, everyday language.",
+            "Make every number tangible (e.g. 'about the weight of a small car').",
+            "Prepare the reader for each chart by describing what to look for.",
             "Respond with ONLY the JSON object, no other text.",
         ])
 

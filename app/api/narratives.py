@@ -256,7 +256,7 @@ async def _get_dataframe(dataset_id: str, config: Optional[dict] = None):
         # Re-download using stored resource URL
         logger.info(f"Re-downloading {dataset_id} from stored resource URL")
         from data.ingestion.ckan_client import CKANResource
-        resource = CKANResource(url=config["resource_url"], format="CSV", name=dataset_id)
+        resource = CKANResource(id=dataset_id, url=config["resource_url"], format="CSV", name=dataset_id)
         df = await client.download_resource_as_dataframe(resource)
         save_snapshot(df, dataset_id)
         return df, config["resource_url"]

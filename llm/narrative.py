@@ -137,6 +137,9 @@ class OutputValidator:
                 raw_output=raw_output,
             )
 
+        # Step 2.5: Fix out-of-range viz_index (clamp rather than reject)
+        narrative = self._fix_viz_indices(narrative, bundle)
+
         # Step 3: Content quality checks
         content_errors = self._check_content_quality(narrative, bundle)
         errors.extend(content_errors)
@@ -187,6 +190,35 @@ class OutputValidator:
 
         return None
 
+    def _fix_viz_indices(
+        self, narrative: GeneratedNarrative, bundle: EvidenceBundle
+    ) -> GeneratedNarrative:
+        """
+        Fix out-of-range viz_index values rather than rejecting the narrative.
+        If a block references a chart that doesn't exist, remove the viz_index.
+        Also ensure no duplicate viz_index assignments.
+        """
+        num_vizs = len(bundle.visualizations)
+        used_indices = set()
+
+        for block in narrative.story_blocks:
+            if block.viz_index is not None:
+                if block.viz_index >= num_vizs or block.viz_index < 0:
+                    logger.warning(
+                        f"Clamping out-of-range viz_index={block.viz_index} "
+                        f"(only {num_vizs} charts available)"
+                    )
+                    block.viz_index = None
+                elif block.viz_index in used_indices:
+                    logger.warning(
+                        f"Removing duplicate viz_index={block.viz_index}"
+                    )
+                    block.viz_index = None
+                else:
+                    used_indices.add(block.viz_index)
+
+        return narrative
+
     def _check_content_quality(
         self, narrative: GeneratedNarrative, bundle: EvidenceBundle
     ) -> list[str]:
@@ -199,25 +231,10 @@ class OutputValidator:
         if len(narrative.lede) < 30:
             errors.append("Lede is too short (< 30 chars)")
 
-        num_vizs = len(bundle.visualizations)
-        used_viz_indices = []
         for i, block in enumerate(narrative.story_blocks):
             if block.type == "narrative":
                 if not block.body or len(block.body.strip()) < 20:
                     errors.append(f"Story block {i+1} body is too short (< 20 chars)")
-                if block.viz_index is not None:
-                    if block.viz_index >= num_vizs:
-                        errors.append(
-                            f"Story block {i+1} viz_index={block.viz_index} "
-                            f"is out of range (only {num_vizs} charts available)"
-                        )
-                    elif block.viz_index in used_viz_indices:
-                        errors.append(
-                            f"Story block {i+1} reuses viz_index={block.viz_index} "
-                            f"which was already used. Each chart should appear only once."
-                        )
-                    else:
-                        used_viz_indices.append(block.viz_index)
             elif block.type == "timeline":
                 if not block.milestones or len(block.milestones) < 2:
                     errors.append(f"Story block {i+1} timeline needs at least 2 milestones")
