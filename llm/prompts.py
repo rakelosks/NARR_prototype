@@ -76,8 +76,10 @@ WRITING STYLE — this is critical:
   BAD: "The data shows a 35% decrease in per-capita waste generation."
   GOOD: "Residents are throwing away a third less rubbish than they did
   15 years ago — about 150 kg per person in 2012, down from 266 kg."
-- Make numbers tangible and relatable. Round where it helps clarity.
+- Make numbers relatable. Round where it helps clarity.
   Say "about a third less" alongside "35% decrease".
+  Do NOT invent real-world comparisons for weight or size
+  (e.g. "the weight of a car") — these are almost always wrong.
 - Each paragraph should prepare the reader for the chart that follows.
   Tell them what to look for: "In the chart below, you can see how the
   line drops steadily after 2005."
@@ -176,7 +178,7 @@ NARRATIVE_OUTPUT_SCHEMA = {
         },
     ],
     "data_note": "Plain-language note on what this data covers and any limitations. Written for non-technical readers.",
-    "followup_question": "A broad, exploratory question that invites the reader to think further — not something a chatbot would answer.",
+    "followup_question": "A suggested next topic to explore, framed as a prompt the reader could type. e.g. 'How has the city budget changed over the years?'",
 }
 
 
@@ -219,8 +221,7 @@ STORY STRUCTURE — follow this carefully:
       - body: 2-4 sentences. FIRST tell the reader what the chart
         shows and what pattern to look for ("In the chart below,
         you'll see..."). THEN explain what it means. Use concrete
-        numbers but make them tangible ("about 80 kg less per person
-        — roughly the weight of a washing machine").
+        numbers and make percentages relatable ("about a third less").
       - viz_index: assign each available chart to exactly one
         narrative block. The chart appears right after the text.
         Use 0 for primary, 1 for secondary, etc.
@@ -249,14 +250,18 @@ STORY STRUCTURE — follow this carefully:
    IMPORTANT: Check the column types before writing this — do NOT
    claim data is single-period if temporal columns exist.
 
-5. FOLLOWUP QUESTION: Suggest a BROAD question that invites curiosity,
-   not a narrow chatbot-style query.
+5. FOLLOWUP QUESTION: Suggest a DIFFERENT topic the reader could
+   explore next on the same portal. Frame it as something they could
+   type into this system to get another data story.
    BAD:  "What initiatives have contributed to the reduction?"
-         (the system can't answer this — it only has the dataset)
-   GOOD: "How does Reykjavík's waste compare to other Nordic cities?"
-   GOOD: "Which neighborhoods produce the most waste?"
-   The question should be something the reader might genuinely wonder
-   about, even if the current data can't fully answer it.
+         (too specific — the system can't answer this)
+   BAD:  "How does this compare to other Nordic cities?"
+         (the system only has data from this city's portal)
+   GOOD: "How has the city budget changed over the years?"
+   GOOD: "What do the city's school enrollment numbers look like?"
+   GOOD: "How is public transport ridership trending?"
+   The suggestion should feel like a natural "you might also be
+   interested in..." nudge toward a completely different city topic.
 """
 
 
@@ -410,7 +415,8 @@ You must respond with ONLY a valid JSON object matching this schema:
             "Generate an editorial data story based on the evidence above.",
             "Write it as a story someone would actually enjoy reading — not a report.",
             "Lead with the most interesting finding. Use plain, everyday language.",
-            "Make every number tangible (e.g. 'about the weight of a small car').",
+            "Make percentages relatable ('about a third less') but do NOT invent",
+            "real-world size or weight comparisons — they are usually wrong.",
             "Prepare the reader for each chart by describing what to look for.",
             "Respond with ONLY the JSON object, no other text.",
         ])

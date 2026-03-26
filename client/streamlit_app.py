@@ -122,8 +122,12 @@ portal_url = health.get("portal_url", "")
 # Prompt input
 # ---------------------------------------------------------------------------
 
+# Pick up prefilled question from follow-up button click
+prefill = st.session_state.pop("prefill_question", "")
+
 user_message = st.text_area(
     "What would you like to know?",
+    value=prefill,
     placeholder="e.g. How has waste collection changed over the years? What are the budget trends?",
     height=80,
     label_visibility="collapsed",
@@ -197,21 +201,40 @@ if "story" in st.session_state:
                 st.markdown(f"**{ms.get('label', '')}** — {ms.get('description', '')}")
 
         elif block_type == "callout":
-            col_metric, col_text = st.columns([1, 3])
-            with col_metric:
-                st.metric(
-                    label=block.get("highlight_label", ""),
-                    value=block.get("highlight_value", ""),
-                )
-            with col_text:
-                if block.get("body"):
-                    st.write(block["body"])
+            value = block.get("highlight_value", "")
+            label = block.get("highlight_label", "")
+            body = block.get("body", "")
+            st.markdown(
+                f"""<div style="
+                    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+                    border-left: 4px solid #4fc3f7;
+                    border-radius: 8px;
+                    padding: 1.5rem 2rem;
+                    margin: 1rem 0;
+                ">
+                    <div style="font-size: 2.5rem; font-weight: 700; color: #4fc3f7;">
+                        {value}
+                    </div>
+                    <div style="font-size: 1rem; color: #b0bec5; margin-bottom: 0.5rem;">
+                        {label}
+                    </div>
+                    <div style="font-size: 1rem; color: #e0e0e0;">
+                        {body}
+                    </div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
 
     # Footer
     if pkg.get("data_note"):
         st.caption(f"⚠️ {pkg['data_note']}")
     if pkg.get("followup_question"):
-        st.info(f"💡 {pkg['followup_question']}")
+        followup = pkg["followup_question"]
+        st.markdown(f"**Explore next:**")
+        if st.button(f"💡 {followup}", key="followup_btn"):
+            del st.session_state["story"]
+            st.session_state["prefill_question"] = followup
+            st.rerun()
 
     st.divider()
 

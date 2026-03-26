@@ -284,6 +284,22 @@ def generate_spec(
     return spec
 
 
+def _sanitize_data(data: list[dict]) -> list[dict]:
+    """Replace NaN/Infinity values with None for JSON-safe serialization."""
+    import math
+
+    clean = []
+    for row in data:
+        clean_row = {}
+        for k, v in row.items():
+            if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+                clean_row[k] = None
+            else:
+                clean_row[k] = v
+        clean.append(clean_row)
+    return clean
+
+
 def _base_spec(data: list[dict], title: str) -> dict:
     """Create a base Vega-Lite spec."""
     return {
@@ -291,7 +307,7 @@ def _base_spec(data: list[dict], title: str) -> dict:
         "title": title,
         "width": "container",
         "height": 400,
-        "data": {"values": data},
+        "data": {"values": _sanitize_data(data)},
         "config": {
             "view": {"stroke": "transparent"},
             "axis": {"labelFontSize": 12, "titleFontSize": 13},
