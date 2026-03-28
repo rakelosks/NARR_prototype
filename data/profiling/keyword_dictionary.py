@@ -14,10 +14,22 @@ Three match modes:
 
 import re
 import logging
+import unicodedata
 from typing import Optional
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
+
+
+def _strip_accents(text: str) -> str:
+    """Strip diacritical marks (accents) from text.
+
+    Converts e.g. 'ár' → 'ar', 'fjöldi' → 'fjoldi', 'año' → 'ano'.
+    This is essential for matching non-ASCII column names against their
+    accented dictionary translations.
+    """
+    nfkd = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 _CAMEL_SPLIT = re.compile(r"(?<=[a-z])(?=[A-Z])")
 
@@ -26,10 +38,11 @@ def _column_name_words(col_name: str) -> set[str]:
     """
     Split a column name into lowercase word tokens.
     Handles _, -, ., whitespace, and camelCase.
+    Also strips accents so 'ar' matches 'ár', etc.
     """
     expanded = _CAMEL_SPLIT.sub("_", col_name)
     tokens = re.split(r"[_\-.\s]+", expanded.lower())
-    return {t for t in tokens if t}
+    return {_strip_accents(t) for t in tokens if t}
 
 
 # ---------------------------------------------------------------------------
@@ -1541,7 +1554,7 @@ def resolve_column(col_name: str) -> ColumnSignal:
     and role hints.
     """
     words = _column_name_words(col_name)
-    col_lower = col_name.lower()
+    col_lower = _strip_accents(col_name.lower())
 
     matched_canonicals: list[str] = []
     domain_signals: set[str] = set()
@@ -1559,10 +1572,10 @@ def resolve_column(col_name: str) -> ColumnSignal:
         if not matched:
             for _lang, translations in entry.translations.items():
                 for trans in translations:
-                    trans_lower = trans.lower()
+                    trans_lower = _strip_accents(trans.lower())
                     if entry.match_mode == "exact":
-                        # Check against token set
-                        trans_words = set(re.split(r"[\s_\-]+", trans_lower))
+                        # Check against token set (accent-stripped)
+                        trans_words = {_strip_accents(w) for w in re.split(r"[\s_\-]+", trans.lower())}
                         if trans_words & words:
                             matched = True
                             break

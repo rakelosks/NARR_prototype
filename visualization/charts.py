@@ -16,6 +16,106 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Column label helpers — translate raw column names to readable English
+# ---------------------------------------------------------------------------
+
+def _build_column_labels(columns: dict[str, str], metrics: dict | None = None) -> dict[str, str]:
+    """
+    Build a mapping from raw column names to English-readable labels.
+
+    Uses the keyword dictionary's resolve_column() to find canonical English
+    terms for non-English column names (e.g. "ar" → "Year", "fjoldi" → "Count").
+    Falls back to title-casing the raw name.
+    """
+    try:
+        from data.profiling.keyword_dictionary import resolve_column
+    except ImportError:
+        logger.warning("keyword_dictionary not available; using raw column names")
+        return {}
+
+    labels: dict[str, str] = {}
+    # Collect all column names from both the role mapping and the measure list
+    all_col_names = set(columns.values())
+    if metrics:
+        for mc in metrics.get("measure_columns", []):
+            all_col_names.add(mc)
+
+    for col_name in all_col_names:
+        if not col_name:
+            continue
+        signal = resolve_column(col_name)
+        if signal.matched_canonicals:
+            # Use the first matched canonical, title-cased
+            label = " ".join(c.title() for c in signal.matched_canonicals[:2])
+            labels[col_name] = label
+        else:
+            # Fallback: title-case the raw name, replacing underscores
+            labels[col_name] = col_name.replace("_", " ").title()
+
+    return labels
+
+
+def _label(col_name: str, metrics: dict) -> str:
+    """Get the English label for a column, falling back to the raw name."""
+    labels = metrics.get("column_labels", {})
+    return labels.get(col_name, col_name)
+
+
+# Mapping from domain-specific column roles to archetype roles.
+# Spec generators only know about archetype roles (category, time_axis, etc.),
+# so domain templates with roles like "area", "demographic_group", "facility_type"
+# need to be resolved before chart generation.
+_ROLE_TO_CATEGORY = {
+    "area", "demographic_group", "facility_type", "incident_type",
+    "route", "service_type", "pollutant", "species",
+    "series_group",  # can also serve as the grouping dimension
+}
+_ROLE_TO_TIME_AXIS = {"year", "date", "incident_date"}
+_ROLE_TO_MEASURE = {
+    "population_measure", "financial_measure", "env_measure",
+    "traffic_measure", "capacity", "severity", "value",
+    "measure", "secondary_measure",
+}
+
+
+def _resolve_columns(columns: dict[str, str]) -> dict[str, str]:
+    """
+    Normalise domain-specific column roles into archetype roles that
+    the spec generators understand.
+
+    Returns a NEW dict with standard keys (category, time_axis, series_group)
+    alongside any originals so that domain info is preserved.
+    """
+    resolved = dict(columns)  # start with a copy
+
+    # Already has the standard keys? Nothing to do.
+    if "category" in resolved or "time_axis" in resolved:
+        return resolved
+
+    # Resolve category
+    if "category" not in resolved:
+        for role in _ROLE_TO_CATEGORY:
+            if role in columns and role != "series_group":
+                resolved["category"] = columns[role]
+                break
+        # Fallback: use area as category
+        if "category" not in resolved:
+            for role in ("area", "demographic_group", "facility_type", "incident_type"):
+                if role in columns:
+                    resolved["category"] = columns[role]
+                    break
+
+    # Resolve time_axis
+    if "time_axis" not in resolved:
+        for role in _ROLE_TO_TIME_AXIS:
+            if role in columns:
+                resolved["time_axis"] = columns[role]
+                break
+
+    return resolved
+
+
 def _is_year_only(data: list[dict], field: str) -> bool:
     """Check if a field contains bare year integers (e.g. 1999, 2012)."""
     for row in data[:20]:
@@ -206,16 +306,17 @@ def _select_time_series_chart(metrics: dict) -> ChartSelection:
             description="Trend lines per group over time.",
         ))
         charts.append(ChartEntry(
-            chart_type="area",
-            title_suffix="(composition)",
-            description="Stacked area showing each group's share over time.",
-            spec_overrides={"stacked": True},
-        ))
-        charts.append(ChartEntry(
             chart_type="bar",
-            title_suffix="(period comparison)",
-            description="Bar chart comparing groups within each period.",
+            title_suffix="(group comparison)",
+            description="Grouped bar chart comparing groups side-by-side per period.",
         ))
+        if total_periods > 6:
+            charts.append(ChartEntry(
+                chart_type="area",
+                title_suffix="(cumulative)",
+                description="Stacked area showing combined total and each group's share.",
+                spec_overrides={"stacked": True},
+            ))
     elif measure_count > 1:
         charts.append(ChartEntry(
             chart_type="line",
@@ -814,6 +915,13 @@ def generate_spec(
         "heatmap": _gen_heatmap_spec,
     }
 
+    # Resolve domain-specific column roles to archetype roles
+    columns = _resolve_columns(columns)
+
+    # Inject column_labels into metrics so generators can use _label()
+    if "column_labels" not in metrics:
+        metrics = {**metrics, "column_labels": _build_column_labels(columns, metrics)}
+
     generator = generators.get(chart_type, _gen_bar_spec)
     spec = generator(data, columns, metrics, title)
 
@@ -867,7 +975,7 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
     spec = _base_spec(chart_data, title)
 
     # Build x-axis encoding with proper timeUnit for clean labels
-    x_enc = {"field": time_col, "type": "temporal", "title": time_col}
+    x_enc = {"field": time_col, "type": "temporal", "title": _label(time_col, metrics)}
     time_unit = _infer_time_unit(metrics)
     if time_unit:
         x_enc["timeUnit"] = time_unit
@@ -877,8 +985,8 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
         spec["mark"] = {"type": "line", "point": True, "tooltip": True}
         spec["encoding"] = {
             "x": x_enc,
-            "y": {"field": measure_cols[0], "type": "quantitative", "title": measure_cols[0]},
-            "color": {"field": group_col, "type": "nominal", "title": group_col},
+            "y": {"field": measure_cols[0], "type": "quantitative", "title": _label(measure_cols[0], metrics)},
+            "color": {"field": group_col, "type": "nominal", "title": _label(group_col, metrics)},
         }
     elif len(measure_cols) > 1:
         # Multi-measure: fold into long format
@@ -896,7 +1004,7 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
         spec["mark"] = {"type": "line", "point": True, "tooltip": True}
         spec["encoding"] = {
             "x": x_enc,
-            "y": {"field": y_field, "type": "quantitative", "title": y_field},
+            "y": {"field": y_field, "type": "quantitative", "title": _label(y_field, metrics)},
         }
 
     return spec
@@ -921,11 +1029,11 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
     def _x_enc() -> dict:
         """Build the x/y encoding for the category/time axis."""
         if is_temporal:
-            enc = {"field": cat_col, "type": "temporal", "title": cat_col}
+            enc = {"field": cat_col, "type": "temporal", "title": _label(cat_col, metrics)}
             if time_unit:
                 enc["timeUnit"] = time_unit
         else:
-            enc = {"field": cat_col, "type": "nominal", "title": cat_col}
+            enc = {"field": cat_col, "type": "nominal", "title": _label(cat_col, metrics)}
         return enc
 
     total_cats = metrics.get("total_categories", len(data))
@@ -936,8 +1044,8 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
         measure_field = measure_cols[0] if measure_cols else ""
         spec["mark"] = {"type": "bar", "tooltip": True}
         spec["encoding"] = {
-            "y": {"field": cat_col, "type": "nominal", "sort": "-x", "title": cat_col},
-            "x": {"field": measure_field, "type": "quantitative"},
+            "y": {"field": cat_col, "type": "nominal", "sort": "-x", "title": _label(cat_col, metrics)},
+            "x": {"field": measure_field, "type": "quantitative", "title": _label(measure_field, metrics)},
         }
         # Cap to top N categories for readability
         if total_cats > MAX_CHART_CATEGORIES and measure_field:
@@ -969,7 +1077,7 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
         spec["mark"] = {"type": "bar", "tooltip": True}
         spec["encoding"] = {
             "x": _x_enc(),
-            "y": {"field": y_field, "type": "quantitative", "title": y_field},
+            "y": {"field": y_field, "type": "quantitative", "title": _label(y_field, metrics)},
         }
 
     return spec
@@ -1010,16 +1118,16 @@ def _gen_scatter_spec(data: list[dict], columns: dict, metrics: dict, title: str
     if x_field is None:
         # Dot strip: category vs measure
         spec["encoding"] = {
-            "x": {"field": cat_col, "type": "nominal", "title": cat_col},
-            "y": {"field": y_field, "type": "quantitative", "title": y_field},
+            "x": {"field": cat_col, "type": "nominal", "title": _label(cat_col, metrics)},
+            "y": {"field": y_field, "type": "quantitative", "title": _label(y_field, metrics)},
         }
     else:
         spec["encoding"] = {
-            "x": {"field": x_field, "type": "quantitative", "title": x_field},
-            "y": {"field": y_field, "type": "quantitative", "title": y_field},
+            "x": {"field": x_field, "type": "quantitative", "title": _label(x_field, metrics)},
+            "y": {"field": y_field, "type": "quantitative", "title": _label(y_field, metrics)},
         }
         if cat_col:
-            spec["encoding"]["color"] = {"field": cat_col, "type": "nominal", "title": cat_col}
+            spec["encoding"]["color"] = {"field": cat_col, "type": "nominal", "title": _label(cat_col, metrics)}
 
     return spec
 
@@ -1038,7 +1146,7 @@ def _gen_point_map_spec(data: list[dict], columns: dict, metrics: dict, title: s
         "latitude": {"field": lat_col, "type": "quantitative"},
     }
     if cat_col:
-        spec["encoding"]["color"] = {"field": cat_col, "type": "nominal", "title": cat_col}
+        spec["encoding"]["color"] = {"field": cat_col, "type": "nominal", "title": _label(cat_col, metrics)}
 
     # Map projection
     spec["projection"] = {"type": "mercator"}
@@ -1074,7 +1182,7 @@ def _gen_heatmap_spec(data: list[dict], columns: dict, metrics: dict, title: str
     spec["mark"] = {"type": "rect", "tooltip": True}
     spec["encoding"] = {
         "x": {"field": "measure", "type": "nominal", "title": "Measure"},
-        "y": {"field": cat_col, "type": "nominal", "title": cat_col},
+        "y": {"field": cat_col, "type": "nominal", "title": _label(cat_col, metrics)},
         "color": {"field": "value", "type": "quantitative", "scale": {"scheme": "blues"}, "title": "Value"},
     }
 

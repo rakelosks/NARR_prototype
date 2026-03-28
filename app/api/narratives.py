@@ -19,6 +19,7 @@ from data.analytics.evidence_bundle import BundleBuilder
 from data.storage.catalog_index import CatalogIndex
 from data.storage.metadata import MetadataStore
 from data.ingestion.ckan_client import CKANClient, CKANError
+from data.metadata_normalize import from_ckan as normalize_ckan_metadata
 from app.api.package import PackageBuilder
 
 logger = logging.getLogger(__name__)
@@ -241,13 +242,19 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
 async def _get_dataframe(dataset_id: str, config: Optional[dict] = None):
     """
     Get a DataFrame for a dataset, using TTL cache or re-downloading.
-    Returns (df, resource_url).
+    Returns (df, resource_url, ckan_dataset_or_None).
     """
     # Check TTL cache first
     df = load_snapshot(dataset_id)
     if df is not None:
         resource_url = config["resource_url"] if config else ""
-        return df, resource_url
+        # Still fetch CKAN metadata even from cache
+        try:
+            client = CKANClient(settings.ckan_portal_url)
+            ckan_ds = await client.get_dataset(dataset_id)
+        except Exception:
+            ckan_ds = None
+        return df, resource_url, ckan_ds
 
     # Need to download — get resource URL from config or CKAN API
     client = CKANClient(settings.ckan_portal_url)
@@ -259,7 +266,12 @@ async def _get_dataframe(dataset_id: str, config: Optional[dict] = None):
         resource = CKANResource(id=dataset_id, url=config["resource_url"], format="CSV", name=dataset_id)
         df = await client.download_resource_as_dataframe(resource)
         save_snapshot(df, dataset_id)
-        return df, config["resource_url"]
+        # Fetch metadata
+        try:
+            ckan_ds = await client.get_dataset(dataset_id)
+        except Exception:
+            ckan_ds = None
+        return df, config["resource_url"], ckan_ds
 
     # Fetch from CKAN API
     logger.info(f"Fetching {dataset_id} from CKAN API")
@@ -274,7 +286,7 @@ async def _get_dataframe(dataset_id: str, config: Optional[dict] = None):
     resource = supported[0]
     df = await client.download_resource_as_dataframe(resource)
     save_snapshot(df, dataset_id)
-    return df, resource.url
+    return df, resource.url, dataset
 
 
 def _profile_and_match(df, dataset_id: str, config: Optional[dict] = None, resource_url: str = ""):
@@ -287,12 +299,28 @@ def _profile_and_match(df, dataset_id: str, config: Optional[dict] = None, resou
     profile = profile_dataset(df, dataset_id=dataset_id)
 
     if config:
-        # Reuse stored template configuration
-        match = _reconstruct_match(config, profile)
-        _metadata_store.touch_config(dataset_id)
-        logger.info(f"Reusing stored config for {dataset_id}: {config['template_type']}")
-    else:
-        # First time: full matching
+        # Try to reuse stored template configuration
+        try:
+            match = _reconstruct_match(config, profile)
+            # Validate the reconstructed match columns actually exist in the DataFrame
+            missing_cols = [
+                col for col in match.best_match.matched_columns.values()
+                if col and col not in df.columns
+            ]
+            if missing_cols:
+                raise ValueError(
+                    f"Stored config references missing columns: {missing_cols}"
+                )
+            _metadata_store.touch_config(dataset_id)
+            logger.info(f"Reusing stored config for {dataset_id}: {config['template_type']}")
+        except Exception as e:
+            logger.warning(
+                f"Stored config for {dataset_id} is invalid ({e}), re-matching"
+            )
+            config = None  # Fall through to fresh matching
+
+    if not config:
+        # First time or stale config: full matching
         match = match_template(profile)
         if match.best_match and match.best_match.is_viable:
             _metadata_store.save_config(
@@ -324,7 +352,7 @@ async def preview_narrative(request: GenerateRequest):
     """
     try:
         config = _metadata_store.get_config(request.dataset_id)
-        df, resource_url = await _get_dataframe(request.dataset_id, config)
+        df, resource_url, ckan_ds = await _get_dataframe(request.dataset_id, config)
 
         profile, match = _profile_and_match(df, request.dataset_id, config, resource_url)
 
@@ -334,8 +362,16 @@ async def preview_narrative(request: GenerateRequest):
                 detail=f"No viable template match for dataset. Types found: {profile.column_types_summary}",
             )
 
+        # Normalize CKAN metadata for the evidence bundle
+        metadata = None
+        if ckan_ds:
+            try:
+                metadata = normalize_ckan_metadata(ckan_ds, portal_language=settings.ckan_portal_language)
+            except Exception as e:
+                logger.warning(f"Metadata normalization failed: {e}")
+
         builder = BundleBuilder()
-        bundle = builder.build(df, profile, match, title=request.title)
+        bundle = builder.build(df, profile, match, title=request.title, metadata=metadata)
 
         pkg_builder = PackageBuilder()
         package = pkg_builder.build_without_narrative(bundle)
@@ -357,7 +393,7 @@ async def generate_narrative(request: GenerateRequest):
     """
     try:
         config = _metadata_store.get_config(request.dataset_id)
-        df, resource_url = await _get_dataframe(request.dataset_id, config)
+        df, resource_url, ckan_ds = await _get_dataframe(request.dataset_id, config)
 
         profile, match = _profile_and_match(df, request.dataset_id, config, resource_url)
 
@@ -367,8 +403,15 @@ async def generate_narrative(request: GenerateRequest):
                 detail=f"No viable template match. Types found: {profile.column_types_summary}",
             )
 
+        metadata = None
+        if ckan_ds:
+            try:
+                metadata = normalize_ckan_metadata(ckan_ds, portal_language=settings.ckan_portal_language)
+            except Exception as e:
+                logger.warning(f"Metadata normalization failed: {e}")
+
         builder = BundleBuilder()
-        bundle = builder.build(df, profile, match, title=request.title)
+        bundle = builder.build(df, profile, match, title=request.title, metadata=metadata)
 
         from llm.interface import get_providers
         from llm.narrative import NarrativeGenerator
@@ -422,7 +465,7 @@ async def ask_narrative(request: AskRequest):
         config = _metadata_store.get_config(ckan_slug)
 
         # Step 4: Get data (TTL cache or re-download)
-        df, resource_url = await _get_dataframe(ckan_slug, config)
+        df, resource_url, ckan_ds = await _get_dataframe(ckan_slug, config)
 
         # Step 5: Profile and match (skip matching if config exists)
         profile, match = _profile_and_match(df, ckan_slug, config, resource_url)
@@ -434,9 +477,17 @@ async def ask_narrative(request: AskRequest):
                        f"Column types found: {profile.column_types_summary}",
             )
 
+        # Step 5b: Normalize CKAN metadata for evidence bundle
+        metadata = None
+        if ckan_ds:
+            try:
+                metadata = normalize_ckan_metadata(ckan_ds, portal_language=settings.ckan_portal_language)
+            except Exception as e:
+                logger.warning(f"Metadata normalization failed: {e}")
+
         # Step 6: Build evidence bundle
         builder = BundleBuilder()
-        bundle = builder.build(df, profile, match, title=request.title)
+        bundle = builder.build(df, profile, match, title=request.title, metadata=metadata)
 
         # Step 7: Generate narrative with LLM (fall back to preview if unavailable)
         pkg_builder = PackageBuilder()

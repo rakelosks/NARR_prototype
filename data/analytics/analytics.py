@@ -248,33 +248,64 @@ class AnalyticsEngine:
                 "std": round(float(stats[4]), 2) if stats[4] is not None else None,
             }
 
-        # Trend: compare first vs last period
+        # Trend: first-vs-last, peak detection, and shape analysis
         trend = {}
         for mcol in measure_cols:
             safe_m = f'"{mcol}"'
-            first_last = conn.execute(f"""
-                WITH ordered AS (
-                    SELECT {safe_m},
-                        ROW_NUMBER() OVER (ORDER BY {safe_time} ASC) as rn_asc,
-                        ROW_NUMBER() OVER (ORDER BY {safe_time} DESC) as rn_desc
-                    FROM dataset
-                    WHERE {safe_m} IS NOT NULL
-                )
-                SELECT
-                    (SELECT {safe_m} FROM ordered WHERE rn_asc = 1) as first_val,
-                    (SELECT {safe_m} FROM ordered WHERE rn_desc = 1) as last_val
-            """).fetchone()
 
-            first_val = float(first_last[0]) if first_last[0] is not None else 0
-            last_val = float(first_last[1]) if first_last[1] is not None else 0
+            # Get the full time series ordered by time
+            ts_rows = conn.execute(f"""
+                SELECT {safe_time} as period, {safe_m} as val
+                FROM dataset
+                WHERE {safe_m} IS NOT NULL
+                ORDER BY {safe_time}
+            """).fetchall()
+
+            if not ts_rows:
+                continue
+
+            first_val = float(ts_rows[0][1])
+            last_val = float(ts_rows[-1][1])
             pct_change = round(((last_val - first_val) / first_val) * 100, 2) if first_val != 0 else 0
 
-            trend[mcol] = {
+            # Peak and trough detection
+            values = [float(r[1]) for r in ts_rows]
+            periods = [str(r[0]) for r in ts_rows]
+            peak_val = max(values)
+            peak_idx = values.index(peak_val)
+            trough_val = min(values)
+            trough_idx = values.index(trough_val)
+
+            trend_info = {
                 "first": first_val,
                 "last": last_val,
                 "pct_change": pct_change,
                 "direction": "increasing" if last_val > first_val else "decreasing" if last_val < first_val else "stable",
+                "peak": peak_val,
+                "peak_period": periods[peak_idx],
+                "trough": trough_val,
+                "trough_period": periods[trough_idx],
             }
+
+            # Detect shape: is it rise-then-fall, steady, etc.?
+            # If peak is not at the end and the drop from peak is significant
+            if peak_idx < len(values) - 1 and peak_val > 0:
+                drop_from_peak = peak_val - last_val
+                drop_pct = round((drop_from_peak / peak_val) * 100, 1)
+                if drop_pct > 15:
+                    trend_info["shape"] = "rise_then_fall"
+                    trend_info["drop_from_peak_pct"] = drop_pct
+                    trend_info["drop_from_peak"] = round(drop_from_peak, 2)
+
+            # If trough is not at the start and the recovery is significant
+            if trough_idx > 0 and trough_idx < len(values) - 1:
+                recovery = last_val - trough_val
+                if trough_val > 0:
+                    recovery_pct = round((recovery / trough_val) * 100, 1)
+                    if recovery_pct > 15:
+                        trend_info["recovery_from_trough_pct"] = recovery_pct
+
+            trend[mcol] = trend_info
 
         # Build aggregation table
         select_cols = [safe_time] + [f'"{m}"' for m in measure_cols]
@@ -1066,21 +1097,40 @@ class AnalyticsEngine:
     # Helpers
     # ------------------------------------------------------------------
 
+    # Roles that represent measure columns in any template
+    _MEASURE_ROLES = {
+        "measure", "financial_measure", "env_measure", "traffic_measure",
+        "population_measure", "value", "capacity", "severity",
+        "secondary_measure",
+    }
+
     def _find_measure_columns(self, df: pd.DataFrame, columns: dict) -> list[str]:
         """Find all numerical columns suitable as measures.
 
-        Filters out ID columns, boolean/binary columns, constant columns,
-        and columns with very high null rates.
+        Always includes columns the template matcher already mapped as
+        measure roles (these passed structural matching, so trust them).
+        Then discovers additional numerical columns, filtering out IDs,
+        boolean/binary, constant, and high-null columns.
         """
         from data.profiling.profiler import infer_semantic_type, is_viable_measure
 
+        # Start with matcher-confirmed measures (preserving order)
+        confirmed = []
+        for role, col_name in columns.items():
+            if role in self._MEASURE_ROLES and col_name in df.columns:
+                if col_name not in confirmed:
+                    confirmed.append(col_name)
+
+        # Discover additional measures from remaining columns
         total_rows = len(df)
-        measures = []
         for col in df.columns:
+            if col in confirmed:
+                continue
             if infer_semantic_type(df[col], col) == "numerical":
                 if is_viable_measure(df[col], col, total_rows):
-                    measures.append(col)
-        return measures
+                    confirmed.append(col)
+
+        return confirmed
 
     def _find_geo_columns(self, df: pd.DataFrame) -> tuple[Optional[str], Optional[str], Optional[str]]:
         """Find latitude, longitude, and geometry columns."""

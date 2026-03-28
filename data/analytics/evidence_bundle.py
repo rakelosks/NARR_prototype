@@ -86,6 +86,15 @@ class EvidenceBundle(BaseModel):
     # Narrative generation context
     narrative_context: Optional[NarrativeContext] = None
 
+    # Sample data rows for LLM context (first few rows of aggregation table)
+    data_sample: list[dict] = Field(default_factory=list)
+
+    # Unique values per categorical column for LLM context
+    categorical_values: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Column name → list of unique values (for categorical columns)",
+    )
+
     # Fallback transparency note (when archetype matched instead of domain)
     fallback_note: Optional[str] = None
 
@@ -152,11 +161,24 @@ class EvidenceBundle(BaseModel):
                     "acknowledging the missing information."
                 )
 
-        # List all columns so the LLM knows about every field in the data
+        # List all columns with their unique values for categorical ones
         if self.all_columns:
             lines.append("All columns:")
             for col_name, col_type in self.all_columns.items():
-                lines.append(f"  - {col_name} ({col_type})")
+                vals = self.categorical_values.get(col_name)
+                if vals:
+                    vals_str = ", ".join(f'"{v}"' for v in vals[:15])
+                    lines.append(f"  - {col_name} ({col_type}) — values: {vals_str}")
+                else:
+                    lines.append(f"  - {col_name} ({col_type})")
+
+        # Sample data rows so the LLM sees actual values
+        if self.data_sample:
+            lines.append("")
+            lines.append("Sample data (first rows):")
+            for row in self.data_sample[:5]:
+                row_str = ", ".join(f"{k}={v}" for k, v in row.items())
+                lines.append(f"  {row_str}")
 
         # Fallback transparency
         if self.fallback_note:
@@ -208,6 +230,23 @@ class EvidenceBundle(BaseModel):
                 f"from {trend['first']} to {trend['last']} "
                 f"({trend['pct_change']:+.1f}%)"
             )
+            # Peak and shape information — critical for accurate narrative
+            if trend.get("peak") is not None:
+                lines.append(
+                    f"  Peak: {trend['peak']} (at {trend.get('peak_period', '?')})"
+                )
+            if trend.get("shape") == "rise_then_fall":
+                lines.append(
+                    f"  ⚠ IMPORTANT: Values rose to a peak of {trend['peak']} "
+                    f"at {trend.get('peak_period', '?')}, then DROPPED {trend.get('drop_from_peak_pct', 0):.0f}% "
+                    f"to {trend['last']}. The overall trend is NOT a steady increase — "
+                    f"describe both the rise AND the subsequent decline."
+                )
+            if trend.get("recovery_from_trough_pct"):
+                lines.append(
+                    f"  Trough: {trend['trough']} at {trend.get('trough_period', '?')}, "
+                    f"then recovered {trend['recovery_from_trough_pct']:.0f}%"
+                )
 
         for col, stats in m.get("summary_stats", {}).items():
             lines.append(
@@ -458,7 +497,7 @@ class BundleBuilder:
 
         # Step 3: Generate visualization specs
         viz_title = title or self._generate_title(
-            profile, template_type, columns, analytics_result.metrics
+            profile, template_type, columns, analytics_result.metrics, metadata
         )
         visualizations = []
 
@@ -492,9 +531,20 @@ class BundleBuilder:
             key_findings=key_findings,
         )
 
-        # Step 5: Assemble the bundle
+        # Step 5: Extract sample data and categorical values for LLM context
         all_columns = {col.name: col.semantic_type for col in profile.columns}
 
+        # Sample rows from aggregation table
+        data_sample = analytics_result.aggregation_table[:5]
+
+        # Unique values for categorical columns (crucial for interpretation)
+        categorical_values: dict[str, list[str]] = {}
+        for col in profile.columns:
+            if col.semantic_type == "categorical" and col.name in df.columns:
+                unique_vals = df[col.name].dropna().unique().tolist()
+                categorical_values[col.name] = [str(v) for v in unique_vals[:20]]
+
+        # Step 6: Assemble the bundle
         bundle = EvidenceBundle(
             dataset_id=match.dataset_id,
             source=profile.source,
@@ -508,6 +558,8 @@ class BundleBuilder:
             metrics=analytics_result.metrics,
             visualizations=visualizations,
             narrative_context=narrative_context,
+            data_sample=data_sample,
+            categorical_values=categorical_values,
             fallback_note=match.fallback_note,
         )
 
@@ -523,39 +575,52 @@ class BundleBuilder:
         template_type: TemplateType,
         columns: dict[str, str],
         metrics: dict,
+        metadata: Optional[NormalizedMetadata] = None,
     ) -> str:
-        """Generate a descriptive chart title from the data context."""
+        """Generate a descriptive chart title from the data context.
+
+        Uses the CKAN metadata title when available (it's more descriptive
+        than raw column names, especially for non-English datasets).
+        """
         measure_cols = metrics.get("measure_columns", [])
         measure_label = measure_cols[0] if measure_cols else ""
 
-        if template_type == TemplateType.TIME_SERIES:
+        # Prefer metadata title over raw column name for the base label
+        base_label = ""
+        if metadata and metadata.title.available:
+            base_label = metadata.title.value
+        elif measure_label:
+            base_label = measure_label
+        else:
+            base_label = profile.dataset_id
+
+        # Resolve to parent archetype for title formatting
+        parent = get_parent_archetype(template_type)
+        base_type = parent if parent else template_type
+
+        if base_type == TemplateType.TIME_SERIES:
             date_range = metrics.get("date_range", {})
             time_span = ""
             if date_range.get("min") and date_range.get("max"):
-                # Extract just the year portion for cleaner titles
                 min_str = str(date_range["min"])[:4]
                 max_str = str(date_range["max"])[:4]
                 if min_str != max_str:
                     time_span = f" ({min_str}\u2013{max_str})"
                 else:
                     time_span = f" ({min_str})"
-            if measure_label:
-                return f"{measure_label}{time_span}"
-            return f"{profile.dataset_id}{time_span}"
+            return f"{base_label}{time_span}"
 
-        elif template_type == TemplateType.CATEGORICAL:
+        elif base_type == TemplateType.CATEGORICAL:
             cat_col = columns.get("category", "")
-            if measure_label and cat_col:
-                return f"{measure_label} eftir {cat_col}"
-            elif measure_label:
-                return measure_label
-            return profile.dataset_id
+            if cat_col:
+                return f"{base_label} — {cat_col}"
+            return base_label
 
-        elif template_type == TemplateType.GEOSPATIAL:
+        elif base_type == TemplateType.GEOSPATIAL:
             total = metrics.get("total_points", 0)
-            return f"{profile.dataset_id} — {total} staðsetningar"
+            return f"{base_label} — {total} locations"
 
-        return profile.dataset_id
+        return base_label
 
     def _extract_key_findings(self, template_type: TemplateType, metrics: dict) -> list[str]:
         """Extract human-readable key findings from metrics."""
@@ -573,6 +638,14 @@ class BundleBuilder:
                     f"{col} is {direction} ({pct:+.1f}% change from "
                     f"{trend['first']} to {trend['last']})"
                 )
+                # Highlight peak and drop if present
+                if trend.get("shape") == "rise_then_fall":
+                    findings.append(
+                        f"{col} peaked at {trend['peak']} ({trend.get('peak_period', '?')}) "
+                        f"then dropped {trend.get('drop_from_peak_pct', 0):.0f}% to {trend['last']}"
+                    )
+                elif trend.get("peak") and trend.get("peak_period"):
+                    findings.append(f"{col} peak: {trend['peak']} at {trend['peak_period']}")
             date_range = metrics.get("date_range", {})
             if date_range:
                 findings.append(
