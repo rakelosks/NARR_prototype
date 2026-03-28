@@ -115,11 +115,26 @@ class VegaLiteSpec(BaseModel):
         return {k: v for k, v in d.items() if v}
 
 
+class ChartEntry(BaseModel):
+    """A single chart in a multi-chart selection."""
+    chart_type: str
+    title_suffix: str = ""          # appended to the base title, e.g. "by district"
+    description: str = ""           # why this chart adds value
+    spec_overrides: dict = Field(default_factory=dict)  # extra hints for spec gen
+
+
 class ChartSelection(BaseModel):
     """Result of the chart type selection process."""
-    primary_chart: str
-    secondary_chart: Optional[str] = None
+    charts: list[ChartEntry] = Field(default_factory=list)
     reason: str
+
+    @property
+    def primary_chart(self) -> str:
+        return self.charts[0].chart_type if self.charts else "bar"
+
+    @property
+    def secondary_chart(self) -> Optional[str]:
+        return self.charts[1].chart_type if len(self.charts) > 1 else None
 
 
 # ---------------------------------------------------------------------------
@@ -182,55 +197,113 @@ def _select_time_series_chart(metrics: dict) -> ChartSelection:
     """Select chart type for time-series data."""
     group_col = metrics.get("group_column")
     measure_count = len(metrics.get("measure_columns", []))
+    total_periods = metrics.get("total_periods", 0)
+    charts: list[ChartEntry] = []
 
     if group_col and measure_count == 1:
-        return ChartSelection(
-            primary_chart="line",
-            secondary_chart="area",
-            reason="Multi-series line chart grouped by category over time.",
-        )
+        charts.append(ChartEntry(
+            chart_type="line",
+            description="Trend lines per group over time.",
+        ))
+        charts.append(ChartEntry(
+            chart_type="area",
+            title_suffix="(composition)",
+            description="Stacked area showing each group's share over time.",
+            spec_overrides={"stacked": True},
+        ))
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(period comparison)",
+            description="Bar chart comparing groups within each period.",
+        ))
     elif measure_count > 1:
-        return ChartSelection(
-            primary_chart="line",
-            secondary_chart="bar",
-            reason="Multi-measure line chart showing parallel trends.",
-        )
+        charts.append(ChartEntry(
+            chart_type="line",
+            description="Parallel trend lines for each measure.",
+        ))
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(side-by-side)",
+            description="Grouped bars comparing measures per period.",
+        ))
+        charts.append(ChartEntry(
+            chart_type="area",
+            title_suffix="(cumulative)",
+            description="Stacked area showing combined volume over time.",
+            spec_overrides={"stacked": True},
+        ))
     else:
-        total_periods = metrics.get("total_periods", 0)
         if total_periods <= 12:
-            return ChartSelection(
-                primary_chart="bar",
-                secondary_chart="line",
-                reason="Bar chart for small number of time periods.",
-            )
-        return ChartSelection(
-            primary_chart="line",
-            reason="Line chart showing trend over time.",
-        )
+            charts.append(ChartEntry(
+                chart_type="bar",
+                description="Bar chart for period comparison.",
+            ))
+            charts.append(ChartEntry(
+                chart_type="line",
+                title_suffix="(trend)",
+                description="Line chart showing the overall trend.",
+            ))
+        else:
+            charts.append(ChartEntry(
+                chart_type="line",
+                description="Line chart showing trend over time.",
+            ))
+            charts.append(ChartEntry(
+                chart_type="bar",
+                title_suffix="(period comparison)",
+                description="Bar chart for direct period comparison.",
+            ))
+        charts.append(ChartEntry(
+            chart_type="area",
+            title_suffix="(volume)",
+            description="Area chart emphasizing cumulative volume.",
+        ))
+
+    return ChartSelection(charts=charts, reason="Time-series multi-view.")
 
 
 def _select_categorical_chart(metrics: dict) -> ChartSelection:
     """Select chart type for categorical data."""
     total_cats = metrics.get("total_categories", 0)
     measure_count = len(metrics.get("measure_columns", []))
+    charts: list[ChartEntry] = []
 
-    if total_cats > 15:
-        return ChartSelection(
-            primary_chart="bar",
-            secondary_chart="scatter",
-            reason="Horizontal bar chart for many categories.",
-        )
-    elif measure_count >= 2:
-        return ChartSelection(
-            primary_chart="bar",
-            secondary_chart="scatter",
-            reason="Grouped bar chart for multi-measure comparison.",
-        )
+    # Primary bar chart (horizontal if many categories)
+    charts.append(ChartEntry(
+        chart_type="bar",
+        description="Ranked bar chart comparing categories.",
+        spec_overrides={"horizontal": True} if total_cats > 10 else {},
+    ))
+
+    if measure_count >= 2:
+        charts.append(ChartEntry(
+            chart_type="scatter",
+            title_suffix="(correlation)",
+            description="Scatter plot showing relationship between two measures.",
+        ))
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(grouped)",
+            description="Grouped bars comparing multiple measures side-by-side.",
+            spec_overrides={"grouped": True},
+        ))
     else:
-        return ChartSelection(
-            primary_chart="bar",
-            reason="Bar chart comparing values across categories.",
-        )
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(top & bottom)",
+            description="Focused bar chart highlighting extremes.",
+            spec_overrides={"top_n": 5, "bottom_n": 5} if total_cats > 10 else {},
+        ))
+
+    # Heatmap if there are multiple measures to compare across categories
+    if measure_count >= 2:
+        charts.append(ChartEntry(
+            chart_type="heatmap",
+            title_suffix="(heatmap)",
+            description="Heatmap comparing all measures across categories.",
+        ))
+
+    return ChartSelection(charts=charts, reason="Categorical multi-view.")
 
 
 def _select_geospatial_chart(metrics: dict) -> ChartSelection:
@@ -238,28 +311,63 @@ def _select_geospatial_chart(metrics: dict) -> ChartSelection:
     has_measure = metrics.get("measure_column") is not None
     has_category = metrics.get("category_column") is not None
     has_geometry = metrics.get("geometry_column") is not None
+    charts: list[ChartEntry] = []
 
+    # Map view — always first
     if has_geometry:
-        return ChartSelection(
-            primary_chart="choropleth",
-            reason="Choropleth map using geometry boundaries.",
-        )
-    elif has_measure and has_category:
-        return ChartSelection(
-            primary_chart="bubble_map",
-            secondary_chart="map",
-            reason="Bubble map with size from measure and color from category.",
-        )
+        charts.append(ChartEntry(
+            chart_type="choropleth",
+            description="Choropleth map using geometry boundaries.",
+        ))
     elif has_measure:
-        return ChartSelection(
-            primary_chart="bubble_map",
-            reason="Bubble map with size encoding measure values.",
-        )
+        charts.append(ChartEntry(
+            chart_type="bubble_map",
+            description="Bubble map with size encoding measure values.",
+        ))
     else:
-        return ChartSelection(
-            primary_chart="map",
-            reason="Point map showing locations.",
-        )
+        charts.append(ChartEntry(
+            chart_type="map",
+            description="Point map showing locations.",
+        ))
+
+    # Bar breakdown by category
+    if has_category:
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(count by category)",
+            description="Bar chart showing count per category.",
+            spec_overrides={"aggregate": "count", "by": "category"},
+        ))
+
+    # If both measure and category, add a second map and a bar-by-measure
+    if has_measure and has_category:
+        charts.append(ChartEntry(
+            chart_type="map",
+            title_suffix="(by type)",
+            description="Point map colored by category.",
+        ))
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(measure by category)",
+            description="Bar chart comparing measure totals per category.",
+            spec_overrides={"aggregate": "sum", "by": "category"},
+        ))
+    elif has_measure:
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(ranked)",
+            description="Bar chart ranking locations by measure.",
+        ))
+
+    # Ensure at least 3 charts
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="map",
+            title_suffix="(overview)",
+            description="Overview point map of all locations.",
+        ))
+
+    return ChartSelection(charts=charts, reason="Geospatial multi-view.")
 
 
 # ---------------------------------------------------------------------------
@@ -271,156 +379,404 @@ def _select_budget_chart(metrics: dict) -> ChartSelection:
     group_col = metrics.get("group_column")
     measure_count = len(metrics.get("measure_columns", []))
     extensions = metrics.get("domain_extensions", {})
+    charts: list[ChartEntry] = []
 
-    if extensions.get("department_share"):
-        return ChartSelection(
-            primary_chart="area",
-            secondary_chart="bar",
-            reason="Stacked area for spending over time, bar for department comparison.",
-        )
-    elif measure_count > 1 or extensions.get("budget_vs_actual"):
-        return ChartSelection(
-            primary_chart="bar",
-            secondary_chart="line",
-            reason="Grouped bar for budget vs actual comparison.",
-        )
-    elif group_col:
-        return ChartSelection(
-            primary_chart="area",
-            secondary_chart="line",
-            reason="Stacked area chart showing spending composition over time.",
-        )
-    else:
-        return ChartSelection(
-            primary_chart="line",
-            secondary_chart="bar",
-            reason="Line chart showing financial trends over time.",
-        )
+    # 1. Trend line — always
+    charts.append(ChartEntry(
+        chart_type="line",
+        description="Financial trend over time.",
+    ))
+
+    # 2. Composition — if department/category grouping
+    if extensions.get("department_share") or group_col:
+        charts.append(ChartEntry(
+            chart_type="area",
+            title_suffix="(composition)",
+            description="Stacked area showing spending composition over time.",
+            spec_overrides={"stacked": True},
+        ))
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(by department)",
+            description="Bar chart comparing department/category totals.",
+        ))
+
+    # 3. Budget vs actual — if two measures
+    if measure_count > 1 or extensions.get("budget_vs_actual"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(budget vs actual)",
+            description="Grouped bar comparing budget to actual spending.",
+            spec_overrides={"grouped": True},
+        ))
+
+    # 4. Year-over-year change
+    if extensions.get("year_over_year_change"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(year-over-year change)",
+            description="Bar chart showing percentage change between periods.",
+            spec_overrides={"yoy": True},
+        ))
+
+    # Ensure at least 3
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(period comparison)",
+            description="Bar chart for direct period-to-period comparison.",
+        ))
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="area",
+            title_suffix="(volume)",
+            description="Area chart emphasizing total financial volume.",
+        ))
+
+    return ChartSelection(charts=charts, reason="Budget multi-view.")
 
 
 def _select_environmental_chart(metrics: dict) -> ChartSelection:
     """Select chart type for environmental data."""
     extensions = metrics.get("domain_extensions", {})
     station_col = metrics.get("group_column")
-
-    # If we have exceedance data, use line with threshold
     has_exceedance = any(k.startswith("exceedance_") for k in extensions)
-    if has_exceedance:
-        return ChartSelection(
-            primary_chart="line",
-            secondary_chart="heatmap",
-            reason="Line chart with WHO threshold reference for environmental readings.",
-        )
-    elif station_col:
-        return ChartSelection(
-            primary_chart="line",
-            secondary_chart="heatmap",
-            reason="Multi-station line chart with heatmap for station comparison.",
-        )
+    charts: list[ChartEntry] = []
+
+    # 1. Line with readings over time (always)
+    charts.append(ChartEntry(
+        chart_type="line",
+        description="Environmental readings over time" + (
+            " with WHO threshold reference." if has_exceedance else "."
+        ),
+        spec_overrides={"threshold_line": True} if has_exceedance else {},
+    ))
+
+    # 2. Bar — average by station or summary by period
+    if station_col:
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(station comparison)",
+            description="Bar chart comparing average readings across stations.",
+        ))
     else:
-        return _select_time_series_chart(metrics)
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(period averages)",
+            description="Bar chart of average readings per period.",
+        ))
+
+    # 3. Heatmap — station × time or measure × time
+    if station_col:
+        charts.append(ChartEntry(
+            chart_type="heatmap",
+            title_suffix="(station × time)",
+            description="Heatmap showing reading intensity by station and time.",
+        ))
+
+    # 4. Area — seasonal / cumulative pattern
+    charts.append(ChartEntry(
+        chart_type="area",
+        title_suffix="(seasonal pattern)",
+        description="Area chart highlighting seasonal or cumulative patterns.",
+    ))
+
+    return ChartSelection(charts=charts, reason="Environmental multi-view.")
 
 
 def _select_transport_chart(metrics: dict) -> ChartSelection:
     """Select chart type for transport/mobility data."""
     extensions = metrics.get("domain_extensions", {})
     route_col = metrics.get("group_column")
+    charts: list[ChartEntry] = []
 
-    if extensions.get("route_ranking"):
-        return ChartSelection(
-            primary_chart="line",
-            secondary_chart="bar",
-            reason="Line chart for trends, bar for route ranking.",
-        )
-    elif route_col:
-        return ChartSelection(
-            primary_chart="line",
-            secondary_chart="area",
-            reason="Multi-route line chart showing traffic patterns.",
-        )
+    # 1. Line — traffic volume over time
+    charts.append(ChartEntry(
+        chart_type="line",
+        description="Traffic volume trend over time.",
+    ))
+
+    # 2. Bar — route or mode ranking
+    if extensions.get("route_ranking") or route_col:
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(route ranking)",
+            description="Bar chart ranking routes or modes by total volume.",
+            spec_overrides={"horizontal": True},
+        ))
     else:
-        return _select_time_series_chart(metrics)
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(period comparison)",
+            description="Bar chart comparing traffic across periods.",
+        ))
+
+    # 3. Area — stacked by route/mode if available
+    if route_col:
+        charts.append(ChartEntry(
+            chart_type="area",
+            title_suffix="(composition by route)",
+            description="Stacked area showing volume contribution by route.",
+            spec_overrides={"stacked": True},
+        ))
+
+    # 4. Heatmap — peak hour pattern if available
+    if extensions.get("peak_hour_pattern"):
+        charts.append(ChartEntry(
+            chart_type="heatmap",
+            title_suffix="(hourly pattern)",
+            description="Heatmap showing traffic intensity by hour and day.",
+        ))
+
+    # Ensure at least 3
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="area",
+            title_suffix="(volume)",
+            description="Area chart emphasizing total traffic volume.",
+        ))
+
+    return ChartSelection(charts=charts, reason="Transport multi-view.")
 
 
 def _select_demographic_chart(metrics: dict) -> ChartSelection:
     """Select chart type for demographic data."""
     total_cats = metrics.get("total_categories", 0)
+    measure_count = len(metrics.get("measure_columns", []))
     extensions = metrics.get("domain_extensions", {})
+    charts: list[ChartEntry] = []
 
+    # 1. Ranked bar — population by area
+    charts.append(ChartEntry(
+        chart_type="bar",
+        description="Bar chart ranking areas by population.",
+        spec_overrides={"horizontal": True} if total_cats > 10 else {},
+    ))
+
+    # 2. Stacked bar — demographic composition
     if extensions.get("group_composition"):
-        return ChartSelection(
-            primary_chart="bar",
-            secondary_chart="bar",
-            reason="Stacked bar chart showing demographic composition by area.",
-        )
-    elif total_cats > 15:
-        return ChartSelection(
-            primary_chart="bar",
-            reason="Horizontal bar chart ranking areas by population.",
-        )
-    else:
-        return _select_categorical_chart(metrics)
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(composition)",
+            description="Stacked bar showing demographic group composition per area.",
+            spec_overrides={"stacked": True},
+        ))
+
+    # 3. Scatter — if multiple measures (density vs count, etc.)
+    if measure_count >= 2:
+        charts.append(ChartEntry(
+            chart_type="scatter",
+            title_suffix="(correlation)",
+            description="Scatter plot showing relationship between demographic measures.",
+        ))
+
+    # 4. Population share
+    if extensions.get("population_share"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(share %)",
+            description="Bar chart showing each area's percentage share of total population.",
+            spec_overrides={"percentage": True},
+        ))
+
+    # Ensure at least 3
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(comparison)",
+            description="Bar chart for direct area-to-area comparison.",
+        ))
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="heatmap",
+            title_suffix="(overview)",
+            description="Heatmap of measures across areas.",
+        ))
+
+    return ChartSelection(charts=charts, reason="Demographic multi-view.")
 
 
 def _select_facility_chart(metrics: dict) -> ChartSelection:
     """Select chart type for facility/infrastructure data."""
     has_measure = metrics.get("measure_column") is not None
     extensions = metrics.get("domain_extensions", {})
+    charts: list[ChartEntry] = []
 
-    if extensions.get("type_counts"):
-        return ChartSelection(
-            primary_chart="map",
-            secondary_chart="bar",
-            reason="Point map by type with bar chart for facility counts.",
-        )
-    elif has_measure:
-        return ChartSelection(
-            primary_chart="bubble_map",
-            secondary_chart="bar",
-            reason="Bubble map sized by capacity with type summary bar chart.",
-        )
+    # 1. Map — always
+    if has_measure:
+        charts.append(ChartEntry(
+            chart_type="bubble_map",
+            description="Bubble map of facilities, sized by capacity.",
+        ))
     else:
-        return ChartSelection(
-            primary_chart="map",
-            secondary_chart="bar",
-            reason="Point map showing facility locations.",
-        )
+        charts.append(ChartEntry(
+            chart_type="map",
+            description="Point map of facilities, colored by type.",
+        ))
+
+    # 2. Bar — count by type
+    if extensions.get("type_counts"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(count by type)",
+            description="Bar chart showing number of facilities per type.",
+        ))
+
+    # 3. Bar — count by district
+    if extensions.get("district_distribution") or extensions.get("coverage_ratio"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(by district)",
+            description="Bar chart showing facility distribution across districts.",
+        ))
+
+    # 4. Stacked bar — type × district
+    if extensions.get("type_counts") and (extensions.get("district_distribution") or extensions.get("coverage_ratio")):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(type × district)",
+            description="Stacked bar showing facility types within each district.",
+            spec_overrides={"stacked": True},
+        ))
+
+    # Ensure at least 3
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(summary)",
+            description="Summary bar chart of facility counts.",
+        ))
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="map",
+            title_suffix="(overview)",
+            description="Overview map showing all facility locations.",
+        ))
+
+    return ChartSelection(charts=charts, reason="Facility multi-view.")
 
 
 def _select_incident_chart(metrics: dict) -> ChartSelection:
     """Select chart type for incident/event data."""
     extensions = metrics.get("domain_extensions", {})
+    charts: list[ChartEntry] = []
 
+    # 1. Map — incident locations colored by type
+    charts.append(ChartEntry(
+        chart_type="map",
+        description="Point map of incident locations colored by type.",
+    ))
+
+    # 2. Line — volume trend over time
     if extensions.get("volume_trend"):
-        return ChartSelection(
-            primary_chart="map",
-            secondary_chart="line",
-            reason="Point map of incidents with volume trend line chart.",
-        )
-    else:
-        return ChartSelection(
-            primary_chart="map",
-            secondary_chart="bar",
-            reason="Point map with incident type breakdown bar chart.",
-        )
+        charts.append(ChartEntry(
+            chart_type="line",
+            title_suffix="(volume over time)",
+            description="Line chart showing incident volume trend.",
+        ))
+
+    # 3. Bar — breakdown by type
+    if extensions.get("type_breakdown"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(by type)",
+            description="Bar chart breaking down incidents by type.",
+        ))
+
+    # 4. Bar — hotspot areas
+    if extensions.get("hotspot_areas"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(by area)",
+            description="Bar chart showing incident concentration by area.",
+            spec_overrides={"horizontal": True},
+        ))
+
+    # 5. Heatmap — temporal patterns
+    if extensions.get("temporal_patterns"):
+        charts.append(ChartEntry(
+            chart_type="heatmap",
+            title_suffix="(time patterns)",
+            description="Heatmap showing when incidents occur (hour × day).",
+        ))
+
+    # Ensure at least 3
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(summary)",
+            description="Summary bar chart of incident counts.",
+        ))
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="line",
+            title_suffix="(trend)",
+            description="Trend line of incidents over time.",
+        ))
+
+    return ChartSelection(charts=charts, reason="Incident multi-view.")
 
 
 def _select_housing_chart(metrics: dict) -> ChartSelection:
     """Select chart type for housing/permits data."""
     extensions = metrics.get("domain_extensions", {})
+    charts: list[ChartEntry] = []
 
-    if extensions.get("volume_trend"):
-        return ChartSelection(
-            primary_chart="line",
-            secondary_chart="bar",
-            reason="Line chart for permit trends, bar for type breakdown.",
-        )
-    else:
-        return ChartSelection(
-            primary_chart="bar",
-            secondary_chart="line",
-            reason="Bar chart by permit type with trend line.",
-        )
+    # 1. Line — permit volume trend
+    charts.append(ChartEntry(
+        chart_type="line",
+        description="Permit volume trend over time.",
+    ))
+
+    # 2. Bar — by type
+    if extensions.get("type_breakdown"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(by type)",
+            description="Bar chart breaking down permits by type.",
+        ))
+
+    # 3. Bar — by district
+    if extensions.get("district_activity"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(by district)",
+            description="Bar chart showing permit activity across districts.",
+            spec_overrides={"horizontal": True},
+        ))
+
+    # 4. Area — stacked by type over time
+    if extensions.get("type_breakdown") and extensions.get("volume_trend"):
+        charts.append(ChartEntry(
+            chart_type="area",
+            title_suffix="(composition over time)",
+            description="Stacked area showing permit type composition over time.",
+            spec_overrides={"stacked": True},
+        ))
+
+    # 5. Average value by type
+    if extensions.get("avg_value_by_type"):
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(avg value by type)",
+            description="Bar chart comparing average permit value across types.",
+        ))
+
+    # Ensure at least 3
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="bar",
+            title_suffix="(period comparison)",
+            description="Bar chart for period-to-period comparison.",
+        ))
+    if len(charts) < 3:
+        charts.append(ChartEntry(
+            chart_type="area",
+            title_suffix="(volume)",
+            description="Area chart showing total permit volume.",
+        ))
+
+    return ChartSelection(charts=charts, reason="Housing multi-view.")
 
 
 # ---------------------------------------------------------------------------

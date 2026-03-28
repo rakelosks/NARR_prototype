@@ -22,7 +22,7 @@ from data.profiling.matcher import MatchResult
 from data.profiling.template_definitions import TemplateType, TEMPLATE_MAP, get_parent_archetype
 from data.analytics.analytics import AnalyticsEngine, AnalyticsResult
 from data.metadata_normalize import NormalizedMetadata, MetadataTier
-from visualization.charts import select_chart_type, generate_spec, ChartSelection
+from visualization.charts import select_chart_type, generate_spec, ChartSelection, ChartEntry
 
 logger = logging.getLogger(__name__)
 
@@ -462,37 +462,24 @@ class BundleBuilder:
         )
         visualizations = []
 
-        # Primary chart
-        primary_spec = generate_spec(
-            chart_type=chart_selection.primary_chart,
-            data=analytics_result.aggregation_table,
-            columns=columns,
-            metrics=analytics_result.metrics,
-            title=viz_title,
-        )
-        visualizations.append(VisualizationBundle(
-            chart_type=chart_selection.primary_chart,
-            title=viz_title,
-            description=chart_selection.reason,
-            vega_lite_spec=primary_spec,
-            is_primary=True,
-        ))
+        for idx, entry in enumerate(chart_selection.charts):
+            chart_title = viz_title
+            if entry.title_suffix:
+                chart_title = f"{viz_title} {entry.title_suffix}"
 
-        # Secondary chart if available
-        if chart_selection.secondary_chart:
-            secondary_spec = generate_spec(
-                chart_type=chart_selection.secondary_chart,
+            spec = generate_spec(
+                chart_type=entry.chart_type,
                 data=analytics_result.aggregation_table,
                 columns=columns,
                 metrics=analytics_result.metrics,
-                title=f"{viz_title} (alternative view)",
+                title=chart_title,
             )
             visualizations.append(VisualizationBundle(
-                chart_type=chart_selection.secondary_chart,
-                title=f"{viz_title} (alternative view)",
-                description=f"Alternative: {chart_selection.secondary_chart} chart",
-                vega_lite_spec=secondary_spec,
-                is_primary=False,
+                chart_type=entry.chart_type,
+                title=chart_title,
+                description=entry.description,
+                vega_lite_spec=spec,
+                is_primary=(idx == 0),
             ))
 
         # Step 4: Build narrative context

@@ -57,26 +57,50 @@ async def generate_visualization(request: VizRequest):
         engine = AnalyticsEngine()
         analytics = engine.analyze(df, match)
 
-        # Select chart type (or use override)
-        if request.chart_type:
-            chart_type = request.chart_type
-        else:
-            selection = select_chart_type(analytics.template_type, analytics.metrics)
-            chart_type = selection.primary_chart
+        # Select chart types (or use single override)
+        selection = select_chart_type(analytics.template_type, analytics.metrics)
+        base_title = request.title or f"{request.dataset_id} visualization"
 
-        # Generate spec
-        spec = generate_spec(
-            chart_type=chart_type,
-            data=analytics.aggregation_table,
-            columns=analytics.matched_columns,
-            metrics=analytics.metrics,
-            title=request.title or f"{request.dataset_id} visualization",
-        )
+        if request.chart_type:
+            # Single chart override — backward compatible
+            spec = generate_spec(
+                chart_type=request.chart_type,
+                data=analytics.aggregation_table,
+                columns=analytics.matched_columns,
+                metrics=analytics.metrics,
+                title=base_title,
+            )
+            return {
+                "chart_type": request.chart_type,
+                "template_type": analytics.template_type.value,
+                "vega_lite_spec": spec,
+            }
+
+        # Generate all selected charts
+        charts = []
+        for entry in selection.charts:
+            chart_title = base_title
+            if entry.title_suffix:
+                chart_title = f"{base_title} {entry.title_suffix}"
+            spec = generate_spec(
+                chart_type=entry.chart_type,
+                data=analytics.aggregation_table,
+                columns=analytics.matched_columns,
+                metrics=analytics.metrics,
+                title=chart_title,
+            )
+            charts.append({
+                "chart_type": entry.chart_type,
+                "title": chart_title,
+                "description": entry.description,
+                "vega_lite_spec": spec,
+            })
 
         return {
-            "chart_type": chart_type,
+            "chart_type": selection.primary_chart,
             "template_type": analytics.template_type.value,
-            "vega_lite_spec": spec,
+            "vega_lite_spec": charts[0]["vega_lite_spec"] if charts else {},
+            "all_charts": charts,
         }
 
     except HTTPException:
