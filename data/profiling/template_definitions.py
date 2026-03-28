@@ -7,15 +7,25 @@ Templates are matched against DatasetProfile objects by the
 template matching algorithm.
 """
 
+from typing import Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
 
 class TemplateType(str, Enum):
     """Supported dataset template types."""
+    # Structural archetypes
     TIME_SERIES = "time_series"
     CATEGORICAL = "categorical"
     GEOSPATIAL = "geospatial"
+    # Domain-specialized templates
+    BUDGET = "budget"
+    ENVIRONMENTAL = "environmental"
+    TRANSPORT = "transport"
+    DEMOGRAPHIC = "demographic"
+    FACILITY = "facility"
+    INCIDENT = "incident"
+    HOUSING = "housing"
 
 
 class ColumnRequirement(BaseModel):
@@ -47,7 +57,9 @@ class DatasetTemplate(BaseModel):
     id: TemplateType
     name: str
     description: str
+    parent_archetype: Optional[TemplateType] = None
     column_requirements: list[ColumnRequirement]
+    domain_keywords: list[str] = Field(default_factory=list)
     chart_recommendations: list[ChartRecommendation]
     narrative_hints: NarrativeHint
     min_rows: int = 2  # Minimum rows for the template to apply
@@ -231,17 +243,40 @@ GEOSPATIAL_TEMPLATE = DatasetTemplate(
 # Template registry
 # ---------------------------------------------------------------------------
 
-ALL_TEMPLATES: list[DatasetTemplate] = [
+# Archetype templates (structural fallbacks)
+ARCHETYPE_TEMPLATES: list[DatasetTemplate] = [
     TIME_SERIES_TEMPLATE,
     CATEGORICAL_TEMPLATE,
     GEOSPATIAL_TEMPLATE,
 ]
+
+# Domain templates are registered after import to avoid circular deps
+DOMAIN_TEMPLATES: list[DatasetTemplate] = []
+
+ALL_TEMPLATES: list[DatasetTemplate] = list(ARCHETYPE_TEMPLATES)
 
 TEMPLATE_MAP: dict[TemplateType, DatasetTemplate] = {
     t.id: t for t in ALL_TEMPLATES
 }
 
 
+def register_domain_templates(templates: list[DatasetTemplate]) -> None:
+    """Register domain-specialized templates into the global registry."""
+    DOMAIN_TEMPLATES.clear()
+    DOMAIN_TEMPLATES.extend(templates)
+    ALL_TEMPLATES.clear()
+    ALL_TEMPLATES.extend(ARCHETYPE_TEMPLATES)
+    ALL_TEMPLATES.extend(DOMAIN_TEMPLATES)
+    TEMPLATE_MAP.clear()
+    TEMPLATE_MAP.update({t.id: t for t in ALL_TEMPLATES})
+
+
 def get_template(template_type: TemplateType) -> DatasetTemplate:
     """Get a template by type."""
     return TEMPLATE_MAP[template_type]
+
+
+def get_parent_archetype(template_type: TemplateType) -> Optional[TemplateType]:
+    """Get the parent archetype for a domain template, or None for archetypes."""
+    t = TEMPLATE_MAP.get(template_type)
+    return t.parent_archetype if t else None

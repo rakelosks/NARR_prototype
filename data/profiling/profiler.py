@@ -77,6 +77,16 @@ class ColumnProfile(BaseModel):
     temporal_stats: Optional[TemporalStats] = None
     geospatial_stats: Optional[GeospatialStats] = None
 
+    # Keyword dictionary signal (populated during profiling)
+    keyword_signal: Optional["ColumnSignalRef"] = None
+
+
+class ColumnSignalRef(BaseModel):
+    """Lightweight reference to keyword dictionary results stored on a column profile."""
+    matched_canonicals: list[str] = []
+    domain_signals: list[str] = []
+    role_hints: list[str] = []
+
 
 class DatasetProfile(BaseModel):
     """Complete profile for a dataset."""
@@ -389,6 +399,20 @@ def profile_column(series: pd.Series, col_name: str) -> ColumnProfile:
     null_rate = round(nulls / total, 4) if total > 0 else 0.0
     sample = [str(v) for v in series.dropna().head(5).tolist()]
 
+    # Resolve keyword dictionary signal
+    keyword_signal = None
+    try:
+        from data.profiling.keyword_dictionary import resolve_column
+        signal = resolve_column(col_name)
+        if signal.matched_canonicals:
+            keyword_signal = ColumnSignalRef(
+                matched_canonicals=signal.matched_canonicals,
+                domain_signals=signal.domain_signals,
+                role_hints=signal.role_hints,
+            )
+    except ImportError:
+        pass
+
     profile = ColumnProfile(
         name=col_name,
         semantic_type=semantic_type,
@@ -397,6 +421,7 @@ def profile_column(series: pd.Series, col_name: str) -> ColumnProfile:
         null_count=nulls,
         null_rate=null_rate,
         sample_values=sample,
+        keyword_signal=keyword_signal,
     )
 
     if semantic_type == "numerical":

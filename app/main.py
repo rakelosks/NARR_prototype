@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from data.cache.parquet_cache import cleanup_expired
+import data.profiling.domain_templates  # noqa: F401  Register domain templates
 from app.api.datasets import router as datasets_router
 from app.api.narratives import router as narratives_router
 from app.api.visualizations import router as visualizations_router

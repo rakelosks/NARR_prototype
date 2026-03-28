@@ -141,21 +141,41 @@ def select_chart_type(
     Returns:
         ChartSelection with primary and optional secondary chart type.
     """
-    template = TEMPLATE_MAP[template_type]
+    template = TEMPLATE_MAP.get(template_type)
 
+    # Archetype selection
     if template_type == TemplateType.TIME_SERIES:
         return _select_time_series_chart(metrics)
     elif template_type == TemplateType.CATEGORICAL:
         return _select_categorical_chart(metrics)
     elif template_type == TemplateType.GEOSPATIAL:
         return _select_geospatial_chart(metrics)
+
+    # Domain template selection
+    elif template_type == TemplateType.BUDGET:
+        return _select_budget_chart(metrics)
+    elif template_type == TemplateType.ENVIRONMENTAL:
+        return _select_environmental_chart(metrics)
+    elif template_type == TemplateType.TRANSPORT:
+        return _select_transport_chart(metrics)
+    elif template_type == TemplateType.DEMOGRAPHIC:
+        return _select_demographic_chart(metrics)
+    elif template_type == TemplateType.FACILITY:
+        return _select_facility_chart(metrics)
+    elif template_type == TemplateType.INCIDENT:
+        return _select_incident_chart(metrics)
+    elif template_type == TemplateType.HOUSING:
+        return _select_housing_chart(metrics)
+
     else:
         # Fallback to template's primary recommendation
-        primary = template.chart_recommendations[0]
-        return ChartSelection(
-            primary_chart=primary.chart_type,
-            reason=primary.description,
-        )
+        if template:
+            primary = template.chart_recommendations[0]
+            return ChartSelection(
+                primary_chart=primary.chart_type,
+                reason=primary.description,
+            )
+        return ChartSelection(primary_chart="bar", reason="Default fallback.")
 
 
 def _select_time_series_chart(metrics: dict) -> ChartSelection:
@@ -239,6 +259,167 @@ def _select_geospatial_chart(metrics: dict) -> ChartSelection:
         return ChartSelection(
             primary_chart="map",
             reason="Point map showing locations.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Domain template chart selection
+# ---------------------------------------------------------------------------
+
+def _select_budget_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for budget/financial data."""
+    group_col = metrics.get("group_column")
+    measure_count = len(metrics.get("measure_columns", []))
+    extensions = metrics.get("domain_extensions", {})
+
+    if extensions.get("department_share"):
+        return ChartSelection(
+            primary_chart="area",
+            secondary_chart="bar",
+            reason="Stacked area for spending over time, bar for department comparison.",
+        )
+    elif measure_count > 1 or extensions.get("budget_vs_actual"):
+        return ChartSelection(
+            primary_chart="bar",
+            secondary_chart="line",
+            reason="Grouped bar for budget vs actual comparison.",
+        )
+    elif group_col:
+        return ChartSelection(
+            primary_chart="area",
+            secondary_chart="line",
+            reason="Stacked area chart showing spending composition over time.",
+        )
+    else:
+        return ChartSelection(
+            primary_chart="line",
+            secondary_chart="bar",
+            reason="Line chart showing financial trends over time.",
+        )
+
+
+def _select_environmental_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for environmental data."""
+    extensions = metrics.get("domain_extensions", {})
+    station_col = metrics.get("group_column")
+
+    # If we have exceedance data, use line with threshold
+    has_exceedance = any(k.startswith("exceedance_") for k in extensions)
+    if has_exceedance:
+        return ChartSelection(
+            primary_chart="line",
+            secondary_chart="heatmap",
+            reason="Line chart with WHO threshold reference for environmental readings.",
+        )
+    elif station_col:
+        return ChartSelection(
+            primary_chart="line",
+            secondary_chart="heatmap",
+            reason="Multi-station line chart with heatmap for station comparison.",
+        )
+    else:
+        return _select_time_series_chart(metrics)
+
+
+def _select_transport_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for transport/mobility data."""
+    extensions = metrics.get("domain_extensions", {})
+    route_col = metrics.get("group_column")
+
+    if extensions.get("route_ranking"):
+        return ChartSelection(
+            primary_chart="line",
+            secondary_chart="bar",
+            reason="Line chart for trends, bar for route ranking.",
+        )
+    elif route_col:
+        return ChartSelection(
+            primary_chart="line",
+            secondary_chart="area",
+            reason="Multi-route line chart showing traffic patterns.",
+        )
+    else:
+        return _select_time_series_chart(metrics)
+
+
+def _select_demographic_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for demographic data."""
+    total_cats = metrics.get("total_categories", 0)
+    extensions = metrics.get("domain_extensions", {})
+
+    if extensions.get("group_composition"):
+        return ChartSelection(
+            primary_chart="bar",
+            secondary_chart="bar",
+            reason="Stacked bar chart showing demographic composition by area.",
+        )
+    elif total_cats > 15:
+        return ChartSelection(
+            primary_chart="bar",
+            reason="Horizontal bar chart ranking areas by population.",
+        )
+    else:
+        return _select_categorical_chart(metrics)
+
+
+def _select_facility_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for facility/infrastructure data."""
+    has_measure = metrics.get("measure_column") is not None
+    extensions = metrics.get("domain_extensions", {})
+
+    if extensions.get("type_counts"):
+        return ChartSelection(
+            primary_chart="map",
+            secondary_chart="bar",
+            reason="Point map by type with bar chart for facility counts.",
+        )
+    elif has_measure:
+        return ChartSelection(
+            primary_chart="bubble_map",
+            secondary_chart="bar",
+            reason="Bubble map sized by capacity with type summary bar chart.",
+        )
+    else:
+        return ChartSelection(
+            primary_chart="map",
+            secondary_chart="bar",
+            reason="Point map showing facility locations.",
+        )
+
+
+def _select_incident_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for incident/event data."""
+    extensions = metrics.get("domain_extensions", {})
+
+    if extensions.get("volume_trend"):
+        return ChartSelection(
+            primary_chart="map",
+            secondary_chart="line",
+            reason="Point map of incidents with volume trend line chart.",
+        )
+    else:
+        return ChartSelection(
+            primary_chart="map",
+            secondary_chart="bar",
+            reason="Point map with incident type breakdown bar chart.",
+        )
+
+
+def _select_housing_chart(metrics: dict) -> ChartSelection:
+    """Select chart type for housing/permits data."""
+    extensions = metrics.get("domain_extensions", {})
+
+    if extensions.get("volume_trend"):
+        return ChartSelection(
+            primary_chart="line",
+            secondary_chart="bar",
+            reason="Line chart for permit trends, bar for type breakdown.",
+        )
+    else:
+        return ChartSelection(
+            primary_chart="bar",
+            secondary_chart="line",
+            reason="Bar chart by permit type with trend line.",
         )
 
 

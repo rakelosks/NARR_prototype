@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 
 from data.profiling.profiler import DatasetProfile
 from data.profiling.matcher import MatchResult
-from data.profiling.template_definitions import TemplateType, TEMPLATE_MAP
+from data.profiling.template_definitions import TemplateType, TEMPLATE_MAP, get_parent_archetype
 from data.analytics.analytics import AnalyticsEngine, AnalyticsResult
 from data.metadata_normalize import NormalizedMetadata, MetadataTier
 from visualization.charts import select_chart_type, generate_spec, ChartSelection
@@ -85,6 +85,9 @@ class EvidenceBundle(BaseModel):
 
     # Narrative generation context
     narrative_context: Optional[NarrativeContext] = None
+
+    # Fallback transparency note (when archetype matched instead of domain)
+    fallback_note: Optional[str] = None
 
     def to_llm_context(self) -> str:
         """
@@ -155,15 +158,28 @@ class EvidenceBundle(BaseModel):
             for col_name, col_type in self.all_columns.items():
                 lines.append(f"  - {col_name} ({col_type})")
 
+        # Fallback transparency
+        if self.fallback_note:
+            lines.append(f"Note: {self.fallback_note}")
+
         lines.extend(["", "--- Metrics ---"])
 
-        # Format metrics based on template type
-        if self.template_type == "time_series":
+        # Determine base formatter from parent archetype or template type
+        parent = get_parent_archetype(TemplateType(self.template_type))
+        base_type = parent.value if parent else self.template_type
+
+        # Format base metrics
+        if base_type == "time_series":
             lines.extend(self._format_time_series_metrics())
-        elif self.template_type == "categorical":
+        elif base_type == "categorical":
             lines.extend(self._format_categorical_metrics())
-        elif self.template_type == "geospatial":
+        elif base_type == "geospatial":
             lines.extend(self._format_geospatial_metrics())
+
+        # Format domain-specific extensions
+        domain_ext = self.metrics.get("domain_extensions", {})
+        if domain_ext:
+            lines.extend(self._format_domain_extensions(domain_ext))
 
         if self.narrative_context:
             lines.append("")
@@ -219,6 +235,158 @@ class EvidenceBundle(BaseModel):
                 f"Stats ({col}): mean={stats['mean']}, "
                 f"min={stats['min']}, max={stats['max']}"
             )
+        return lines
+
+    def _format_domain_extensions(self, extensions: dict) -> list[str]:
+        """Format domain-specific extension metrics for the LLM context."""
+        lines = ["", "--- Domain-specific insights ---"]
+
+        # Budget extensions
+        if "department_share" in extensions:
+            lines.append("Department/category shares:")
+            for item in extensions["department_share"][:10]:
+                lines.append(
+                    f"  {item.get('department', 'N/A')}: "
+                    f"{item.get('pct_share', 0):.1f}% ({item.get('total', 0):,.0f})"
+                )
+
+        if "budget_vs_actual" in extensions:
+            lines.append("Budget vs actual variance:")
+            for item in extensions["budget_vs_actual"][:5]:
+                var_pct = item.get("variance_pct")
+                var_str = f"{var_pct:+.1f}%" if var_pct is not None else "N/A"
+                lines.append(f"  {item.get('period', 'N/A')}: {var_str}")
+
+        if "year_over_year_change" in extensions:
+            yoy = extensions["year_over_year_change"]
+            # Show last few periods with YoY change
+            recent = [r for r in yoy if r.get("yoy_pct") is not None][-5:]
+            if recent:
+                lines.append("Year-over-year change (recent):")
+                for item in recent:
+                    lines.append(
+                        f"  {item.get('period', 'N/A')}: {item['yoy_pct']:+.1f}%"
+                    )
+
+        # Environmental extensions
+        for key, val in extensions.items():
+            if key.startswith("exceedance_") and isinstance(val, dict):
+                lines.append(
+                    f"WHO threshold analysis ({val.get('pollutant', 'N/A')}):"
+                )
+                lines.append(
+                    f"  Threshold: {val.get('who_threshold')} {val.get('unit', '')}"
+                )
+                lines.append(
+                    f"  Exceedances: {val.get('exceedances', 0)} of "
+                    f"{val.get('total_readings', 0)} readings "
+                    f"({val.get('exceedance_pct', 0):.1f}%)"
+                )
+                lines.append(
+                    "  Note: Thresholds are WHO guidelines, not local regulations."
+                )
+
+        if "station_comparison" in extensions:
+            lines.append("Station comparison (average readings):")
+            for item in extensions["station_comparison"][:10]:
+                lines.append(
+                    f"  {item.get('station', 'N/A')}: "
+                    f"avg={item.get('avg_reading', 'N/A')}, "
+                    f"range=[{item.get('min_reading', 'N/A')}, {item.get('max_reading', 'N/A')}]"
+                )
+
+        # Transport extensions
+        if "peak_hour_pattern" in extensions:
+            peak = extensions["peak_hour_pattern"]
+            if peak:
+                sorted_hours = sorted(peak, key=lambda x: x.get("avg_value", 0), reverse=True)
+                top_hours = sorted_hours[:3]
+                lines.append("Peak hours (highest average):")
+                for h in top_hours:
+                    lines.append(f"  Hour {int(h.get('hour', 0)):02d}: {h.get('avg_value', 0)}")
+
+        if "weekday_vs_weekend" in extensions:
+            lines.append("Weekday vs weekend:")
+            for item in extensions["weekday_vs_weekend"]:
+                lines.append(
+                    f"  {item.get('day_type', 'N/A')}: "
+                    f"avg={item.get('avg_value', 0)}, obs={item.get('observations', 0)}"
+                )
+
+        if "route_ranking" in extensions:
+            lines.append("Route ranking (by total):")
+            for item in extensions["route_ranking"][:10]:
+                lines.append(
+                    f"  {item.get('route', 'N/A')}: total={item.get('total_value', 0):,.0f}"
+                )
+
+        # Demographic extensions
+        if "population_share" in extensions:
+            lines.append("Population share by area:")
+            for item in extensions["population_share"][:10]:
+                lines.append(
+                    f"  {item.get('area', 'N/A')}: {item.get('pct_share', 0):.1f}%"
+                )
+
+        if "growth_rate" in extensions:
+            growth = extensions["growth_rate"]
+            recent = [r for r in growth if r.get("growth_pct") is not None][-10:]
+            if recent:
+                lines.append("Growth rates (recent):")
+                for item in recent:
+                    lines.append(
+                        f"  {item.get('area', 'N/A')} ({item.get('year', '')}): "
+                        f"{item['growth_pct']:+.1f}%"
+                    )
+
+        # Facility extensions
+        if "type_counts" in extensions:
+            lines.append("Facility type counts:")
+            for item in extensions["type_counts"][:10]:
+                lines.append(f"  {item.get('facility_type', 'N/A')}: {item.get('count', 0)}")
+
+        if "coverage_ratio" in extensions:
+            lines.append("Service coverage by district:")
+            for item in extensions["coverage_ratio"][:10]:
+                lines.append(
+                    f"  {item.get('district', 'N/A')}: "
+                    f"{item.get('distinct_types', 0)} types, "
+                    f"{item.get('total_facilities', 0)} facilities"
+                )
+
+        # Incident extensions
+        if "type_breakdown" in extensions:
+            lines.append("Incident type breakdown:")
+            for item in extensions["type_breakdown"][:10]:
+                lines.append(
+                    f"  {item.get('event_type', item.get('permit_type', 'N/A'))}: "
+                    f"{item.get('count', 0)}"
+                )
+
+        if "hotspot_areas" in extensions:
+            lines.append("Hotspot areas:")
+            for item in extensions["hotspot_areas"][:10]:
+                lines.append(f"  {item.get('area', 'N/A')}: {item.get('count', 0)} incidents")
+
+        if "resolution_stats" in extensions:
+            lines.append("Resolution status:")
+            for item in extensions["resolution_stats"]:
+                lines.append(f"  {item.get('status', 'N/A')}: {item.get('count', 0)}")
+
+        # Housing extensions
+        if "district_activity" in extensions:
+            lines.append("District activity (permits):")
+            for item in extensions["district_activity"][:10]:
+                lines.append(f"  {item.get('district', 'N/A')}: {item.get('permits', 0)}")
+
+        if "avg_value_by_type" in extensions:
+            lines.append("Average value by type:")
+            for item in extensions["avg_value_by_type"][:10]:
+                lines.append(
+                    f"  {item.get('permit_type', 'N/A')}: "
+                    f"avg={item.get('avg_value', 0):,.0f} (n={item.get('count', 0)})"
+                )
+
         return lines
 
     def _format_geospatial_metrics(self) -> list[str]:
@@ -353,6 +521,7 @@ class BundleBuilder:
             metrics=analytics_result.metrics,
             visualizations=visualizations,
             narrative_context=narrative_context,
+            fallback_note=match.fallback_note,
         )
 
         logger.info(
@@ -405,7 +574,11 @@ class BundleBuilder:
         """Extract human-readable key findings from metrics."""
         findings = []
 
-        if template_type == TemplateType.TIME_SERIES:
+        # Base findings from parent archetype
+        parent = get_parent_archetype(template_type)
+        base_type = parent if parent else template_type
+
+        if base_type in (TemplateType.TIME_SERIES,):
             for col, trend in metrics.get("trend", {}).items():
                 direction = trend["direction"]
                 pct = trend["pct_change"]
@@ -420,7 +593,7 @@ class BundleBuilder:
                     f"({metrics.get('total_periods', 0)} periods)"
                 )
 
-        elif template_type == TemplateType.CATEGORICAL:
+        elif base_type == TemplateType.CATEGORICAL:
             for col, ranking in metrics.get("rankings", {}).items():
                 if ranking:
                     top = ranking[0]
@@ -428,11 +601,120 @@ class BundleBuilder:
                     findings.append(f"Highest {col}: {top['category']} ({top['value']})")
                     findings.append(f"Lowest {col}: {bottom['category']} ({bottom['value']})")
 
-        elif template_type == TemplateType.GEOSPATIAL:
+        elif base_type == TemplateType.GEOSPATIAL:
             findings.append(f"{metrics.get('total_points', 0)} locations mapped")
             dist = metrics.get("category_distribution", [])
             if dist:
                 top_cat = dist[0]
                 findings.append(f"Most common type: {top_cat['category']} ({top_cat['count']})")
+
+        # Domain-specific findings from extensions
+        extensions = metrics.get("domain_extensions", {})
+        if extensions:
+            findings.extend(self._extract_domain_findings(template_type, extensions))
+
+        return findings
+
+    def _extract_domain_findings(
+        self, template_type: TemplateType, extensions: dict
+    ) -> list[str]:
+        """Extract key findings from domain-specific extension metrics."""
+        findings = []
+
+        # Budget
+        if template_type == TemplateType.BUDGET:
+            shares = extensions.get("department_share", [])
+            if shares:
+                top = shares[0]
+                findings.append(
+                    f"Largest allocation: {top.get('department', 'N/A')} "
+                    f"({top.get('pct_share', 0):.1f}% of total)"
+                )
+            bva = extensions.get("budget_vs_actual", [])
+            if bva:
+                latest = bva[-1]
+                var = latest.get("variance_pct")
+                if var is not None:
+                    direction = "over" if var > 0 else "under"
+                    findings.append(
+                        f"Latest period: {abs(var):.1f}% {direction} budget"
+                    )
+
+        # Environmental
+        elif template_type == TemplateType.ENVIRONMENTAL:
+            for key, val in extensions.items():
+                if key.startswith("exceedance_") and isinstance(val, dict):
+                    exc_pct = val.get("exceedance_pct", 0)
+                    findings.append(
+                        f"{val.get('pollutant', 'N/A')} exceeded WHO guideline "
+                        f"({val.get('who_threshold')} {val.get('unit', '')}) "
+                        f"in {exc_pct:.1f}% of readings"
+                    )
+
+        # Transport
+        elif template_type == TemplateType.TRANSPORT:
+            peak = extensions.get("peak_hour_pattern", [])
+            if peak:
+                sorted_hours = sorted(peak, key=lambda x: x.get("avg_value", 0), reverse=True)
+                if sorted_hours:
+                    top_h = sorted_hours[0]
+                    findings.append(
+                        f"Peak hour: {int(top_h.get('hour', 0)):02d}:00 "
+                        f"(avg {top_h.get('avg_value', 0):,.0f})"
+                    )
+            ww = extensions.get("weekday_vs_weekend", [])
+            if len(ww) == 2:
+                wd = next((w for w in ww if w.get("day_type") == "weekday"), {})
+                we = next((w for w in ww if w.get("day_type") == "weekend"), {})
+                if wd and we:
+                    ratio = wd.get("avg_value", 0) / we.get("avg_value", 1) if we.get("avg_value") else 0
+                    findings.append(f"Weekday traffic is {ratio:.1f}x weekend average")
+
+        # Demographic
+        elif template_type == TemplateType.DEMOGRAPHIC:
+            shares = extensions.get("population_share", [])
+            if shares:
+                top = shares[0]
+                findings.append(
+                    f"Most populated area: {top.get('area', 'N/A')} "
+                    f"({top.get('pct_share', 0):.1f}%)"
+                )
+
+        # Facility
+        elif template_type == TemplateType.FACILITY:
+            counts = extensions.get("type_counts", [])
+            if counts:
+                top = counts[0]
+                findings.append(
+                    f"Most common facility type: {top.get('facility_type', 'N/A')} "
+                    f"({top.get('count', 0)})"
+                )
+
+        # Incident
+        elif template_type == TemplateType.INCIDENT:
+            breakdown = extensions.get("type_breakdown", [])
+            if breakdown:
+                top = breakdown[0]
+                findings.append(
+                    f"Most common incident type: {top.get('event_type', 'N/A')} "
+                    f"({top.get('count', 0)})"
+                )
+            hotspots = extensions.get("hotspot_areas", [])
+            if hotspots:
+                top = hotspots[0]
+                findings.append(
+                    f"Highest incident concentration: {top.get('area', 'N/A')} "
+                    f"({top.get('count', 0)})"
+                )
+
+        # Housing
+        elif template_type == TemplateType.HOUSING:
+            breakdown = extensions.get("type_breakdown", [])
+            if breakdown:
+                top = breakdown[0]
+                findings.append(
+                    f"Most common permit type: {top.get('permit_type', 'N/A')} "
+                    f"({top.get('count', 0)})"
+                )
 
         return findings

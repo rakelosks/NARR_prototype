@@ -2,6 +2,12 @@
 Template matching algorithm.
 Maps a DatasetProfile to the best-fitting DatasetTemplate
 based on column types, requirements, and scoring.
+
+Four-stage matching:
+  1. Structural scoring (column type matching)
+  2. Domain keyword scoring (column names via keyword dictionary)
+  3. Metadata tiebreaker (CKAN title/description/tags)
+  4. Selection (viability → score → specificity)
 """
 
 import logging
@@ -39,6 +45,14 @@ class TemplateMatch(BaseModel):
         default=False,
         description="True if all required columns are matched",
     )
+    domain_keyword_hits: int = Field(
+        default=0,
+        description="Number of domain keyword matches from column names",
+    )
+    rejection_reason: Optional[str] = Field(
+        default=None,
+        description="Why this domain template was rejected (for fallback transparency)",
+    )
 
 
 class MatchResult(BaseModel):
@@ -47,6 +61,10 @@ class MatchResult(BaseModel):
     best_match: Optional[TemplateMatch] = None
     all_matches: list[TemplateMatch] = []
     profile_summary: dict = Field(default_factory=dict)
+    fallback_note: Optional[str] = Field(
+        default=None,
+        description="Transparency note when falling back to archetype",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +153,9 @@ def _score_template(profile: DatasetProfile, template: DatasetTemplate) -> Templ
     )
 
     # Geospatial: resolve generic "location" into lat/lon or geometry
-    if template.id == TemplateType.GEOSPATIAL:
+    # Applies to the geospatial archetype and any domain template with a
+    # "location" role requirement (facility, incident, housing, etc.)
+    if "location" in matched_columns:
         match = _enrich_geospatial_match(profile, match)
 
     return match
@@ -147,17 +167,63 @@ ROLE_NAME_HINTS: dict[str, set[str]] = {
         "population", "score", "price", "cost", "rate", "salary", "income",
         "quantity", "sum", "avg", "average",
     },
+    "financial_measure": {
+        "budget", "expenditure", "revenue", "spending", "allocation",
+        "cost", "income", "grant", "tax", "amount",
+    },
+    "env_measure": {
+        "pm2_5", "pm10", "no2", "co2", "ozone", "temperature",
+        "humidity", "noise", "emission", "pollution",
+    },
+    "traffic_measure": {
+        "traffic", "vehicle", "passenger", "ridership", "speed", "flow",
+        "parking", "counter",
+    },
+    "population_measure": {
+        "population", "inhabitants", "residents", "density",
+        "birth", "death", "migration",
+    },
     "time_axis": {
         "date", "time", "timestamp", "period", "year", "month", "day",
         "created", "updated",
+    },
+    "event_time": {
+        "date", "time", "timestamp", "created", "reported", "occurred",
     },
     "category": {
         "type", "category", "group", "class", "district", "department",
         "region", "name", "status", "sector",
     },
+    "facility_type": {
+        "school", "hospital", "library", "park", "station",
+        "facility", "building", "shelter", "playground",
+    },
+    "event_type": {
+        "incident", "accident", "crime", "complaint", "report",
+        "violation", "inspection", "ticket", "emergency", "fire",
+    },
+    "area": {
+        "district", "area", "neighbourhood", "neighborhood", "region",
+        "zone", "municipality",
+    },
+    "department": {
+        "department", "ministry", "division", "unit", "office",
+    },
     "location": {
         "lat", "lon", "lng", "latitude", "longitude", "geom", "geometry",
         "coord", "location",
+    },
+    "route": {
+        "route", "line", "road", "street", "path",
+    },
+    "direction": {
+        "direction", "dir", "heading", "inbound", "outbound",
+    },
+    "mode": {
+        "mode", "type", "vehicle", "bus", "train", "bike", "car",
+    },
+    "station": {
+        "sensor", "station", "counter", "monitor", "detector",
     },
 }
 
@@ -223,19 +289,101 @@ def _enrich_geospatial_match(
 
 
 # ---------------------------------------------------------------------------
+# Domain keyword scoring (stage 2)
+# ---------------------------------------------------------------------------
+
+def _compute_domain_bonus(
+    profile: DatasetProfile,
+    template: DatasetTemplate,
+    match: TemplateMatch,
+) -> TemplateMatch:
+    """
+    For domain templates, scan column names via the keyword dictionary.
+    Add +0.20 bonus if at least one column produces a domain signal
+    matching the template's domain. Mark non-viable if zero hits.
+    """
+    if not template.domain_keywords:
+        # Archetype — no domain scoring needed
+        return match
+
+    template_domain = template.id.value  # e.g. "budget", "environmental"
+    hits = 0
+
+    for col in profile.columns:
+        if col.keyword_signal and col.keyword_signal.domain_signals:
+            if template_domain in col.keyword_signal.domain_signals:
+                hits += 1
+
+    match.domain_keyword_hits = hits
+
+    if hits > 0:
+        # Add domain bonus (0.20 added to raw score before normalization)
+        match.score = min(match.score + 0.20, 1.0)
+    else:
+        # Domain template with no keyword hits is not viable
+        match.is_viable = False
+        match.rejection_reason = (
+            f"No {template_domain} keywords detected in column names"
+        )
+
+    return match
+
+
+# ---------------------------------------------------------------------------
+# Metadata tiebreaker (stage 3)
+# ---------------------------------------------------------------------------
+
+def _metadata_tiebreak_score(
+    template: DatasetTemplate,
+    metadata_title: str = "",
+    metadata_description: str = "",
+    metadata_tags: Optional[list[str]] = None,
+) -> int:
+    """
+    Scan CKAN metadata for domain keyword hits.
+    Returns hit count for use as a tiebreaker.
+    """
+    if not template.domain_keywords:
+        return 0
+
+    try:
+        from data.profiling.keyword_dictionary import resolve_metadata_domains
+        domain_hits = resolve_metadata_domains(
+            title=metadata_title,
+            description=metadata_description,
+            tags=metadata_tags,
+        )
+        return domain_hits.get(template.id.value, 0)
+    except ImportError:
+        return 0
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
 def match_template(
     profile: DatasetProfile,
     templates: Optional[list[DatasetTemplate]] = None,
+    metadata_title: str = "",
+    metadata_description: str = "",
+    metadata_tags: Optional[list[str]] = None,
 ) -> MatchResult:
     """
     Match a dataset profile against all templates and return the best fit.
 
+    Four-stage process:
+      1. Structural scoring (column type matching)
+      2. Domain keyword scoring (column names via keyword dictionary)
+      3. Metadata tiebreaker (CKAN title/description/tags)
+      4. Selection (viability → score → specificity)
+
     Args:
         profile: The DatasetProfile to match.
         templates: Optional custom template list. Defaults to ALL_TEMPLATES.
+        metadata_title: Dataset title from CKAN for tiebreaking.
+        metadata_description: Dataset description from CKAN for tiebreaking.
+        metadata_tags: Dataset tags from CKAN for tiebreaking.
 
     Returns:
         MatchResult with best match and all scored matches.
@@ -250,16 +398,29 @@ def match_template(
 
     all_matches = []
     for template in templates:
+        # Stage 1: structural scoring
         match = _score_template(profile, template)
+
+        # Stage 2: domain keyword scoring
+        match = _compute_domain_bonus(profile, template, match)
+
         all_matches.append(match)
         logger.debug(
             f"  {template.name}: score={match.score:.3f}, "
-            f"viable={match.is_viable}, matched={match.matched_columns}"
+            f"viable={match.is_viable}, domain_hits={match.domain_keyword_hits}, "
+            f"matched={match.matched_columns}"
         )
 
-    # Sort by viability first, then score, then specificity (number of
-    # distinct semantic types matched) to break ties in favour of more
-    # specialised templates (e.g. geospatial over categorical).
+    # Stage 3: metadata tiebreaker (computed lazily during sort)
+    metadata_scores: dict[TemplateType, int] = {}
+    for m in all_matches:
+        template = next((t for t in templates if t.id == m.template_id), None)
+        if template and template.domain_keywords:
+            metadata_scores[m.template_id] = _metadata_tiebreak_score(
+                template, metadata_title, metadata_description, metadata_tags,
+            )
+
+    # Stage 4: selection
     def _specificity(m: TemplateMatch) -> int:
         """Count distinct semantic types among the matched columns."""
         if not m.matched_columns:
@@ -270,12 +431,44 @@ def match_template(
             if col.name in matched_col_names
         })
 
+    # Domain templates with keyword evidence are preferred over
+    # archetypes when structurally viable (keyword gating ensures
+    # domain relevance). A viable domain template with ≥1 keyword
+    # hit ranks above an archetype even if the archetype's
+    # structural score is slightly higher.
     all_matches.sort(
-        key=lambda m: (m.is_viable, m.score, _specificity(m)),
+        key=lambda m: (
+            m.is_viable,
+            1 if m.domain_keyword_hits > 0 else 0,  # Domain match > archetype
+            m.score,
+            m.domain_keyword_hits,
+            metadata_scores.get(m.template_id, 0),
+            _specificity(m),
+        ),
         reverse=True,
     )
 
     best = all_matches[0] if all_matches and all_matches[0].is_viable else None
+
+    # Build fallback transparency note
+    fallback_note = None
+    if best and not best.template_id.value.startswith(("time_series", "categorical", "geospatial")):
+        pass  # Domain template matched — no fallback needed
+    elif best:
+        # Best is an archetype — note which domain templates were considered
+        rejected_domains = [
+            m for m in all_matches
+            if m.rejection_reason and m.template_id != best.template_id
+        ]
+        if rejected_domains:
+            reasons = "; ".join(
+                f"{m.template_name}: {m.rejection_reason}"
+                for m in rejected_domains[:3]
+            )
+            fallback_note = (
+                f"Matched as generic {best.template_name}. "
+                f"Domain templates considered but rejected: {reasons}"
+            )
 
     if best:
         logger.info(f"Best match: {best.template_name} (score={best.score:.3f})")
@@ -287,4 +480,5 @@ def match_template(
         best_match=best,
         all_matches=all_matches,
         profile_summary=profile.column_types_summary,
+        fallback_note=fallback_note,
     )
