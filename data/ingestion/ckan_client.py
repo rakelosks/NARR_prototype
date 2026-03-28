@@ -389,7 +389,9 @@ class CKANClient:
                     sep = dialect.delimiter
                 except _csv.Error:
                     sep = ","
-                return pd.read_csv(BytesIO(raw), sep=sep)
+                from data.ingestion.loader import _fix_european_decimals
+                df = pd.read_csv(BytesIO(raw), sep=sep)
+                return _fix_european_decimals(df)
             elif fmt == "json":
                 return pd.read_json(BytesIO(raw))
             elif fmt == "geojson":

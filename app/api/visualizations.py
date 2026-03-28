@@ -82,11 +82,14 @@ async def generate_visualization(request: VizRequest):
             chart_title = base_title
             if entry.title_suffix:
                 chart_title = f"{base_title} {entry.title_suffix}"
+            chart_metrics = analytics.metrics
+            if entry.spec_overrides:
+                chart_metrics = {**chart_metrics, "_spec_overrides": entry.spec_overrides}
             spec = generate_spec(
                 chart_type=entry.chart_type,
                 data=analytics.aggregation_table,
                 columns=analytics.matched_columns,
-                metrics=analytics.metrics,
+                metrics=chart_metrics,
                 title=chart_title,
             )
             charts.append({

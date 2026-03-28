@@ -506,11 +506,16 @@ class BundleBuilder:
             if entry.title_suffix:
                 chart_title = f"{viz_title} {entry.title_suffix}"
 
+            # Pass spec_overrides so generators can use per-chart hints
+            chart_metrics = analytics_result.metrics
+            if entry.spec_overrides:
+                chart_metrics = {**chart_metrics, "_spec_overrides": entry.spec_overrides}
+
             spec = generate_spec(
                 chart_type=entry.chart_type,
                 data=analytics_result.aggregation_table,
                 columns=columns,
-                metrics=analytics_result.metrics,
+                metrics=chart_metrics,
                 title=chart_title,
             )
             visualizations.append(VisualizationBundle(

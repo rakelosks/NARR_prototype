@@ -17,6 +17,8 @@ import httpx
 import pandas as pd
 from pydantic import BaseModel
 
+import re
+
 from data.ingestion.throttle import Throttle, retry_with_backoff
 
 logger = logging.getLogger(__name__)
@@ -124,6 +126,51 @@ def detect_format(
 
 
 # ---------------------------------------------------------------------------
+# European decimal-comma cleaning
+# ---------------------------------------------------------------------------
+
+# Matches strings like "14263,0", "20,7", "-3,14" — but NOT "1,000,000" (thousand seps)
+_EU_DECIMAL_RE = re.compile(r"^-?\d+,\d{1,4}$")
+
+
+def _fix_european_decimals(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Detect and convert columns that use European decimal commas (e.g. "14263,0")
+    into proper numeric columns.
+
+    Only converts a column if >50% of its non-null values match the European
+    decimal pattern (digits + single comma + digits). This avoids false
+    positives on free-text columns that happen to contain commas.
+    """
+    for col in df.columns:
+        if df[col].dtype != object:
+            continue
+
+        sample = df[col].dropna()
+        if len(sample) == 0:
+            continue
+
+        # Check how many values look like European decimals
+        matches = sample.astype(str).str.strip().str.match(_EU_DECIMAL_RE)
+        match_ratio = matches.sum() / len(sample)
+
+        if match_ratio > 0.5:
+            # Replace comma with dot and convert to numeric
+            converted = df[col].astype(str).str.strip().str.replace(",", ".", regex=False)
+            numeric = pd.to_numeric(converted, errors="coerce")
+            # Only apply if conversion didn't lose too many values
+            valid_ratio = numeric.notna().sum() / max(sample.notna().sum(), 1)
+            if valid_ratio > 0.5:
+                logger.info(
+                    f"Column '{col}': converted European decimal format "
+                    f"({matches.sum()}/{len(sample)} values matched)"
+                )
+                df[col] = numeric
+
+    return df
+
+
+# ---------------------------------------------------------------------------
 # Parsing
 # ---------------------------------------------------------------------------
 
@@ -148,7 +195,8 @@ def parse_bytes(raw: bytes, fmt: FileFormat) -> pd.DataFrame:
             sep = dialect.delimiter
         except csv.Error:
             sep = ","
-        return pd.read_csv(BytesIO(raw), sep=sep)
+        df = pd.read_csv(BytesIO(raw), sep=sep)
+        return _fix_european_decimals(df)
 
     elif fmt == FileFormat.JSON:
         # Try tabular JSON first, fall back to records

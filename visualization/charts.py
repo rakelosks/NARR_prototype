@@ -185,6 +185,37 @@ def _infer_time_unit(metrics: dict) -> str | None:
 
 
 # ---------------------------------------------------------------------------
+# Scale analysis helpers
+# ---------------------------------------------------------------------------
+
+def _measures_have_different_scales(
+    measures: list[str], stats: dict, threshold: float = 10.0
+) -> bool:
+    """
+    Check whether multiple measures have vastly different magnitudes.
+
+    Returns True when the largest measure's mean is more than `threshold`
+    times the smallest measure's mean. In that case, plotting them on
+    the same y-axis makes the small measures invisible.
+    """
+    if len(measures) < 2:
+        return False
+
+    means = []
+    for m in measures:
+        m_stats = stats.get(m, {})
+        mean_val = m_stats.get("mean")
+        if mean_val is not None and mean_val != 0:
+            means.append(abs(float(mean_val)))
+
+    if len(means) < 2:
+        return False
+
+    ratio = max(means) / min(means)
+    return ratio > threshold
+
+
+# ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
 
@@ -318,21 +349,49 @@ def _select_time_series_chart(metrics: dict) -> ChartSelection:
                 spec_overrides={"stacked": True},
             ))
     elif measure_count > 1:
-        charts.append(ChartEntry(
-            chart_type="line",
-            description="Parallel trend lines for each measure.",
-        ))
-        charts.append(ChartEntry(
-            chart_type="bar",
-            title_suffix="(side-by-side)",
-            description="Grouped bars comparing measures per period.",
-        ))
-        charts.append(ChartEntry(
-            chart_type="area",
-            title_suffix="(cumulative)",
-            description="Stacked area showing combined volume over time.",
-            spec_overrides={"stacked": True},
-        ))
+        # Check if measures have vastly different scales
+        # (e.g. 14000 students vs 10.8 students-per-teacher)
+        measures = metrics.get("measure_columns", [])
+        stats = metrics.get("summary_stats", {})
+        scales_differ = _measures_have_different_scales(measures, stats)
+
+        if scales_differ:
+            # Individual chart per measure — each gets its own y-axis scale
+            # Try to use English labels for the title suffix
+            try:
+                from data.profiling.keyword_dictionary import resolve_column
+                _resolve = lambda c: (
+                    " ".join(s.title() for s in resolve_column(c).matched_canonicals[:2])
+                    or c
+                )
+            except ImportError:
+                _resolve = lambda c: c
+
+            for m in measures[:5]:  # cap at 5 charts
+                english_name = _resolve(m)
+                charts.append(ChartEntry(
+                    chart_type="line",
+                    title_suffix=f"— {english_name}",
+                    description=f"Trend over time for {english_name}.",
+                    spec_overrides={"single_measure": m},
+                ))
+        else:
+            # Measures are on similar scales — combined charts work well
+            charts.append(ChartEntry(
+                chart_type="line",
+                description="Parallel trend lines for each measure.",
+            ))
+            charts.append(ChartEntry(
+                chart_type="bar",
+                title_suffix="(side-by-side)",
+                description="Grouped bars comparing measures per period.",
+            ))
+            charts.append(ChartEntry(
+                chart_type="area",
+                title_suffix="(cumulative)",
+                description="Stacked area showing combined volume over time.",
+                spec_overrides={"stacked": True},
+            ))
     else:
         if total_periods <= 12:
             charts.append(ChartEntry(
@@ -961,11 +1020,43 @@ def _base_spec(data: list[dict], title: str) -> dict:
     }
 
 
+def _build_measure_label_map(measure_cols: list[str], metrics: dict) -> dict[str, str]:
+    """Build a mapping from raw measure column names to English labels."""
+    labels = metrics.get("column_labels", {})
+    return {col: labels.get(col, col) for col in measure_cols}
+
+
+def _translate_measure_transforms(label_map: dict[str, str]) -> list[dict]:
+    """
+    Build Vega-Lite calculate transforms that translate raw measure names
+    in the fold output to English labels for the legend.
+
+    Generates a chained conditional expression:
+      datum.measure == 'fjoldi' ? 'Count' : datum.measure == 'tegund' ? 'Type' : datum.measure
+    """
+    if not label_map or all(k == v for k, v in label_map.items()):
+        # No translation needed — labels are already the same as column names
+        return []
+
+    # Build a nested ternary expression
+    expr = "datum.measure"
+    for raw, english in reversed(list(label_map.items())):
+        if raw != english:
+            expr = f"datum.measure == '{raw}' ? '{english}' : {expr}"
+
+    return [{"calculate": expr, "as": "measure_label"}]
+
+
 def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
     """Generate a line chart spec."""
     time_col = columns.get("time_axis", "")
     measure_cols = metrics.get("measure_columns", [])
     group_col = columns.get("series_group")
+
+    # Check for single_measure override (individual chart for one measure)
+    single_measure = metrics.get("_spec_overrides", {}).get("single_measure")
+    if single_measure and single_measure in measure_cols:
+        measure_cols = [single_measure]
 
     # Coerce bare year integers (1999 → "1999-01-01") so Vega-Lite parses them correctly
     chart_data = data
@@ -989,15 +1080,17 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
             "color": {"field": group_col, "type": "nominal", "title": _label(group_col, metrics)},
         }
     elif len(measure_cols) > 1:
-        # Multi-measure: fold into long format
+        # Multi-measure: fold into long format with English legend labels
+        label_map = _build_measure_label_map(measure_cols, metrics)
         spec["transform"] = [
-            {"fold": measure_cols, "as": ["measure", "value"]}
+            {"fold": measure_cols, "as": ["measure", "value"]},
+            *_translate_measure_transforms(label_map),
         ]
         spec["mark"] = {"type": "line", "point": True, "tooltip": True}
         spec["encoding"] = {
             "x": x_enc,
             "y": {"field": "value", "type": "quantitative", "title": "Value"},
-            "color": {"field": "measure", "type": "nominal", "title": "Measure"},
+            "color": {"field": "measure_label", "type": "nominal", "title": "Measure"},
         }
     else:
         y_field = measure_cols[0] if measure_cols else ""
@@ -1058,15 +1151,19 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
             ]
             spec["title"] = f"{spec.get('title', '')} (top {MAX_CHART_CATEGORIES})"
     elif len(measure_cols) > 1:
-        # Grouped bars
+        # Grouped bars with English legend labels
+        label_map = _build_measure_label_map(measure_cols, metrics)
+        translate_transforms = _translate_measure_transforms(label_map)
+        color_field = "measure_label" if translate_transforms else "measure"
         spec["transform"] = [
-            {"fold": measure_cols, "as": ["measure", "value"]}
+            {"fold": measure_cols, "as": ["measure", "value"]},
+            *translate_transforms,
         ]
         spec["mark"] = {"type": "bar", "tooltip": True}
         enc = {
             "x": _x_enc(),
             "y": {"field": "value", "type": "quantitative", "title": "Value"},
-            "color": {"field": "measure", "type": "nominal"},
+            "color": {"field": color_field, "type": "nominal", "title": "Measure"},
         }
         # xOffset only works with nominal/ordinal x-axis, not temporal
         if not is_temporal:
@@ -1176,12 +1273,16 @@ def _gen_heatmap_spec(data: list[dict], columns: dict, metrics: dict, title: str
     cat_col = columns.get("category", "")
     measure_cols = metrics.get("measure_columns", [])
 
+    label_map = _build_measure_label_map(measure_cols, metrics)
+    translate_transforms = _translate_measure_transforms(label_map)
+    x_field = "measure_label" if translate_transforms else "measure"
     spec["transform"] = [
-        {"fold": measure_cols, "as": ["measure", "value"]}
+        {"fold": measure_cols, "as": ["measure", "value"]},
+        *translate_transforms,
     ]
     spec["mark"] = {"type": "rect", "tooltip": True}
     spec["encoding"] = {
-        "x": {"field": "measure", "type": "nominal", "title": "Measure"},
+        "x": {"field": x_field, "type": "nominal", "title": "Measure"},
         "y": {"field": cat_col, "type": "nominal", "title": _label(cat_col, metrics)},
         "color": {"field": "value", "type": "quantitative", "scale": {"scheme": "blues"}, "title": "Value"},
     }
