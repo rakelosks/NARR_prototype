@@ -1049,7 +1049,7 @@ KEYWORD_DICTIONARY: list[KeywordEntry] = [
     KeywordEntry(
         canonical="students",
         translations={
-            "is": ["nemendur", "nemandi", "námsmenn", "namsmenn"],
+            "is": ["nemendur", "nemendi", "nemenda", "nemandi", "námsmenn", "namsmenn"],
             "de": ["schüler", "schuler", "studenten"],
             "fr": ["élèves", "eleves", "étudiants", "etudiants"],
             "es": ["estudiantes", "alumnos"],
@@ -1065,7 +1065,7 @@ KEYWORD_DICTIONARY: list[KeywordEntry] = [
     KeywordEntry(
         canonical="teachers",
         translations={
-            "is": ["kennarar", "kennari"],
+            "is": ["kennarar", "kennari", "kennara"],
             "de": ["lehrer"],
             "fr": ["enseignants", "professeurs"],
             "es": ["profesores", "maestros"],

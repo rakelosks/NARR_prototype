@@ -46,8 +46,8 @@ def _build_column_labels(columns: dict[str, str], metrics: dict | None = None) -
             continue
         signal = resolve_column(col_name)
         if signal.matched_canonicals:
-            # Use the first matched canonical, title-cased
-            label = " ".join(c.title() for c in signal.matched_canonicals[:2])
+            # Use the first matched canonical, title-cased, underscores → spaces
+            label = " ".join(c.replace("_", " ").title() for c in signal.matched_canonicals[:2])
             labels[col_name] = label
         else:
             # Fallback: title-case the raw name, replacing underscores
