@@ -39,11 +39,11 @@ PIPELINE_STEPS = [
     "Writing the story",
 ]
 
-# Cumulative seconds at which each step roughly starts
 STEP_THRESHOLDS = [0, 3, 7, 11, 14]
 
 
 def _headers() -> dict:
+    """Build request headers, including API key if configured."""
     h = {}
     if API_KEY:
         h["X-API-Key"] = API_KEY
@@ -51,149 +51,67 @@ def _headers() -> dict:
 
 
 st.set_page_config(
-    page_title="Smart City Data Stories",
-    page_icon="🏙️",
+    page_title="NARR — Smart City Data Stories",
+    page_icon="🐳",
     layout="centered",
 )
 
 
 # ---------------------------------------------------------------------------
-# Theme state
+# Custom CSS — only for our own HTML elements.
+# Streamlit's dark theme is handled via .streamlit/config.toml.
 # ---------------------------------------------------------------------------
 
-if "theme" not in st.session_state:
-    st.session_state["theme"] = "dark"
-
-is_dark = st.session_state["theme"] == "dark"
-
-
-# ---------------------------------------------------------------------------
-# Theme palettes
-# ---------------------------------------------------------------------------
-
-if is_dark:
-    T = dict(
-        bg="#0e1117", bg_card="#1a1d24", text="#e8e7e3", text_muted="#9c9a92",
-        text_body="#b0aaa5", border="rgba(255,255,255,0.08)",
-        border_light="rgba(255,255,255,0.06)", accent="#2563eb",
-        accent_hover="#1d4ed8",
-        callout_bg="linear-gradient(135deg, #1e3a5f 0%, #1a2e4a 100%)",
-        callout_border="#60a5fa", callout_value="#60a5fa",
-        callout_label="#94a3b8", callout_body="#cbd5e1",
-        note_bg="linear-gradient(135deg, #1a2332 0%, #1a1d24 100%)",
-        note_accent="#f59e0b", timeline_dot="#2563eb",
-        input_bg="#1a1d24", input_border="rgba(255,255,255,0.08)",
-        spinner_track="rgba(37,99,235,0.3)", spinner_head="#2563eb",
-        btn2_border="rgba(255,255,255,0.1)", btn2_text="#9c9a92",
-        # Vega-Lite chart theme — match page background
-        vega_bg="#0e1117", vega_text="#b0aaa5", vega_grid="#2a2d34",
-        vega_title="#e8e7e3",
-    )
-else:
-    T = dict(
-        bg="#ffffff", bg_card="#f7f7f6", text="#1a1a1a", text_muted="#6b7280",
-        text_body="#4b5563", border="rgba(0,0,0,0.08)",
-        border_light="rgba(0,0,0,0.06)", accent="#2563eb",
-        accent_hover="#1d4ed8",
-        callout_bg="linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
-        callout_border="#2563eb", callout_value="#1d4ed8",
-        callout_label="#6b7280", callout_body="#374151",
-        note_bg="linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
-        note_accent="#d97706", timeline_dot="#2563eb",
-        input_bg="#f7f7f6", input_border="rgba(0,0,0,0.1)",
-        spinner_track="rgba(37,99,235,0.2)", spinner_head="#2563eb",
-        btn2_border="rgba(0,0,0,0.12)", btn2_text="#6b7280",
-        vega_bg="#ffffff", vega_text="#4b5563", vega_grid="#e5e7eb",
-        vega_title="#1a1a1a",
-    )
-
-
-# ---------------------------------------------------------------------------
-# CSS — comprehensive overrides for both custom elements and Streamlit
-# internals (expanders, dataframes, json, captions, inputs, etc.)
-# ---------------------------------------------------------------------------
-
-st.markdown(f"""
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
-html, body, [class*="css"] {{
+html, body, [class*="css"] {
     font-family: 'DM Sans', sans-serif;
-}}
+}
 
-#MainMenu {{visibility: hidden;}}
-header {{visibility: hidden;}}
-footer {{visibility: hidden;}}
+#MainMenu {visibility: hidden;}
+header {visibility: hidden;}
+footer {visibility: hidden;}
 
-/* ============================================================
-   GLOBAL NUCLEAR THEME OVERRIDE
-   Force background on every Streamlit element, then restore
-   specific children (buttons, charts) as needed.
-   ============================================================ */
-.stApp,
-.stApp > div,
-.stApp > div > div,
-.stApp > div > div > div,
-.stApp section,
-.stApp section > div {{
-    background-color: {T['bg']} !important;
-    color: {T['text']} !important;
-}}
+/* App header */
+.app-title {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.25rem;
+    color: #e8e7e3;
+}
+.app-subtitle {
+    font-size: 0.95rem;
+    color: #9c9a92;
+    margin-bottom: 1.5rem;
+}
 
-/* All generic containers, blocks, and element wrappers */
-.stApp [data-testid="stVerticalBlock"],
-.stApp [data-testid="stHorizontalBlock"],
-.stApp [data-testid="column"],
-.stApp [data-testid="stVerticalBlockBorderWrapper"],
-.stApp .block-container,
-.stApp .element-container {{
-    background-color: {T['bg']} !important;
-}}
-
-/* Markdown text */
-.stApp .stMarkdown, .stApp .stMarkdown p,
-.stApp .stMarkdown li, .stApp .stMarkdown span {{
-    color: {T['text']} !important;
-}}
-.stApp .stCaption, .stApp .stCaption p {{
-    color: {T['text_muted']} !important;
-}}
-
-/* ---- Text area ---- */
-.stTextArea textarea {{
-    background: {T['input_bg']} !important;
-    border: 1px solid {T['input_border']} !important;
+/* Text area */
+.stTextArea textarea {
+    background: #1a1d24 !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
     border-radius: 12px !important;
-    color: {T['text']} !important;
+    color: #e8e7e3 !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.95rem !important;
     padding: 1rem !important;
-    outline: none !important;
-}}
-.stTextArea textarea:focus {{
-    border-color: {T['accent']} !important;
-    box-shadow: 0 0 0 1px {T['accent']} !important;
-}}
-.stTextArea textarea::placeholder {{
-    color: {T['text_muted']} !important;
-}}
-.stTextArea label {{ display: none !important; }}
-/* Kill every wrapper div border/outline/shadow around the textarea */
-.stTextArea, .stTextArea div,
-[data-testid="stTextArea"], [data-testid="stTextArea"] div {{
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-    background-color: {T['bg']} !important;
-}}
-/* The textarea itself gets its own border back (above rules nuke divs) */
-.stTextArea textarea {{
-    border: 1px solid {T['input_border']} !important;
-}}
+}
+.stTextArea textarea:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 1px #2563eb !important;
+}
+.stTextArea textarea::placeholder {
+    color: #6b6a65 !important;
+}
+.stTextArea label {
+    display: none !important;
+}
 
-/* ---- Buttons ---- */
-.stButton > button[kind="primary"] {{
-    background: {T['accent']} !important;
+/* Primary button */
+.stButton > button[kind="primary"] {
+    background: #2563eb !important;
     color: white !important;
     border: none !important;
     border-radius: 10px !important;
@@ -201,168 +119,111 @@ footer {{visibility: hidden;}}
     font-weight: 600 !important;
     font-size: 0.95rem !important;
     padding: 0.6rem 1.5rem !important;
-}}
-.stButton > button[kind="primary"]:hover {{
-    background: {T['accent_hover']} !important;
-}}
-.stButton > button[kind="secondary"] {{
+    transition: background 0.15s !important;
+}
+.stButton > button[kind="primary"]:hover {
+    background: #1d4ed8 !important;
+}
+
+/* Secondary buttons */
+.stButton > button[kind="secondary"] {
     background: transparent !important;
-    border: 1px solid {T['btn2_border']} !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 8px !important;
-    color: {T['btn2_text']} !important;
+    color: #9c9a92 !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.85rem !important;
-}}
-.stButton > button[kind="secondary"]:hover {{
-    border-color: {T['accent']} !important;
-    color: {T['text']} !important;
-}}
-.stDownloadButton > button {{
+    transition: all 0.15s !important;
+}
+.stButton > button[kind="secondary"]:hover {
+    border-color: #2563eb !important;
+    color: #e8e7e3 !important;
+}
+
+/* Download button */
+.stDownloadButton > button {
     background: transparent !important;
-    border: 1px solid {T['btn2_border']} !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 8px !important;
-    color: {T['btn2_text']} !important;
+    color: #9c9a92 !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.85rem !important;
-}}
-.stDownloadButton > button:hover {{
-    border-color: {T['accent']} !important;
-    color: {T['text']} !important;
-}}
+}
+.stDownloadButton > button:hover {
+    border-color: #2563eb !important;
+    color: #e8e7e3 !important;
+}
 
-/* ---- Expanders: every layer ---- */
-details[data-testid="stExpander"],
-details[data-testid="stExpander"] *:not(button):not(svg):not(path):not(canvas):not(iframe) {{
-    background-color: {T['bg']} !important;
-}}
-details[data-testid="stExpander"] summary {{
-    font-family: 'DM Sans', sans-serif !important;
-    font-size: 0.9rem !important;
-    font-weight: 500 !important;
-    color: {T['text_muted']} !important;
-    border-radius: 10px !important;
-}}
-details[data-testid="stExpander"] summary:hover,
-details[data-testid="stExpander"][open] summary {{
-    color: {T['text']} !important;
-}}
-details[data-testid="stExpander"] summary span {{
-    color: inherit !important;
-}}
-details[data-testid="stExpander"] summary svg {{
-    fill: {T['text_muted']} !important;
-}}
-details[data-testid="stExpander"] {{
-    border: 1px solid {T['border']} !important;
-    border-radius: 10px !important;
-}}
-
-/* ---- JSON viewer ---- */
-/* Set bg on container only; do NOT touch child colors so syntax
-   highlighting (keys=teal, strings=green, numbers=purple) stays */
-[data-testid="stJson"] {{
-    background-color: {T['bg_card']} !important;
-    border-radius: 8px !important;
-    padding: 0.5rem !important;
-}}
-/* Undo the nuclear color override for json children */
-[data-testid="stJson"] span,
-[data-testid="stJson"] div {{
-    color: unset !important;
-}}
-
-/* ---- Dataframe ---- */
-[data-testid="stDataFrame"],
-[data-testid="stDataFrame"] > div,
-[data-testid="stDataFrame"] [data-testid="glideDataEditor"] {{
-    background-color: {T['bg']} !important;
-}}
-
-/* ---- Alerts ---- */
-.stAlert {{
-    background-color: {T['bg_card']} !important;
-    color: {T['text']} !important;
-}}
-
-/* ---- Custom story elements ---- */
-.app-title {{
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    color: {T['text']};
-}}
-.app-subtitle {{
-    font-size: 0.95rem;
-    color: {T['text_muted']};
-    margin-bottom: 1.5rem;
-}}
-
-.story-headline {{
+/* Story elements */
+.story-headline {
     font-size: 1.75rem;
     font-weight: 700;
     letter-spacing: -0.5px;
     line-height: 1.25;
-    color: {T['text']};
+    color: #e8e7e3;
     margin-bottom: 0.5rem;
-}}
-.story-lede {{
+}
+.story-lede {
     font-size: 1.1rem;
     line-height: 1.65;
-    color: {T['text_body']};
+    color: #b0aaa5;
     margin-bottom: 1.5rem;
-}}
+}
 
-.callout-block {{
-    background: {T['callout_bg']};
-    border-left: 4px solid {T['callout_border']};
+/* Callout block */
+.callout-block {
+    background: linear-gradient(135deg, #1e3a5f 0%, #1a2e4a 100%);
+    border-left: 4px solid #60a5fa;
     border-radius: 12px;
     padding: 1.75rem 2rem;
     margin: 1.5rem 0;
-}}
-.callout-value {{
+}
+.callout-value {
     font-size: 2.75rem;
     font-weight: 700;
-    color: {T['callout_value']};
+    color: #60a5fa;
     letter-spacing: -1px;
     line-height: 1.1;
-}}
-.callout-label {{
+}
+.callout-label {
     font-size: 0.95rem;
-    color: {T['callout_label']};
+    color: #94a3b8;
     margin-top: 0.25rem;
     margin-bottom: 0.5rem;
-}}
-.callout-body {{
+}
+.callout-body {
     font-size: 0.95rem;
-    color: {T['callout_body']};
+    color: #cbd5e1;
     line-height: 1.5;
-}}
+}
 
-.narrative-heading {{
+/* Narrative blocks */
+.narrative-heading {
     font-size: 1.25rem;
     font-weight: 600;
     letter-spacing: -0.3px;
-    color: {T['text']};
+    color: #e8e7e3;
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
-}}
-.narrative-body {{
+}
+.narrative-body {
     font-size: 1rem;
     line-height: 1.7;
-    color: {T['text_body']};
+    color: #b0aaa5;
     margin-bottom: 1rem;
-}}
+}
 
-.timeline-block {{
-    border-left: 2px solid {T['timeline_dot']};
+/* Timeline block */
+.timeline-block {
+    border-left: 2px solid #2563eb;
     padding-left: 1.25rem;
     margin: 1rem 0 1.5rem 0.5rem;
-}}
-.timeline-milestone {{
+}
+.timeline-milestone {
     position: relative;
     padding-bottom: 1rem;
-}}
-.timeline-milestone::before {{
+}
+.timeline-milestone::before {
     content: '';
     position: absolute;
     left: -1.55rem;
@@ -370,66 +231,71 @@ details[data-testid="stExpander"] {{
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: {T['timeline_dot']};
-}}
-.timeline-label {{
+    background: #2563eb;
+}
+.timeline-label {
     font-weight: 600;
     font-size: 0.9rem;
-    color: {T['text']};
-}}
-.timeline-desc {{
+    color: #e8e7e3;
+}
+.timeline-desc {
     font-size: 0.9rem;
-    color: {T['text_muted']};
+    color: #9c9a92;
     margin-top: 0.15rem;
-}}
+}
 
-.data-note {{
-    background: {T['note_bg']};
-    border-left: 3px solid {T['note_accent']};
+/* Data note */
+.data-note {
+    background: linear-gradient(135deg, #1a2332 0%, #1a1d24 100%);
+    border-left: 3px solid #f59e0b;
     border-radius: 10px;
     padding: 1rem 1.25rem;
     font-size: 0.9rem;
-    color: {T['text_body']};
+    color: #b0aaa5;
     line-height: 1.6;
     margin: 1.5rem 0;
-}}
-.data-note-label {{
+}
+.data-note-label {
     font-weight: 600;
-    color: {T['note_accent']};
+    color: #f59e0b;
     margin-bottom: 0.4rem;
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-}}
+}
 
-.followup-label {{
+/* Follow-up */
+.followup-label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: {T['text_muted']};
+    color: #6b6a65;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.5rem;
-}}
+}
 
-.dataset-chip {{
+/* Dataset chip */
+.dataset-chip {
     display: inline-block;
-    background: {T['bg_card']};
-    border: 1px solid {T['border']};
+    background: #1a1d24;
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 8px;
     padding: 0.35rem 0.75rem;
     font-size: 0.8rem;
-    color: {T['text_muted']};
+    color: #9c9a92;
     margin-bottom: 1rem;
-}}
+}
 
-.soft-divider {{
+/* Divider */
+.soft-divider {
     border: none;
-    border-top: 1px solid {T['border_light']};
+    border-top: 1px solid rgba(255,255,255,0.06);
     margin: 1.5rem 0;
-}}
+}
 
-.pipeline-status-line {{
-    background: {T['bg_card']};
+/* Pipeline status */
+.pipeline-status-line {
+    background: #1a1d24;
     border-radius: 10px;
     padding: 1rem 1.25rem;
     margin: 1rem 0;
@@ -437,20 +303,20 @@ details[data-testid="stExpander"] {{
     align-items: center;
     gap: 0.75rem;
     font-size: 0.9rem;
-    color: {T['text']};
-}}
-.pipeline-spinner {{
+    color: #e8e7e3;
+}
+.pipeline-spinner {
     width: 16px;
     height: 16px;
-    border: 2px solid {T['spinner_track']};
-    border-top-color: {T['spinner_head']};
+    border: 2px solid rgba(37, 99, 235, 0.3);
+    border-top-color: #2563eb;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     flex-shrink: 0;
-}}
-@keyframes spin {{
-    to {{ transform: rotate(360deg); }}
-}}
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -460,25 +326,37 @@ details[data-testid="stExpander"] {{
 # ---------------------------------------------------------------------------
 
 def api_get(path: str, params: dict = None) -> dict | None:
+    """GET request to the API."""
     try:
-        r = requests.get(f"{API_BASE}{path}", params=params, headers=_headers(), timeout=10)
+        r = requests.get(
+            f"{API_BASE}{path}", params=params, headers=_headers(), timeout=10
+        )
         r.raise_for_status()
         return r.json()
     except requests.ConnectionError:
-        st.error("Cannot connect to the API. Make sure it's running.")
+        st.error(
+            "Cannot connect to API. Make sure it's running: "
+            "`uvicorn app.main:app --reload`"
+        )
         return None
     except requests.HTTPError as e:
-        st.error(f"API error: {e.response.status_code}")
+        st.error(f"API error: {e.response.status_code} — {e.response.text}")
         return None
 
 
 def api_post(path: str, data: dict, timeout: int = 600) -> dict | None:
+    """POST request to the API."""
     try:
-        r = requests.post(f"{API_BASE}{path}", json=data, headers=_headers(), timeout=timeout)
+        r = requests.post(
+            f"{API_BASE}{path}", json=data, headers=_headers(), timeout=timeout
+        )
         r.raise_for_status()
         return r.json()
     except requests.ConnectionError:
-        st.error("Cannot connect to the API. Make sure it's running.")
+        st.error(
+            "Cannot connect to API. Make sure it's running: "
+            "`uvicorn app.main:app --reload`"
+        )
         return None
     except requests.HTTPError as e:
         detail = ""
@@ -486,14 +364,19 @@ def api_post(path: str, data: dict, timeout: int = 600) -> dict | None:
             detail = e.response.json().get("detail", e.response.text)
         except Exception:
             detail = e.response.text
-        st.error(f"Could not generate story: {detail}")
+        st.error(f"Error: {detail}")
         return None
     except requests.ReadTimeout:
-        st.error("The request timed out. Story generation can take a minute or two — please try again.")
+        st.error(
+            "The request timed out. Story generation may take a few minutes "
+            "— please try again."
+        )
         return None
 
 
-def api_post_threaded(path: str, data: dict, timeout: int = 600, result_holder: dict = None):
+def api_post_threaded(
+    path: str, data: dict, timeout: int = 600, result_holder: dict = None
+):
     """Run API POST in a background thread, storing result in result_holder."""
     try:
         r = requests.post(
@@ -502,7 +385,9 @@ def api_post_threaded(path: str, data: dict, timeout: int = 600, result_holder: 
         r.raise_for_status()
         result_holder["result"] = r.json()
     except requests.ConnectionError:
-        result_holder["error"] = "Cannot connect to the API. Make sure it's running."
+        result_holder["error"] = (
+            "Cannot connect to API. Make sure it's running."
+        )
     except requests.HTTPError as e:
         detail = ""
         try:
@@ -512,8 +397,8 @@ def api_post_threaded(path: str, data: dict, timeout: int = 600, result_holder: 
         result_holder["error"] = f"Could not generate story: {detail}"
     except requests.ReadTimeout:
         result_holder["error"] = (
-            "The request timed out. Story generation can take a minute or two — "
-            "please try again."
+            "The request timed out. Story generation may take a few minutes "
+            "— please try again."
         )
     except Exception as e:
         result_holder["error"] = str(e)
@@ -522,50 +407,59 @@ def api_post_threaded(path: str, data: dict, timeout: int = 600, result_holder: 
 
 
 def theme_vega_spec(spec: dict) -> dict:
-    """Inject theme-appropriate colors into a Vega-Lite spec."""
+    """Inject dark theme colors into a Vega-Lite spec."""
     spec = copy.deepcopy(spec)
-    spec["background"] = T["vega_bg"]
+    spec["background"] = "#0e1117"
     cfg = spec.setdefault("config", {})
-    cfg["style"] = {"guide-label": {"fill": T["vega_text"]}, "guide-title": {"fill": T["vega_text"]}}
     cfg["axis"] = {
-        "labelColor": T["vega_text"],
-        "titleColor": T["vega_text"],
-        "gridColor": T["vega_grid"],
-        "domainColor": T["vega_grid"],
-        "tickColor": T["vega_grid"],
+        "labelColor": "#b0aaa5",
+        "titleColor": "#b0aaa5",
+        "gridColor": "#2a2d34",
+        "domainColor": "#2a2d34",
+        "tickColor": "#2a2d34",
     }
-    cfg["legend"] = {"labelColor": T["vega_text"], "titleColor": T["vega_text"]}
-    cfg["title"] = {"color": T["vega_title"]}
+    cfg["legend"] = {"labelColor": "#b0aaa5", "titleColor": "#b0aaa5"}
+    cfg["title"] = {"color": "#e8e7e3"}
     cfg["view"] = {"stroke": "transparent"}
+    cfg["style"] = {
+        "guide-label": {"fill": "#b0aaa5"},
+        "guide-title": {"fill": "#b0aaa5"},
+    }
     return spec
 
 
 def render_vega_lite(spec: dict):
+    """Render a Vega-Lite spec with dark theming."""
     themed = theme_vega_spec(spec)
     st.vega_lite_chart(themed, use_container_width=True)
 
 
 def ensure_catalog(portal_url: str):
+    """Ensure the catalog is populated. Auto-refresh if empty."""
     if "catalog_ready" in st.session_state:
         return True
+
     result = api_get("/datasets/catalog/search", {"limit": 1})
     if result and result.get("count", 0) > 0:
         st.session_state["catalog_ready"] = True
         return True
+
     with st.spinner("Connecting to open data portal..."):
-        refresh = api_post("/datasets/catalog/refresh", {
-            "portal_url": portal_url, "full": False,
-        }, timeout=60)
+        refresh = api_post(
+            "/datasets/catalog/refresh",
+            {"portal_url": portal_url, "full": False},
+            timeout=60,
+        )
         if refresh and refresh.get("datasets_indexed", 0) > 0:
             st.session_state["catalog_ready"] = True
             return True
         else:
-            st.warning("Could not load the dataset catalog. Please try again.")
+            st.warning("Could not load dataset catalog. Please try again later.")
             return False
 
 
 # ---------------------------------------------------------------------------
-# Story download — self-contained HTML with charts
+# Story download — self-contained HTML
 # ---------------------------------------------------------------------------
 
 def build_story_html(pkg: dict) -> str:
@@ -577,7 +471,7 @@ def build_story_html(pkg: dict) -> str:
     vizs = pkg.get("visualizations", [])
 
     blocks_html = ""
-    chart_specs = {}  # id → spec JSON
+    chart_specs = {}
 
     for block in pkg.get("story_blocks", []):
         btype = block.get("type", "narrative")
@@ -602,7 +496,8 @@ def build_story_html(pkg: dict) -> str:
                 ml = html_lib.escape(ms.get("label", ""))
                 md = html_lib.escape(ms.get("description", ""))
                 blocks_html += (
-                    f'<div class="milestone"><strong>{ml}</strong> — {md}</div>'
+                    f'<div class="milestone">'
+                    f"<strong>{ml}</strong> — {md}</div>"
                 )
             blocks_html += "</div>"
 
@@ -618,10 +513,14 @@ def build_story_html(pkg: dict) -> str:
             if viz_idx is not None and 0 <= viz_idx < len(vizs):
                 chart_id = f"chart-{viz_idx}"
                 spec = vizs[viz_idx].get("vega_lite_spec", {})
-                # Force light theme for downloaded HTML
                 spec_copy = copy.deepcopy(spec)
                 spec_copy["background"] = "#ffffff"
-                spec_copy.setdefault("config", {})["view"] = {"stroke": "transparent"}
+                # Replace "container" width with fixed px for standalone HTML
+                if spec_copy.get("width") == "container":
+                    spec_copy["width"] = 680
+                spec_copy.setdefault("config", {})["view"] = {
+                    "stroke": "transparent"
+                }
                 chart_specs[chart_id] = json.dumps(spec_copy)
                 blocks_html += f'<div id="{chart_id}" class="chart"></div>'
 
@@ -633,11 +532,11 @@ def build_story_html(pkg: dict) -> str:
             <p>{data_note}</p>
         </div>"""
 
-    # Build chart rendering script — runs after libs load
     chart_script_lines = []
     for chart_id, spec_json in chart_specs.items():
         chart_script_lines.append(
-            f"  vegaEmbed('#{chart_id}', {spec_json}, {{actions: false}}).catch(console.error);"
+            f"  vegaEmbed('#{chart_id}', {spec_json}, {{actions: false}})"
+            f".catch(console.error);"
         )
     chart_script = "\n".join(chart_script_lines)
 
@@ -653,7 +552,8 @@ def build_story_html(pkg: dict) -> str:
     max-width: 720px; margin: 2rem auto; padding: 0 1.5rem;
     color: #1a1a1a; line-height: 1.7; background: #fff;
   }}
-  h1 {{ font-size: 1.75rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1.25; }}
+  h1 {{ font-size: 1.75rem; font-weight: 700; letter-spacing: -0.5px;
+       line-height: 1.25; }}
   h3 {{ font-size: 1.15rem; font-weight: 600; margin-top: 1.5rem; }}
   .lede {{ font-size: 1.1rem; color: #4b5563; margin-bottom: 1.5rem; }}
   .dataset {{ font-size: 0.8rem; color: #6b7280; margin-bottom: 1rem; }}
@@ -664,7 +564,10 @@ def build_story_html(pkg: dict) -> str:
   .callout-value {{ font-size: 2.5rem; font-weight: 700; color: #1d4ed8; }}
   .callout-label {{ font-size: 0.9rem; color: #6b7280; }}
   .callout-body {{ font-size: 0.95rem; color: #374151; margin-top: 0.5rem; }}
-  .timeline {{ border-left: 2px solid #2563eb; padding-left: 1.25rem; margin: 1rem 0 1.5rem 0.5rem; }}
+  .timeline {{
+    border-left: 2px solid #2563eb; padding-left: 1.25rem;
+    margin: 1rem 0 1.5rem 0.5rem;
+  }}
   .milestone {{ padding-bottom: 0.75rem; }}
   .chart {{ margin: 1.5rem 0; }}
   .data-note {{
@@ -674,7 +577,8 @@ def build_story_html(pkg: dict) -> str:
   }}
   .data-note-label {{
     font-weight: 600; color: #d97706; font-size: 0.8rem;
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
   }}
   .footer {{
     font-size: 0.75rem; color: #9ca3af; margin-top: 2rem;
@@ -688,13 +592,15 @@ def build_story_html(pkg: dict) -> str:
 <div class="lede">{lede}</div>
 {blocks_html}
 {note_html}
-<div class="footer">Generated by Smart City Data Stories (NARR)</div>
+<div class="footer">Generated by NARR — Smart City Data Stories</div>
 
 <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
 <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
 <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 <script>
+window.addEventListener('load', function() {{
 {chart_script}
+}});
 </script>
 </body>
 </html>"""
@@ -705,19 +611,24 @@ def build_story_html(pkg: dict) -> str:
 # ---------------------------------------------------------------------------
 
 def render_callout(block: dict):
+    """Render a callout block with highlighted stat."""
     value = block.get("highlight_value", "")
     label = block.get("highlight_label", "")
     body = block.get("body", "")
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="callout-block">
         <div class="callout-value">{value}</div>
         <div class="callout-label">{label}</div>
         <div class="callout-body">{body}</div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_narrative(block: dict, vizs: list):
+    """Render a narrative block with optional chart."""
     heading = block.get("heading", "")
     body = block.get("body", "")
     if heading:
@@ -739,6 +650,7 @@ def render_narrative(block: dict, vizs: list):
 
 
 def render_timeline(block: dict):
+    """Render a timeline block with milestones."""
     heading = block.get("heading", "")
     milestones = block.get("milestones", [])
     if heading:
@@ -765,6 +677,7 @@ def render_story(pkg: dict, story_index: int = 0):
     vizs = pkg.get("visualizations", [])
     suffix = f"_{story_index}"
 
+    # Dataset chip
     dataset_name = pkg.get("dataset_name", "")
     if dataset_name:
         st.markdown(
@@ -774,6 +687,7 @@ def render_story(pkg: dict, story_index: int = 0):
 
     st.markdown('<hr class="soft-divider">', unsafe_allow_html=True)
 
+    # Headline
     headline = pkg.get("headline", "")
     if headline:
         st.markdown(
@@ -781,6 +695,7 @@ def render_story(pkg: dict, story_index: int = 0):
             unsafe_allow_html=True,
         )
 
+    # Lede
     lede = pkg.get("lede", "")
     if lede:
         st.markdown(
@@ -788,6 +703,7 @@ def render_story(pkg: dict, story_index: int = 0):
             unsafe_allow_html=True,
         )
 
+    # Story blocks
     for block in pkg.get("story_blocks", []):
         block_type = block.get("type", "narrative")
         if block_type == "callout":
@@ -797,15 +713,20 @@ def render_story(pkg: dict, story_index: int = 0):
         else:
             render_narrative(block, vizs)
 
+    # Data note
     data_note = pkg.get("data_note", "")
     if data_note:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div class="data-note">
             <div class="data-note-label">About this data</div>
             {data_note}
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
+    # Follow-up suggestion
     followup = pkg.get("followup_question", "")
     if followup:
         st.markdown(
@@ -818,7 +739,7 @@ def render_story(pkg: dict, story_index: int = 0):
 
     st.markdown('<hr class="soft-divider">', unsafe_allow_html=True)
 
-    # Download button
+    # Download story
     story_html = build_story_html(pkg)
     safe_headline = (headline or "story").replace(" ", "_")[:40]
     st.download_button(
@@ -833,7 +754,10 @@ def render_story(pkg: dict, story_index: int = 0):
     with st.expander("View raw data"):
         if vizs:
             raw_data = (
-                vizs[0].get("vega_lite_spec", {}).get("data", {}).get("values", [])
+                vizs[0]
+                .get("vega_lite_spec", {})
+                .get("data", {})
+                .get("values", [])
             )
             if raw_data:
                 st.dataframe(pd.DataFrame(raw_data), use_container_width=True)
@@ -846,9 +770,13 @@ def render_story(pkg: dict, story_index: int = 0):
         prov = pkg.get("provenance", {})
         if prov:
             cols = st.columns(3)
-            cols[0].markdown(f"**Template:** {prov.get('template_type', 'N/A')}")
+            cols[0].markdown(
+                f"**Template:** {prov.get('template_type', 'N/A')}"
+            )
             cols[1].markdown(f"**Model:** {prov.get('llm_model', 'N/A')}")
-            cols[2].markdown(f"**Attempts:** {prov.get('generation_attempts', 'N/A')}")
+            cols[2].markdown(
+                f"**Attempts:** {prov.get('generation_attempts', 'N/A')}"
+            )
             st.json(prov)
 
     with st.expander("Full API response"):
@@ -876,6 +804,7 @@ def run_generation(question: str, portal_url: str):
     start_time = time.time()
     thread.start()
 
+    # Poll: update the status line while waiting
     last_step = -1
     while not holder["done"]:
         elapsed = time.time() - start_time
@@ -907,6 +836,8 @@ def run_generation(question: str, portal_url: str):
     if result:
         result["_generation_time"] = round(elapsed, 1)
         result["_question"] = question
+
+        # Append to story history (newest first)
         if "stories" not in st.session_state:
             st.session_state["stories"] = []
         st.session_state["stories"].insert(0, result)
@@ -917,23 +848,18 @@ def run_generation(question: str, portal_url: str):
 # Main UI
 # ---------------------------------------------------------------------------
 
-# Header row with theme toggle
-header_col, toggle_col = st.columns([5, 1])
-with header_col:
+# Header with logo
+logo_col, title_col = st.columns([0.15, 0.85])
+with logo_col:
+    st.image(
+        os.path.join(os.path.dirname(__file__), "narr_logo.png"),
+        width=120,
+    )
+with title_col:
     st.markdown(
-        '<div class="app-title">Smart City Data Stories</div>',
+        '<div class="app-title">NARR</div>',
         unsafe_allow_html=True,
     )
-with toggle_col:
-    st.markdown("")
-    theme_icon = "☀️" if is_dark else "🌙"
-    theme_label = "Light" if is_dark else "Dark"
-    if st.button(
-        f"{theme_icon} {theme_label}", key="theme_toggle", type="secondary"
-    ):
-        st.session_state["theme"] = "light" if is_dark else "dark"
-        st.rerun()
-
 st.markdown(
     '<div class="app-subtitle">'
     "Ask a question about your city and get an AI-generated data story "
@@ -942,20 +868,23 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Check API health
+# Check API health and get portal URL
 health = api_get("/health")
 if not health:
     st.stop()
 
 portal_url = health.get("portal_url", "")
 
+
 # ---------------------------------------------------------------------------
-# Question input — always visible
+# Question input — always visible at top
 # ---------------------------------------------------------------------------
 
+# Check if a follow-up or example question should auto-trigger
 pending = st.session_state.pop("pending_question", None)
 
 if pending:
+    # Show the question being generated (disabled input)
     st.text_area(
         "What would you like to know?",
         value=pending,
@@ -967,7 +896,10 @@ if pending:
 else:
     user_message = st.text_area(
         "What would you like to know?",
-        placeholder="e.g. How has waste collection changed over the years?",
+        placeholder=(
+            "e.g. How has waste collection changed over the years? "
+            "What are the budget trends?"
+        ),
         height=80,
         label_visibility="collapsed",
     )
@@ -976,23 +908,28 @@ else:
         "Generate story", type="primary", use_container_width=True
     )
 
-    # Example questions — only show when no stories yet
-    if "stories" not in st.session_state or len(st.session_state["stories"]) == 0:
+    # Example questions — only show when no stories exist yet
+    if not st.session_state.get("stories"):
         st.markdown("")
         cols = st.columns(2)
         for i, q in enumerate(EXAMPLE_QUESTIONS):
             col = cols[i % 2]
             with col:
                 if st.button(
-                    q, key=f"example_{i}", type="secondary", use_container_width=True
+                    q,
+                    key=f"example_{i}",
+                    type="secondary",
+                    use_container_width=True,
                 ):
                     st.session_state["pending_question"] = q
                     st.rerun()
 
+    # Handle generate button
     if generate_clicked and user_message.strip():
         run_generation(user_message.strip(), portal_url)
     elif generate_clicked:
         st.warning("Please type a question first.")
+
 
 # ---------------------------------------------------------------------------
 # Display stories (newest first, all preserved)
@@ -1003,12 +940,15 @@ stories = st.session_state.get("stories", [])
 for i, pkg in enumerate(stories):
     question = pkg.get("_question", "")
     gen_time = pkg.get("_generation_time", "")
+
+    # Show which question produced this story
     if question:
         time_label = f" ({gen_time}s)" if gen_time else ""
         st.caption(f"Q: {question}{time_label}")
 
     render_story(pkg, story_index=i)
 
+    # Separator between stories
     if i < len(stories) - 1:
         st.markdown("")
         st.markdown("")
