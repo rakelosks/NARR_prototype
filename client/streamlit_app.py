@@ -7,6 +7,7 @@ Run with: streamlit run client/streamlit_app.py
 """
 
 import copy
+import base64
 import html as html_lib
 import json
 import os
@@ -50,6 +51,13 @@ def _headers() -> dict:
     return h
 
 
+def _logo_data_uri(path: str) -> str:
+    """Return a data URI for embedding the local logo in HTML."""
+    with open(path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+    return f"data:image/png;base64,{encoded}"
+
+
 st.set_page_config(
     page_title="NARR — Smart City Data Stories",
     page_icon="🐳",
@@ -82,10 +90,27 @@ footer {visibility: hidden;}
     margin-bottom: 0.25rem;
     color: #e8e7e3;
 }
+.brand-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    margin-bottom: 0.2rem;
+}
+.brand-logo {
+    width: 220px;
+    height: auto;
+}
+.brand-title {
+    margin: 0;
+    text-align: center;
+}
 .app-subtitle {
     font-size: 0.95rem;
     color: #9c9a92;
     margin-bottom: 1.5rem;
+    text-align: center;
 }
 
 /* Text area */
@@ -394,7 +419,13 @@ def api_post_threaded(
             detail = e.response.json().get("detail", e.response.text)
         except Exception:
             detail = e.response.text
-        result_holder["error"] = f"Could not generate story: {detail}"
+        detail_text = str(detail)
+        if e.response.status_code == 404 and "find data matching your question" in detail_text.lower():
+            result_holder["error"] = "Oops! I couldn't find data matching your question. Try different keywords!"
+        elif e.response.status_code == 404 and "no dataset found" in detail_text.lower():
+            result_holder["error"] = "Oops! I couldn't find data matching your question. Try different keywords!"
+        else:
+            result_holder["error"] = f"Could not generate story: {detail_text}"
     except requests.ReadTimeout:
         result_holder["error"] = (
             "The request timed out. Story generation may take a few minutes "
@@ -789,7 +820,7 @@ def run_generation(question: str, portal_url: str):
     API call runs in a background thread; main thread polls and updates UI.
     """
     if not ensure_catalog(portal_url):
-        return
+        return "Could not load the dataset catalog. Please try again."
 
     status_container = st.empty()
 
@@ -829,8 +860,7 @@ def run_generation(question: str, portal_url: str):
     elapsed = time.time() - start_time
 
     if holder["error"]:
-        st.error(holder["error"])
-        return
+        return holder["error"]
 
     result = holder["result"]
     if result:
@@ -842,24 +872,24 @@ def run_generation(question: str, portal_url: str):
             st.session_state["stories"] = []
         st.session_state["stories"].insert(0, result)
         st.rerun()
+    return None
 
 
 # ---------------------------------------------------------------------------
 # Main UI
 # ---------------------------------------------------------------------------
 
-# Header with logo
-logo_col, title_col = st.columns([0.15, 0.85])
-with logo_col:
-    st.image(
-        os.path.join(os.path.dirname(__file__), "narr_logo.png"),
-        width=120,
-    )
-with title_col:
-    st.markdown(
-        '<div class="app-title">NARR</div>',
-        unsafe_allow_html=True,
-    )
+# Header with centered logo and title
+logo_uri = _logo_data_uri(os.path.join(os.path.dirname(__file__), "narr_logo.png"))
+st.markdown(
+    f"""
+    <div class="brand-row">
+        <img class="brand-logo" src="{logo_uri}" alt="NARR logo" />
+        <div class="app-title brand-title">NARR</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 st.markdown(
     '<div class="app-subtitle">'
     "Ask a question about your city and get an AI-generated data story "
@@ -892,7 +922,11 @@ if pending:
         label_visibility="collapsed",
         disabled=True,
     )
-    run_generation(pending, portal_url)
+    error_msg = run_generation(pending, portal_url)
+    if error_msg:
+        st.session_state["pending_question"] = None
+        st.session_state["last_error_message"] = error_msg
+        st.rerun()
 else:
     user_message = st.text_area(
         "What would you like to know?",
@@ -926,9 +960,15 @@ else:
 
     # Handle generate button
     if generate_clicked and user_message.strip():
-        run_generation(user_message.strip(), portal_url)
+        error_msg = run_generation(user_message.strip(), portal_url)
+        if error_msg:
+            st.error(error_msg)
     elif generate_clicked:
         st.warning("Please type a question first.")
+
+error_banner = st.session_state.pop("last_error_message", None)
+if error_banner:
+    st.error(error_banner)
 
 
 # ---------------------------------------------------------------------------

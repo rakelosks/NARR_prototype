@@ -5,6 +5,7 @@ then generates validated Vega-Lite specs for the client to render.
 """
 
 import logging
+import unicodedata
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -60,6 +61,40 @@ def _label(col_name: str, metrics: dict) -> str:
     """Get the English label for a column, falling back to the raw name."""
     labels = metrics.get("column_labels", {})
     return labels.get(col_name, col_name)
+
+
+def _raw_title_case(col_name: str) -> str:
+    """Normalize a raw column name into its title-cased fallback form."""
+    return (col_name or "").replace("_", " ").title()
+
+
+def _is_fallback_label(col_name: str, label: str) -> bool:
+    """Return True when a label is just the raw fallback (not translated)."""
+    return (label or "").strip() == _raw_title_case(col_name).strip()
+
+
+def _to_ascii(text: str) -> str:
+    """ASCII-fold for robust keyword matching."""
+    normalized = unicodedata.normalize("NFKD", text or "")
+    return "".join(ch for ch in normalized if not unicodedata.combining(ch)).lower()
+
+
+def _english_label(col_name: str, metrics: dict, fallback: str) -> str:
+    """
+    Prefer translated English labels; otherwise use a stable English fallback.
+    This keeps chart UI text consistent even when raw column names are local-language.
+    """
+    if not col_name:
+        return fallback
+    label = _label(col_name, metrics)
+    if _is_fallback_label(col_name, label):
+        raw = _to_ascii(col_name)
+        if "year" in raw or raw == "ar":
+            return "Year"
+        if "date" in raw or "time" in raw or "manud" in raw or "month" in raw:
+            return "Time"
+        return fallback
+    return label
 
 
 # Mapping from domain-specific column roles to archetype roles.
@@ -1015,7 +1050,7 @@ def _base_spec(data: list[dict], title: str) -> dict:
         "config": {
             "view": {"stroke": "transparent"},
             "axis": {"labelFontSize": 12, "titleFontSize": 13},
-            "title": {"fontSize": 16},
+            "title": {"fontSize": 16, "anchor": "start", "orient": "top"},
         },
     }
 
@@ -1066,7 +1101,11 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
     spec = _base_spec(chart_data, title)
 
     # Build x-axis encoding with proper timeUnit for clean labels
-    x_enc = {"field": time_col, "type": "temporal", "title": _label(time_col, metrics)}
+    x_enc = {
+        "field": time_col,
+        "type": "temporal",
+        "title": _english_label(time_col, metrics, "Time"),
+    }
     time_unit = _infer_time_unit(metrics)
     if time_unit:
         x_enc["timeUnit"] = time_unit
@@ -1076,8 +1115,16 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
         spec["mark"] = {"type": "line", "point": True, "tooltip": True}
         spec["encoding"] = {
             "x": x_enc,
-            "y": {"field": measure_cols[0], "type": "quantitative", "title": _label(measure_cols[0], metrics)},
-            "color": {"field": group_col, "type": "nominal", "title": _label(group_col, metrics)},
+            "y": {
+                "field": measure_cols[0],
+                "type": "quantitative",
+                "title": _english_label(measure_cols[0], metrics, "Value"),
+            },
+            "color": {
+                "field": group_col,
+                "type": "nominal",
+                "title": _english_label(group_col, metrics, "Category"),
+            },
         }
     elif len(measure_cols) > 1:
         # Multi-measure: fold into long format with English legend labels
@@ -1097,7 +1144,11 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
         spec["mark"] = {"type": "line", "point": True, "tooltip": True}
         spec["encoding"] = {
             "x": x_enc,
-            "y": {"field": y_field, "type": "quantitative", "title": _label(y_field, metrics)},
+            "y": {
+                "field": y_field,
+                "type": "quantitative",
+                "title": _english_label(y_field, metrics, "Value"),
+            },
         }
 
     return spec
@@ -1122,11 +1173,19 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
     def _x_enc() -> dict:
         """Build the x/y encoding for the category/time axis."""
         if is_temporal:
-            enc = {"field": cat_col, "type": "temporal", "title": _label(cat_col, metrics)}
+            enc = {
+                "field": cat_col,
+                "type": "temporal",
+                "title": _english_label(cat_col, metrics, "Time"),
+            }
             if time_unit:
                 enc["timeUnit"] = time_unit
         else:
-            enc = {"field": cat_col, "type": "nominal", "title": _label(cat_col, metrics)}
+            enc = {
+                "field": cat_col,
+                "type": "nominal",
+                "title": _english_label(cat_col, metrics, "Category"),
+            }
         return enc
 
     total_cats = metrics.get("total_categories", len(data))
@@ -1137,8 +1196,17 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
         measure_field = measure_cols[0] if measure_cols else ""
         spec["mark"] = {"type": "bar", "tooltip": True}
         spec["encoding"] = {
-            "y": {"field": cat_col, "type": "nominal", "sort": "-x", "title": _label(cat_col, metrics)},
-            "x": {"field": measure_field, "type": "quantitative", "title": _label(measure_field, metrics)},
+            "y": {
+                "field": cat_col,
+                "type": "nominal",
+                "sort": "-x",
+                "title": _english_label(cat_col, metrics, "Category"),
+            },
+            "x": {
+                "field": measure_field,
+                "type": "quantitative",
+                "title": _english_label(measure_field, metrics, "Value"),
+            },
         }
         # Cap to top N categories for readability
         if total_cats > MAX_CHART_CATEGORIES and measure_field:
@@ -1174,7 +1242,11 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
         spec["mark"] = {"type": "bar", "tooltip": True}
         spec["encoding"] = {
             "x": _x_enc(),
-            "y": {"field": y_field, "type": "quantitative", "title": _label(y_field, metrics)},
+            "y": {
+                "field": y_field,
+                "type": "quantitative",
+                "title": _english_label(y_field, metrics, "Value"),
+            },
         }
 
     return spec

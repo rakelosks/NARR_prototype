@@ -103,10 +103,12 @@ class PackageBuilder:
         narrative = generation_result.narrative
         package_id = f"{bundle.dataset_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
 
+        dataset_source = self._resolve_dataset_source(bundle)
+
         # Build dataset summary
         dataset_summary = DatasetSummary(
             dataset_id=bundle.dataset_id,
-            source=bundle.source,
+            source=dataset_source,
             row_count=bundle.row_count,
             column_count=bundle.column_count,
             column_types=bundle.column_summary,
@@ -117,7 +119,7 @@ class PackageBuilder:
         # Build provenance
         provenance = ProvenanceInfo(
             dataset_id=bundle.dataset_id,
-            dataset_source=bundle.source,
+            dataset_source=dataset_source,
             template_type=bundle.template_type,
             llm_provider=llm_provider_name,
             llm_model=llm_model_name,
@@ -175,9 +177,11 @@ class PackageBuilder:
         """
         package_id = f"{bundle.dataset_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
 
+        dataset_source = self._resolve_dataset_source(bundle)
+
         dataset_summary = DatasetSummary(
             dataset_id=bundle.dataset_id,
-            source=bundle.source,
+            source=dataset_source,
             row_count=bundle.row_count,
             column_count=bundle.column_count,
             column_types=bundle.column_summary,
@@ -187,7 +191,7 @@ class PackageBuilder:
 
         provenance = ProvenanceInfo(
             dataset_id=bundle.dataset_id,
-            dataset_source=bundle.source,
+            dataset_source=dataset_source,
             template_type=bundle.template_type,
             llm_provider="none",
             generation_attempts=0,
@@ -244,3 +248,18 @@ class PackageBuilder:
             dataset=dataset_summary,
             provenance=provenance,
         )
+
+    def _resolve_dataset_source(self, bundle: EvidenceBundle) -> str:
+        """
+        Resolve a non-empty dataset source for provenance.
+        Priority: explicit bundle source → normalized metadata source_url.
+        """
+        if bundle.source and bundle.source.strip():
+            return bundle.source.strip()
+        if (
+            bundle.normalized_metadata
+            and bundle.normalized_metadata.source_url.available
+            and bundle.normalized_metadata.source_url.value
+        ):
+            return bundle.normalized_metadata.source_url.value.strip()
+        return ""

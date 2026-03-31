@@ -14,6 +14,7 @@ inferred (profiler), or missing (disclaimer needed).
 import logging
 from datetime import datetime
 from typing import Optional
+import unicodedata
 
 from pydantic import BaseModel, Field
 
@@ -550,9 +551,13 @@ class BundleBuilder:
                 categorical_values[col.name] = [str(v) for v in unique_vals[:20]]
 
         # Step 6: Assemble the bundle
+        source_value = profile.source
+        if not source_value and metadata and metadata.source_url.available:
+            source_value = metadata.source_url.value or ""
+
         bundle = EvidenceBundle(
             dataset_id=match.dataset_id,
-            source=profile.source,
+            source=source_value,
             template_type=template_type.value,
             row_count=profile.row_count,
             column_count=profile.column_count,
@@ -589,10 +594,13 @@ class BundleBuilder:
         """
         measure_cols = metrics.get("measure_columns", [])
         measure_label = measure_cols[0] if measure_cols else ""
+        english_measure_label = self._canonical_english_label(measure_label)
 
         # Prefer metadata title over raw column name for the base label
         base_label = ""
-        if metadata and metadata.title.available:
+        if english_measure_label:
+            base_label = english_measure_label
+        elif metadata and metadata.title.available and self._is_ascii_like(metadata.title.value):
             base_label = metadata.title.value
         elif measure_label:
             base_label = measure_label
@@ -626,6 +634,33 @@ class BundleBuilder:
             return f"{base_label} — {total} locations"
 
         return base_label
+
+    def _canonical_english_label(self, col_name: str) -> str:
+        """Resolve a canonical English label for a raw column name when possible."""
+        if not col_name:
+            return ""
+        try:
+            from data.profiling.keyword_dictionary import resolve_column
+            signal = resolve_column(col_name)
+            if signal.matched_canonicals:
+                return " ".join(
+                    c.replace("_", " ").title() for c in signal.matched_canonicals[:2]
+                )
+        except Exception:
+            pass
+        return ""
+
+    def _is_ascii_like(self, value: str) -> bool:
+        """
+        Heuristic: treat metadata titles with many non-ASCII letters as local-language.
+        Used to keep chart titles consistently in English for the prototype.
+        """
+        if not value:
+            return False
+        folded = unicodedata.normalize("NFKD", value)
+        ascii_only = "".join(ch for ch in folded if not unicodedata.combining(ch))
+        non_ascii_count = sum(1 for ch in ascii_only if ord(ch) > 127)
+        return non_ascii_count == 0
 
     def _extract_key_findings(self, template_type: TemplateType, metrics: dict) -> list[str]:
         """Extract human-readable key findings from metrics."""

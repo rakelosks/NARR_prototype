@@ -5,6 +5,7 @@ For async/long-running jobs, use the /jobs endpoint instead.
 """
 
 import logging
+import unicodedata
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -76,6 +77,56 @@ def _extract_keywords(text: str) -> list[str]:
         if cleaned and cleaned not in stop_words and len(cleaned) > 2:
             keywords.append(cleaned)
     return keywords
+
+
+def _ascii_fold(text: str) -> str:
+    """Convert text to a lowercase ASCII approximation for robust matching."""
+    normalized = unicodedata.normalize("NFKD", text)
+    return "".join(ch for ch in normalized if not unicodedata.combining(ch)).lower()
+
+
+def _finance_hint_terms(text: str) -> list[str]:
+    """
+    Add deterministic budget/finance aliases to improve catalog lookup.
+    This avoids over-reliance on LLM translation quality for Icelandic tags.
+    """
+    folded = _ascii_fold(text)
+    finance_triggers = (
+        "budget", "finance", "financial", "spending", "expenditure",
+        "expense", "revenue", "tax", "fiscal",
+        "fjarmal", "uppgjor", "rekstur", "fjarhag",
+    )
+    if not any(t in folded for t in finance_triggers):
+        return []
+    return [
+        "budget",
+        "finance",
+        "fjármál",
+        "fjarmal",
+        "uppgjör",
+        "uppgjor",
+        "ársuppgjör",
+        "arsuppgjor",
+        "fjárhagsáætlun",
+        "fjarhagsaaetlun",
+        "rekstur",
+    ]
+
+
+def _dedupe_terms(terms: list[str]) -> list[str]:
+    """Deduplicate while preserving order, dropping empty terms."""
+    seen = set()
+    cleaned = []
+    for t in terms:
+        value = (t or "").strip()
+        if not value:
+            continue
+        key = value.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(value)
+    return cleaned
 
 
 async def _parse_intent(user_message: str):
@@ -201,16 +252,19 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
     else:
         dataset_query, dataset_query_local = await _parse_intent(user_message)
 
-    # Build search term list: local-language query first, then original keywords
+    # Build search term list: intent terms + user keywords + deterministic aliases
     search_terms = []
     local_keywords = dataset_query_local.split()
     if dataset_query_local:
         search_terms.append(dataset_query_local)
     search_terms.extend(local_keywords)
-    original_keywords = _extract_keywords(dataset_query)
-    for kw in original_keywords:
-        if kw not in search_terms:
-            search_terms.append(kw)
+    search_terms.append(dataset_query)
+    search_terms.extend(_extract_keywords(dataset_query))
+    search_terms.extend(_extract_keywords(user_message))
+    search_terms.extend(_finance_hint_terms(dataset_query))
+    search_terms.extend(_finance_hint_terms(dataset_query_local))
+    search_terms.extend(_finance_hint_terms(user_message))
+    search_terms = _dedupe_terms(search_terms)
 
     logger.info(f"Dataset search terms: {search_terms}")
 
@@ -233,7 +287,7 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
     if not ckan_slug:
         raise HTTPException(
             status_code=404,
-            detail="No dataset found matching your question. Try different keywords.",
+            detail="Oops! I couldn't find data matching your question. Try different keywords!",
         )
 
     return dataset_name, ckan_slug
@@ -252,6 +306,8 @@ async def _get_dataframe(dataset_id: str, config: Optional[dict] = None):
         try:
             client = CKANClient(settings.ckan_portal_url)
             ckan_ds = await client.get_dataset(dataset_id)
+            if not resource_url and ckan_ds and ckan_ds.resources:
+                resource_url = ckan_ds.resources[0].url or ""
         except Exception:
             ckan_ds = None
         return df, resource_url, ckan_ds
@@ -296,7 +352,8 @@ def _profile_and_match(df, dataset_id: str, config: Optional[dict] = None, resou
     If not, run full profiling + matching and save the config.
     Returns (profile, match_result).
     """
-    profile = profile_dataset(df, dataset_id=dataset_id)
+    profile_source = resource_url or settings.ckan_portal_url
+    profile = profile_dataset(df, dataset_id=dataset_id, source=profile_source)
 
     if config:
         # Try to reuse stored template configuration
@@ -414,11 +471,28 @@ async def generate_narrative(request: GenerateRequest):
         bundle = builder.build(df, profile, match, title=request.title, metadata=metadata)
 
         from llm.interface import get_providers
+        from llm.intent import IntentParser
         from llm.narrative import NarrativeGenerator
 
         intent_provider, generation_provider = get_providers()
+        parsed_intent = None
+        if request.user_message:
+            try:
+                parser = IntentParser(intent_provider)
+                intent_result = await parser.parse(
+                    request.user_message,
+                    portal_language=settings.ckan_portal_language,
+                )
+                parsed_intent = intent_result.intent
+            except Exception as e:
+                logger.warning(f"Intent parse for chart labels failed: {e}")
+
         generator = NarrativeGenerator(generation_provider, intent_llm_provider=intent_provider)
-        result = await generator.generate(bundle, user_message=request.user_message)
+        result = await generator.generate(
+            bundle,
+            user_message=request.user_message,
+            intent=parsed_intent,
+        )
 
         if not result.success:
             raise HTTPException(
@@ -426,8 +500,26 @@ async def generate_narrative(request: GenerateRequest):
                 detail=f"Narrative generation failed: {result.error}",
             )
 
+        try:
+            from llm.chart_labels import ChartLabeler
+            labeler = ChartLabeler()
+            label_language = parsed_intent.language if parsed_intent else "en"
+            await labeler.relabel_bundle(
+                bundle,
+                language=label_language,
+                narrative=result.narrative,
+            )
+        except Exception as e:
+            logger.warning(f"Chart title relabeling skipped: {e}")
+
         pkg_builder = PackageBuilder()
-        package = pkg_builder.build(result, bundle, llm_provider_name="ollama")
+        llm_model_name = getattr(generation_provider, "model", "")
+        package = pkg_builder.build(
+            result,
+            bundle,
+            llm_provider_name=settings.llm_provider,
+            llm_model_name=llm_model_name,
+        )
 
         return package.to_api_response()
 
@@ -501,7 +593,24 @@ async def ask_narrative(request: AskRequest):
             result = await generator.generate(bundle, intent=intent)
 
             if result.success:
-                package = pkg_builder.build(result, bundle, llm_provider_name="ollama")
+                try:
+                    from llm.chart_labels import ChartLabeler
+                    labeler = ChartLabeler()
+                    label_language = intent.language if intent else "en"
+                    await labeler.relabel_bundle(
+                        bundle,
+                        language=label_language,
+                        narrative=result.narrative,
+                    )
+                except Exception as e:
+                    logger.warning(f"Chart title relabeling skipped: {e}")
+                llm_model_name = getattr(generation_provider, "model", "")
+                package = pkg_builder.build(
+                    result,
+                    bundle,
+                    llm_provider_name=settings.llm_provider,
+                    llm_model_name=llm_model_name,
+                )
             else:
                 logger.warning(f"LLM generation failed, falling back to preview: {result.error}")
                 package = pkg_builder.build_without_narrative(bundle)

@@ -12,6 +12,7 @@ from enum import Enum
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 
+from config import settings
 from data.cache.parquet_cache import load_snapshot
 from data.profiling.profiler import profile_dataset
 from data.profiling.matcher import match_template
@@ -88,10 +89,15 @@ async def run_generation_job(job_id: str):
         if df is None:
             raise FileNotFoundError(f"Dataset '{job.dataset_id}' not found or cache expired")
 
-        # Profile and match (reuse config if available)
-        profile = profile_dataset(df, dataset_id=job.dataset_id)
-
         config = _metadata_store.get_config(job.dataset_id)
+        profile_source = ""
+        if config:
+            profile_source = config.get("resource_url", "")
+        if not profile_source:
+            profile_source = settings.ckan_portal_url
+
+        # Profile and match (reuse config if available)
+        profile = profile_dataset(df, dataset_id=job.dataset_id, source=profile_source)
         if config:
             from app.api.narratives import _reconstruct_match
             match = _reconstruct_match(config, profile)
@@ -111,14 +117,48 @@ async def run_generation_job(job_id: str):
         pkg_builder = PackageBuilder()
         try:
             from llm.interface import get_providers
+            from llm.intent import IntentParser
             from llm.narrative import NarrativeGenerator
 
             intent_provider, generation_provider = get_providers()
+            parsed_intent = None
+            if job.user_message:
+                try:
+                    parser = IntentParser(intent_provider)
+                    intent_result = await parser.parse(
+                        job.user_message,
+                        portal_language=settings.ckan_portal_language,
+                    )
+                    parsed_intent = intent_result.intent
+                except Exception as e:
+                    logger.warning(f"Job {job_id}: intent parse for chart labels failed: {e}")
+
             generator = NarrativeGenerator(generation_provider, intent_llm_provider=intent_provider)
-            result = await generator.generate(bundle, user_message=job.user_message)
+            result = await generator.generate(
+                bundle,
+                user_message=job.user_message,
+                intent=parsed_intent,
+            )
 
             if result.success:
-                package = pkg_builder.build(result, bundle, llm_provider_name="ollama")
+                try:
+                    from llm.chart_labels import ChartLabeler
+                    labeler = ChartLabeler()
+                    label_language = parsed_intent.language if parsed_intent else "en"
+                    await labeler.relabel_bundle(
+                        bundle,
+                        language=label_language,
+                        narrative=result.narrative,
+                    )
+                except Exception as e:
+                    logger.warning(f"Job {job_id}: chart title relabeling skipped: {e}")
+                llm_model_name = getattr(generation_provider, "model", "")
+                package = pkg_builder.build(
+                    result,
+                    bundle,
+                    llm_provider_name=settings.llm_provider,
+                    llm_model_name=llm_model_name,
+                )
             else:
                 logger.warning(f"Job {job_id}: LLM failed, falling back to preview mode")
                 package = pkg_builder.build_without_narrative(bundle)
