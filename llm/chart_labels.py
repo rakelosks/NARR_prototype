@@ -337,17 +337,35 @@ class ChartLabeler:
             if org:
                 return org
 
-        source = _ascii_fold(bundle.source)
-        if "helsinki" in source or "hel.fi" in source:
-            return "Helsinki"
-        if "reykjavik" in source:
-            return "Reykjavík" if language.startswith("is") else "Reykjavik"
+        city = self._city_from_source(bundle.source, language)
+        if city:
+            return city
 
-        if language.startswith("is"):
-            return "Reykjavík"
-        if language.startswith("fi"):
-            return "Helsinki"
-        return "Reykjavik"
+        generic = {"is": "borgin", "fi": "kaupunki"}
+        lang_key = "is" if language.startswith("is") else ("fi" if language.startswith("fi") else "en")
+        return generic.get(lang_key, "the city")
+
+    @staticmethod
+    def _city_from_source(source: str, language: str) -> Optional[str]:
+        """Extract a city name from a portal URL or source string."""
+        folded = _ascii_fold(source)
+        known_cities = [
+            ("reykjavik", {"is": "Reykjavík", "default": "Reykjavik"}),
+            ("helsinki", {"fi": "Helsinki", "default": "Helsinki"}),
+            ("hel.fi", {"fi": "Helsinki", "default": "Helsinki"}),
+            ("oslo", {"no": "Oslo", "default": "Oslo"}),
+            ("copenhagen", {"da": "København", "default": "Copenhagen"}),
+            ("kobenhavn", {"da": "København", "default": "Copenhagen"}),
+            ("stockholm", {"sv": "Stockholm", "default": "Stockholm"}),
+            ("tampere", {"fi": "Tampere", "default": "Tampere"}),
+            ("turku", {"fi": "Turku", "default": "Turku"}),
+            ("barcelona", {"es": "Barcelona", "default": "Barcelona"}),
+            ("madrid", {"es": "Madrid", "default": "Madrid"}),
+        ]
+        for keyword, names in known_cities:
+            if keyword in folded:
+                return names.get(language[:2], names["default"])
+        return None
 
     def _compose_localized_title(
         self,

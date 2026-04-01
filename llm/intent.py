@@ -107,12 +107,16 @@ You must respond with ONLY valid JSON matching this exact schema, no other text:
     "dataset_query_local": "the same keywords translated to {portal_language}",
     "analysis_type": "trend|comparison|distribution|summary|spatial|correlation",
     "focus_columns": ["column1", "column2"],
-    "time_range": "time period or null",
-    "geographic_focus": "area name or null",
+    "time_range": null,
+    "geographic_focus": null,
     "audience": "citizen|policy|technical",
     "language": "en",
     "custom_question": "the user's original question"
 }}
+
+Notes on nullable fields:
+- time_range: set to a string like "2020-2023" or "last 5 years" if the user mentions a time period, otherwise null
+- geographic_focus: set to a string like "downtown" or "Vesturbær" if the user mentions an area, otherwise null
 
 Rules:
 - dataset_query: Extract the core data topic (e.g. "budget", "traffic", "air quality")

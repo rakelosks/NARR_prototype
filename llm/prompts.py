@@ -9,7 +9,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from llm.intent import UserIntent, AnalysisType, AudienceLevel
+from llm.intent import UserIntent, AnalysisType, AudienceLevel, _LANGUAGE_NAMES
 from data.analytics.evidence_bundle import EvidenceBundle
 
 logger = logging.getLogger(__name__)
@@ -142,11 +142,17 @@ ANALYSIS_PROMPTS = {
 - Are there any extreme outliers — unusually high or low?
 - What pattern should the reader notice in the chart?""",
 
-    AnalysisType.SUMMARY: """Provide a clear overview:
-- What does this data actually track? Explain it simply.
-- What's the most interesting or notable finding?
-- Give the key numbers: totals, averages, ranges.
-- What should the reader take away?""",
+    AnalysisType.SUMMARY: """Focus your story on THE BIG PICTURE of this dataset:
+- Start by explaining in plain language what this data actually tracks.
+  Don't assume the reader knows — a title like "school services" could mean
+  many things, so ground them using the actual values and description.
+- What is the single most interesting or surprising finding? Lead with that.
+- Give concrete numbers: totals, averages, highs, lows, and ranges.
+  Make them relatable ("about twice as much as...", "roughly one per...").
+- Are there any notable outliers or unexpected values?
+- If there's a time dimension, briefly note whether things are going up,
+  down, or staying flat — but keep the focus on the overall picture.
+- End with a clear takeaway: what should the reader remember from this data?""",
 
     AnalysisType.SPATIAL: """Focus your story on WHERE THINGS ARE HAPPENING:
 - Are there clusters — areas where values are concentrated?
@@ -180,13 +186,13 @@ NARRATIVE_OUTPUT_SCHEMA = {
             "type": "narrative",
             "heading": "A finding-based heading, not a topic label",
             "body": "2-4 sentences. Tell the reader what pattern to look for in the chart below. Use plain language.",
-            "viz_index": 0,
+            "viz_index": "INTEGER — index of an available chart from the AVAILABLE CHARTS section. Only use indices that exist.",
         },
         {
             "type": "narrative",
             "heading": "Another angle on the same story",
             "body": "2-4 sentences introducing the next chart and what it reveals.",
-            "viz_index": 1,
+            "viz_index": "INTEGER or omit — only include if another chart is available.",
         },
         {
             "type": "narrative",
@@ -404,10 +410,12 @@ You must respond with ONLY a valid JSON object matching this schema:
 
         # Add language instruction
         if intent.language != "en":
+            lang_name = _LANGUAGE_NAMES.get(intent.language, intent.language)
             parts.extend([
                 "",
                 f"=== LANGUAGE ===",
-                f"Write the narrative in language code: {intent.language}",
+                f"Write ALL narrative text (headline, lede, story blocks, data note, "
+                f"and followup question) in {lang_name}. The JSON keys must stay in English.",
             ])
 
         # Add geographic focus if present
