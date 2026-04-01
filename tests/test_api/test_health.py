@@ -12,4 +12,7 @@ def test_health_check():
     """Test that the health endpoint returns OK."""
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    data = response.json()
+    assert data["status"] == "ok"
+    assert "portal_url" in data
+    assert "portal_language" in data

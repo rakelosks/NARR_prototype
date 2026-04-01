@@ -142,7 +142,7 @@ def test_prompt_assembly():
         language="is",
     )
     prompt_is = assembler.assemble(bundle, intent_is)
-    assert "language code: is" in prompt_is.user_prompt
+    assert "Icelandic" in prompt_is.user_prompt
     print(f"  Icelandic prompt includes language instruction ✓")
 
     print("  Prompt assembly tests passed ✓")

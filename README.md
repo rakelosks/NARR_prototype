@@ -1,81 +1,208 @@
-# Smart City Narrative Visualization Platform
+# NARR — Narrative Visualization for Open Data
 
-AI-powered open data narrative visualization system for smart cities.
+NARR is an AI-powered pipeline that connects to city open data portals (CKAN) and
+produces editorial data stories from natural language prompts. It profiles datasets
+automatically, selects appropriate visualizations, and uses an LLM to write
+human-readable narratives grounded in the actual data.
+
+Built as an undergraduate capstone project at IE University exploring how
+generative AI can make public data more accessible to non-technical audiences.
 
 ## Architecture
 
-- **FastAPI** backend with async request handling (Uvicorn)
-- **DuckDB** for analytical queries, **SQLite** for metadata, **Parquet** for caching
-- **Frictionless** for dataset validation, **Pydantic** for schema enforcement
-- **Provider-agnostic LLM** interface (Ollama default, OpenAI optional)
-- **Vega-Lite** for interactive visualizations
-- **Streamlit** proof-of-concept client
+| Layer | Technology |
+|-------|-----------|
+| **API** | FastAPI, Uvicorn, async throughout |
+| **Analytics** | DuckDB (columnar queries), Pandas, PyArrow |
+| **Storage** | SQLite (catalog & metadata), Parquet (dataset cache) |
+| **Validation** | Frictionless (data quality), Pydantic (schemas) |
+| **LLM** | Provider-agnostic — Ollama (default, local) or OpenAI |
+| **Visualization** | Vega-Lite JSON specs, rendered client-side |
+| **Client** | Streamlit proof-of-concept |
+| **Deployment** | Docker & Docker Compose |
 
 ## Quick Start
+
+### Prerequisites
+
+- Python 3.12+
+- [Ollama](https://ollama.ai) running locally (or an OpenAI API key)
 
 ### Local Development
 
 ```bash
-# 1. Create and activate virtual environment
+# 1. Create and activate a virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Copy environment config
+# 3. Copy environment config and edit as needed
 cp .env.example .env
 
-# 4. Start the API server
+# 4. Pull the default LLM model (if using Ollama)
+ollama pull qwen3:4b
+
+# 5. Start the API server
 uvicorn app.main:app --reload
 
-# 5. (In a separate terminal) Start the Streamlit client
+# 6. (In a separate terminal) Start the Streamlit client
 streamlit run client/streamlit_app.py
 ```
+
+The API will be available at `http://localhost:8000` and the Streamlit client at
+`http://localhost:8501`.
 
 ### Docker
 
 ```bash
+# Start API + Streamlit (uses host Ollama or set LLM_PROVIDER=openai in .env)
 docker compose up
+
+# Or include the bundled Ollama service
+docker compose --profile ollama up
 ```
 
-This starts the API (port 8000), Streamlit client (port 8501), and Ollama (port 11434).
+| Service | Port |
+|---------|------|
+| API | 8000 |
+| Streamlit | 8501 |
+| Ollama (optional) | 11434 |
 
 ## Project Structure
 
 ```
 ├── app/                    # FastAPI backend
-│   ├── main.py             # Application entry point
-│   ├── api/                # Route definitions
-│   ├── models/             # Pydantic schemas
-│   └── services/           # Business logic
+│   ├── main.py             # Application entry point & middleware
+│   ├── api/                # Route handlers
+│   │   ├── datasets.py     # Catalog & dataset configuration routes
+│   │   ├── narratives.py   # Narrative generation routes
+│   │   ├── visualizations.py # Visualization generation routes
+│   │   └── jobs.py         # Async job management routes
+│   ├── middleware/          # Auth & rate limiting
+│   └── models/             # Pydantic request/response schemas
 ├── data/                   # Data processing layer
-│   ├── ingestion/          # Loaders, parsers
-│   ├── validation/         # Frictionless validation
-│   ├── storage/            # DuckDB, SQLite
-│   └── cache/              # Parquet snapshots
+│   ├── ingestion/          # CKAN client, loaders, parsers
+│   ├── profiling/          # Column classification & keyword dictionary
+│   ├── analytics/          # Evidence bundle builder, DuckDB analytics
+│   ├── validation/         # Frictionless data validation
+│   ├── storage/            # Catalog index & metadata store (SQLite)
+│   └── cache/              # Parquet snapshot cache
 ├── llm/                    # LLM integration
-│   ├── interface.py        # Provider-agnostic interface
-│   └── providers/          # Ollama, OpenAI implementations
+│   ├── interface.py        # Provider-agnostic LLM interface
+│   ├── providers/          # Ollama & OpenAI implementations
+│   ├── intent.py           # Natural language → structured intent
+│   ├── prompts.py          # Prompt assembly with guardrails
+│   ├── narrative.py        # Narrative generation & validation
+│   └── chart_labels.py     # Deterministic chart title generation
 ├── visualization/          # Vega-Lite spec generation
-│   ├── charts.py           # Chart type selection & specs
-│   └── templates/          # Chart configurations
-├── client/                 # Streamlit proof-of-concept
-├── tests/                  # Test suite
-├── config.py               # Application settings
+│   ├── charts.py           # Chart type selection & spec building
+│   └── templates/          # Chart template configurations
+├── client/                 # Streamlit proof-of-concept client
+│   └── streamlit_app.py    # Main client application
+├── tests/                  # Test suite (pytest)
+├── config.py               # Centralized settings (env vars)
 ├── requirements.txt        # Python dependencies
 ├── Dockerfile              # Container image
-└── docker-compose.yml      # Full stack orchestration
+├── docker-compose.yml      # Full stack orchestration
+├── .env.example            # Environment variable template
+└── LICENSE                 # MIT License
 ```
 
 ## API Endpoints
 
-- `GET /health` — Health check
-- `GET /datasets/` — List registered datasets
-- `POST /datasets/ingest` — Ingest a new dataset
-- `POST /narratives/generate` — Generate a narrative
-- `POST /visualizations/generate` — Generate a Vega-Lite spec
+All endpoints are documented interactively at `/docs` (Swagger UI) and `/redoc`
+when the server is running.
+
+### Health
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Health check — returns status and portal configuration |
+
+### Datasets
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/datasets/catalog/refresh` | Refresh the local catalog index from a CKAN portal |
+| GET | `/datasets/catalog/search` | Search the local catalog index |
+| GET | `/datasets/catalog/{dataset_id}` | Get a single catalog entry by ID |
+| GET | `/datasets/` | List datasets with saved template configurations |
+| GET | `/datasets/{dataset_id}` | Get saved template configuration for a dataset |
+
+### Narratives
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/narratives/preview` | Build evidence bundle without LLM (metrics + visualizations only) |
+| POST | `/narratives/generate` | Full narrative generation with LLM |
+| POST | `/narratives/ask` | End-to-end: natural language question → data story |
+
+### Visualizations
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/visualizations/generate` | Generate Vega-Lite spec(s) for a cached dataset |
+
+### Jobs
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/jobs/generate` | Create an async narrative generation job (returns job ID) |
+| GET | `/jobs/{job_id}` | Poll job status and retrieve results |
+| GET | `/jobs/` | List recent jobs |
+
+## Configuration
+
+Copy `.env.example` to `.env` and adjust. Key settings:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LLM_PROVIDER` | `ollama` | `ollama` or `openai` |
+| `OLLAMA_INTENT_MODEL` | `qwen3:4b` | Model for intent parsing |
+| `OLLAMA_GENERATION_MODEL` | `qwen3:4b` | Model for narrative generation |
+| `CKAN_PORTAL_URL` | Reykjavik portal | CKAN API base URL |
+| `CKAN_PORTAL_LANGUAGE` | `is` | Portal metadata language (ISO 639-1) |
+| `NARR_API_KEY` | _(empty)_ | API key for authentication (empty = disabled) |
+| `RATE_LIMIT_RPM` | `60` | Rate limit per client per minute |
+
+See `.env.example` for the full list.
+
+## How It Works
+
+1. **Intent parsing** — The user's natural language prompt is parsed by an LLM
+   into a structured intent (dataset keywords, analysis type, audience level,
+   language).
+
+2. **Dataset discovery** — The intent's keywords are used to search the local
+   CKAN catalog index (in both the user's language and the portal's language).
+
+3. **Data profiling** — The matched dataset is fetched, cached as Parquet, and
+   profiled: column types are classified, temporal/categorical/measure roles
+   are detected, and a keyword dictionary maps columns to canonical concepts.
+
+4. **Template matching** — Based on the profile, an analysis template is selected
+   (time series, categorical comparison, distribution, etc.) and the appropriate
+   DuckDB analytics and Vega-Lite visualizations are generated.
+
+5. **Evidence bundle** — Metrics, sample data, column metadata, and chart specs
+   are packaged into an evidence bundle that serves as the LLM's grounded context.
+
+6. **Narrative generation** — The evidence bundle is combined with audience-tuned
+   system prompts, analysis-specific guidance, and guardrails (anti-hallucination,
+   hedging, data interpretation rules). The LLM produces a structured JSON story
+   with a headline, lede, story blocks, and data notes.
+
+7. **Chart labeling** — Chart titles are generated deterministically (no LLM call)
+   using the narrative context and localized templates.
+
+8. **Delivery** — The client renders the narrative text alongside interactive
+   Vega-Lite charts.
 
 ## License
 
-TBD
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for
+details. The MIT License is approved by the
+[Open Source Initiative](https://opensource.org/licenses/MIT) and is compatible
+with the [Digital Public Goods Standard](https://digitalpublicgoods.net/standard/).
