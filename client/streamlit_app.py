@@ -643,9 +643,9 @@ window.addEventListener('load', function() {{
 
 def render_callout(block: dict):
     """Render a callout block with highlighted stat."""
-    value = block.get("highlight_value", "")
-    label = block.get("highlight_label", "")
-    body = block.get("body", "")
+    value = html_lib.escape(block.get("highlight_value", ""))
+    label = html_lib.escape(block.get("highlight_label", ""))
+    body = html_lib.escape(block.get("body", ""))
     st.markdown(
         f"""
     <div class="callout-block">
@@ -660,8 +660,8 @@ def render_callout(block: dict):
 
 def render_narrative(block: dict, vizs: list):
     """Render a narrative block with optional chart."""
-    heading = block.get("heading", "")
-    body = block.get("body", "")
+    heading = html_lib.escape(block.get("heading", ""))
+    body = html_lib.escape(block.get("body", ""))
     if heading:
         st.markdown(
             f'<div class="narrative-heading">{heading}</div>',
@@ -682,7 +682,7 @@ def render_narrative(block: dict, vizs: list):
 
 def render_timeline(block: dict):
     """Render a timeline block with milestones."""
-    heading = block.get("heading", "")
+    heading = html_lib.escape(block.get("heading", ""))
     milestones = block.get("milestones", [])
     if heading:
         st.markdown(
@@ -692,8 +692,8 @@ def render_timeline(block: dict):
     if milestones:
         markup = '<div class="timeline-block">'
         for ms in milestones:
-            label = ms.get("label", "")
-            desc = ms.get("description", "")
+            label = html_lib.escape(ms.get("label", ""))
+            desc = html_lib.escape(ms.get("description", ""))
             markup += f"""
             <div class="timeline-milestone">
                 <div class="timeline-label">{label}</div>
@@ -709,7 +709,7 @@ def render_story(pkg: dict, story_index: int = 0):
     suffix = f"_{story_index}"
 
     # Dataset chip
-    dataset_name = pkg.get("dataset_name", "")
+    dataset_name = html_lib.escape(pkg.get("dataset_name", ""))
     if dataset_name:
         st.markdown(
             f'<div class="dataset-chip">Dataset: {dataset_name}</div>',
@@ -719,7 +719,7 @@ def render_story(pkg: dict, story_index: int = 0):
     st.markdown('<hr class="soft-divider">', unsafe_allow_html=True)
 
     # Headline
-    headline = pkg.get("headline", "")
+    headline = html_lib.escape(pkg.get("headline", ""))
     if headline:
         st.markdown(
             f'<div class="story-headline">{headline}</div>',
@@ -727,7 +727,7 @@ def render_story(pkg: dict, story_index: int = 0):
         )
 
     # Lede
-    lede = pkg.get("lede", "")
+    lede = html_lib.escape(pkg.get("lede", ""))
     if lede:
         st.markdown(
             f'<div class="story-lede">{lede}</div>',
@@ -745,7 +745,7 @@ def render_story(pkg: dict, story_index: int = 0):
             render_narrative(block, vizs)
 
     # Data note
-    data_note = pkg.get("data_note", "")
+    data_note = html_lib.escape(pkg.get("data_note", ""))
     if data_note:
         st.markdown(
             f"""

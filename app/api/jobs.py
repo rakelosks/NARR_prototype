@@ -23,7 +23,7 @@ from app.api.package import PackageBuilder
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
-_metadata_store = MetadataStore()
+_metadata_store = MetadataStore(db_path=settings.metadata_db_path)
 
 
 # ---------------------------------------------------------------------------

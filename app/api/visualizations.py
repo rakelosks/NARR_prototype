@@ -9,6 +9,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from config import settings
 from data.cache.parquet_cache import load_snapshot
 from data.profiling.profiler import profile_dataset
 from data.profiling.matcher import match_template
@@ -19,7 +20,7 @@ from visualization.charts import select_chart_type, generate_spec
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/visualizations", tags=["visualizations"])
 
-_metadata_store = MetadataStore()
+_metadata_store = MetadataStore(db_path=settings.metadata_db_path)
 
 
 class VizRequest(BaseModel):

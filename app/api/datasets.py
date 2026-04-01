@@ -9,6 +9,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
+from config import settings
 from data.ingestion.ckan_client import CKANClient, CKANError
 from data.storage.catalog_index import CatalogIndex
 from data.storage.metadata import MetadataStore
@@ -17,8 +18,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 
 # Shared instances
-catalog_index = CatalogIndex()
-metadata_store = MetadataStore()
+catalog_index = CatalogIndex(db_path=settings.metadata_db_path)
+metadata_store = MetadataStore(db_path=settings.metadata_db_path)
 
 
 # ---------------------------------------------------------------------------

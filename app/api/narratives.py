@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/narratives", tags=["narratives"])
 
 # Shared instances
-_catalog_index = CatalogIndex()
-_metadata_store = MetadataStore()
+_catalog_index = CatalogIndex(db_path=settings.metadata_db_path)
+_metadata_store = MetadataStore(db_path=settings.metadata_db_path)
 
 
 # ---------------------------------------------------------------------------
