@@ -31,6 +31,26 @@ def _ascii_fold(text: str) -> str:
     return "".join(ch.lower() if ord(ch) < 128 else " " for ch in (text or ""))
 
 
+def _is_usable_axis_name(name: str) -> bool:
+    """Check if a raw column name is readable enough to use as an axis title."""
+    cleaned = name.replace("_", " ").strip()
+    if len(cleaned) < 2 or len(cleaned) > 50:
+        return False
+    if cleaned.isupper() and len(cleaned) > 3:
+        return False
+    if re.match(r"^[A-Z]?\d+$", cleaned):
+        return False
+    return True
+
+
+def _clean_axis_name(name: str) -> str:
+    """Clean a raw column name for use as an axis title."""
+    cleaned = name.replace("_", " ").strip()
+    if cleaned:
+        cleaned = cleaned[0].upper() + cleaned[1:]
+    return cleaned
+
+
 class ChartLabeler:
     """Generate deterministic chart titles by language."""
 
@@ -64,62 +84,55 @@ class ChartLabeler:
         period = ""
         if date_range.get("min") and date_range.get("max"):
             period = f"{str(date_range['min'])[:4]}\u2013{str(date_range['max'])[:4]}"
-        subject = self._localized_subject(bundle, language)
+
+        dataset_title = self._dataset_title(bundle)
 
         seen: set[str] = set()
         for idx, viz in enumerate(bundle.visualizations):
-            metric_phrase = self._infer_metric_phrase_for_chart(
-                bundle,
-                idx,
-                story_hints.get(idx, ""),
-                language=language,
-            )
-            title = self._compose_localized_title(
-                metric_phrase=metric_phrase,
-                subject=subject,
-                period=period,
-                template_type=bundle.template_type,
-                language=language,
-            )
+            if dataset_title:
+                title = self._compose_title_from_dataset(
+                    dataset_title=dataset_title,
+                    period=period,
+                    template_type=bundle.template_type,
+                    language=language,
+                )
+            else:
+                subject = self._localized_subject(bundle, language)
+                metric_phrase = self._infer_metric_phrase_for_chart(
+                    bundle,
+                    idx,
+                    story_hints.get(idx, ""),
+                    language=language,
+                )
+                title = self._compose_localized_title(
+                    metric_phrase=metric_phrase,
+                    subject=subject,
+                    period=period,
+                    template_type=bundle.template_type,
+                    language=language,
+                )
 
             key = title.lower()
             if key in seen:
-                qualifier_map = {
-                    "en": {
-                        "line": "trend",
-                        "bar": "comparison",
-                        "area": "composition",
-                        "scatter": "relationship",
-                        "map": "locations",
-                        "bubble_map": "locations",
-                        "heatmap": "intensity",
-                    },
-                    "is": {
-                        "line": "þróun",
-                        "bar": "samanburður",
-                        "area": "samsetning",
-                        "scatter": "samband",
-                        "map": "staðsetningar",
-                        "bubble_map": "staðsetningar",
-                        "heatmap": "styrkleiki",
-                    },
-                    "fi": {
-                        "line": "trendi",
-                        "bar": "vertailu",
-                        "area": "koostumus",
-                        "scatter": "suhde",
-                        "map": "sijainnit",
-                        "bubble_map": "sijainnit",
-                        "heatmap": "intensiteetti",
-                    },
-                }
-                lang_key = "en"
-                if language.startswith("is"):
-                    lang_key = "is"
-                elif language.startswith("fi"):
-                    lang_key = "fi"
-                qualifier = qualifier_map[lang_key].get(viz.chart_type, "view")
-                title = f"{title} — {qualifier}"
+                # Try to differentiate by the measure shown in the chart
+                measure_label = self._extract_measure_label(viz)
+                if measure_label:
+                    # Use only the latest year for "latest period" charts
+                    desc_lower = (viz.description or "").lower()
+                    is_latest = "latest" in desc_lower or "most recent" in desc_lower
+                    if is_latest and date_range.get("max"):
+                        year_str = str(date_range["max"])[:4]
+                        title = f"{measure_label} ({year_str})"
+                    elif period:
+                        title = f"{measure_label} ({period})"
+                    else:
+                        title = measure_label
+                else:
+                    # Fallback to chart-type qualifier
+                    qualifier = self._chart_type_qualifier(
+                        viz.chart_type, language,
+                    )
+                    title = f"{title} — {qualifier}"
             seen.add(title.lower())
 
             viz.title = title[:120]
@@ -130,6 +143,136 @@ class ChartLabeler:
                 "anchor": "start",
                 "orient": "top",
             }
+
+            if language != "en":
+                self._localize_axis_labels(viz.vega_lite_spec, language)
+
+    @staticmethod
+    def _extract_measure_label(viz) -> Optional[str]:
+        """Extract a human-readable measure name from the chart's y-field.
+
+        Returns the cleaned column name if it looks descriptive enough
+        (i.e. contains non-ASCII or is multi-word), otherwise None.
+        """
+        enc = viz.vega_lite_spec.get("encoding", {})
+        y_field = str(enc.get("y", {}).get("field", "") or "")
+        if not y_field or y_field in ("value", "count", "_rank"):
+            return None
+        cleaned = y_field.replace("_", " ").strip()
+        if len(cleaned) < 3:
+            return None
+        # Use it if it's human-readable (multi-word or non-ASCII)
+        if _contains_non_ascii(cleaned) or " " in cleaned:
+            return cleaned.title() if cleaned == cleaned.lower() else cleaned
+        if len(cleaned.split()) > 1:
+            return cleaned.title()
+        return cleaned.replace("_", " ").title()
+
+    @staticmethod
+    def _chart_type_qualifier(chart_type: str, language: str) -> str:
+        """Return a localized qualifier string for a chart type."""
+        qualifier_map = {
+            "en": {
+                "line": "trend", "bar": "comparison", "area": "composition",
+                "scatter": "relationship", "map": "locations",
+                "bubble_map": "locations", "heatmap": "intensity",
+            },
+            "is": {
+                "line": "þróun", "bar": "samanburður", "area": "samsetning",
+                "scatter": "samband", "map": "staðsetningar",
+                "bubble_map": "staðsetningar", "heatmap": "styrkleiki",
+            },
+            "fi": {
+                "line": "trendi", "bar": "vertailu", "area": "koostumus",
+                "scatter": "suhde", "map": "sijainnit",
+                "bubble_map": "sijainnit", "heatmap": "intensiteetti",
+            },
+        }
+        lang_key = "en"
+        if language.startswith("is"):
+            lang_key = "is"
+        elif language.startswith("fi"):
+            lang_key = "fi"
+        return qualifier_map[lang_key].get(chart_type, "view")
+
+    _AXIS_LABEL_FALLBACKS: dict[str, dict[str, str]] = {
+        "Time":       {"is": "Tími",        "fi": "Aika"},
+        "Year":       {"is": "Ár",          "fi": "Vuosi"},
+        "Month":      {"is": "Mánuður",     "fi": "Kuukausi"},
+        "Date":       {"is": "Dagsetning",  "fi": "Päivämäärä"},
+        "Value":      {"is": "Gildi",       "fi": "Arvo"},
+        "Count":      {"is": "Fjöldi",      "fi": "Määrä"},
+        "Category":   {"is": "Flokkur",     "fi": "Luokka"},
+        "Measure":    {"is": "Mæling",      "fi": "Mittari"},
+        "Amount":     {"is": "Magn",        "fi": "Määrä"},
+        "Cost":       {"is": "Kostnaður",   "fi": "Kustannus"},
+        "Population": {"is": "Íbúafjöldi",  "fi": "Väestö"},
+        "Traffic":    {"is": "Umferð",      "fi": "Liikenne"},
+        "Ridership":  {"is": "Farþegafjöldi", "fi": "Matkustajamäärä"},
+        "Budget":     {"is": "Fjárhagsáætlun", "fi": "Budjetti"},
+        "Type":       {"is": "Tegund",      "fi": "Tyyppi"},
+        "Name":       {"is": "Heiti",       "fi": "Nimi"},
+        "Status":     {"is": "Staða",       "fi": "Tila"},
+        "Total":      {"is": "Samtals",     "fi": "Yhteensä"},
+        "Number":     {"is": "Fjöldi",      "fi": "Määrä"},
+        "District":   {"is": "Hverfi",      "fi": "Kaupunginosa"},
+        "Area":       {"is": "Svæði",       "fi": "Alue"},
+        "Service":    {"is": "Þjónusta",    "fi": "Palvelu"},
+        "Age":        {"is": "Aldur",       "fi": "Ikä"},
+        "Gender":     {"is": "Kyn",         "fi": "Sukupuoli"},
+    }
+
+    _SYNTHETIC_FIELDS = {"value", "measure", "measure_label", "_rank"}
+
+    _GENERIC_ENGLISH_FIELDS = {
+        "type", "name", "status", "value", "count", "total", "number",
+        "category", "measure", "amount", "id", "code", "key", "label",
+        "group", "class", "kind", "sort", "index",
+    }
+
+    def _localize_axis_labels(self, spec: dict, language: str) -> None:
+        """
+        Hybrid axis label localization: prefer the actual column name from
+        the data (already in the portal's language) when it looks readable.
+        Fall back to a generic localized label otherwise.
+        """
+        lang_key = "is" if language.startswith("is") else ("fi" if language.startswith("fi") else None)
+        if not lang_key:
+            return
+
+        fallback_map = {
+            en: loc[lang_key]
+            for en, loc in self._AXIS_LABEL_FALLBACKS.items()
+            if lang_key in loc
+        }
+
+        def _translate_title(enc_channel: dict) -> None:
+            title = enc_channel.get("title")
+            if not isinstance(title, str):
+                return
+
+            field = str(enc_channel.get("field", ""))
+
+            if title in fallback_map:
+                is_generic_english = field.lower() in self._GENERIC_ENGLISH_FIELDS
+                if (field
+                        and field not in self._SYNTHETIC_FIELDS
+                        and not is_generic_english
+                        and _is_usable_axis_name(field)):
+                    enc_channel["title"] = _clean_axis_name(field)
+                else:
+                    enc_channel["title"] = fallback_map[title]
+
+        encoding = spec.get("encoding", {})
+        for channel in encoding.values():
+            if isinstance(channel, dict):
+                _translate_title(channel)
+
+        for layer_item in spec.get("layer", []):
+            if isinstance(layer_item, dict):
+                for channel in layer_item.get("encoding", {}).values():
+                    if isinstance(channel, dict):
+                        _translate_title(channel)
 
     def _infer_metric_phrase_for_chart(
         self,
@@ -233,23 +376,30 @@ class ChartLabeler:
         if "vetrar" in folded or "winter" in folded:
             return self._localized_metric("winter_services_cost", language)
 
-        # Canonical fallback from keyword dictionary, excluding generic labels
+        _GENERIC_OR_TIME = {
+            "count", "value", "total", "amount",
+            "month", "year", "date", "time", "day", "week", "quarter", "period",
+        }
+
+        # Canonical fallback from keyword dictionary, excluding generic/time labels
         try:
             from data.profiling.keyword_dictionary import resolve_column
             signal = resolve_column(metric_raw)
             for canonical in signal.matched_canonicals:
-                pretty = canonical.replace("_", " ").title()
-                if pretty.lower() not in {"count", "value", "total", "amount"}:
+                if canonical.lower() not in _GENERIC_OR_TIME:
+                    pretty = canonical.replace("_", " ").title()
                     return pretty
             if signal.matched_canonicals:
-                return self._localize_canonical(signal.matched_canonicals[0], language)
+                canon = signal.matched_canonicals[0]
+                if canon.lower() not in _GENERIC_OR_TIME:
+                    return self._localize_canonical(canon, language)
         except Exception:
             pass
 
-        # Raw fallback if ASCII and not generic
+        # Raw fallback if ASCII and not generic/time
         if metric_raw and not _contains_non_ascii(metric_raw):
             raw_pretty = _clean_subject(metric_raw).title()
-            if raw_pretty.lower() not in {"count", "value", "total", "amount"}:
+            if raw_pretty.lower() not in _GENERIC_OR_TIME:
                 return raw_pretty
 
         # Last resort by template archetype
@@ -366,6 +516,38 @@ class ChartLabeler:
             if keyword in folded:
                 return names.get(language[:2], names["default"])
         return None
+
+    @staticmethod
+    def _dataset_title(bundle: EvidenceBundle) -> Optional[str]:
+        """Extract a usable dataset title from portal metadata."""
+        meta = bundle.normalized_metadata
+        if not meta or not meta.title.available:
+            return None
+        title = (meta.title.value or "").strip()
+        if not title or len(title) < 3:
+            return None
+        if title == bundle.dataset_id:
+            return None
+        return _trim_to_words(title, max_words=10)
+
+    def _compose_title_from_dataset(
+        self,
+        dataset_title: str,
+        period: str,
+        template_type: str,
+        language: str,
+    ) -> str:
+        """Compose a chart title using the dataset's own title."""
+        lang = "en"
+        if language.startswith("is"):
+            lang = "is"
+        elif language.startswith("fi"):
+            lang = "fi"
+
+        if period and template_type == "time_series":
+            suffix = {"is": "eftir árum", "fi": "vuosittain", "en": "by year"}
+            return f"{dataset_title} {suffix[lang]} ({period})"
+        return dataset_title
 
     def _compose_localized_title(
         self,

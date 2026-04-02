@@ -39,6 +39,13 @@ IMPORTANT RULES — you must follow these strictly:
 
 2. NO HALLUCINATION: Do not reference datasets, columns, time periods, or
    geographic areas that are not mentioned in the evidence context.
+   CRITICAL: If the user asked to compare or break down data BY a specific
+   dimension (e.g. "by neighborhood", "by age group", "by district") but the
+   dataset does NOT contain that dimension in its columns or sample data,
+   you MUST state this clearly in the lede: "The available data does not
+   include a breakdown by [dimension]." Then describe what the data DOES
+   contain instead. NEVER fabricate categories, area names, or groupings
+   that are not present in the actual data rows.
 
 3. DATA INTERPRETATION: Use the dataset title, description, column values,
    and sample data rows to understand what the data ACTUALLY measures.

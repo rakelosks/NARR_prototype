@@ -119,12 +119,22 @@ Notes on nullable fields:
 - geographic_focus: set to a string like "downtown" or "Vesturbær" if the user mentions an area, otherwise null
 
 Rules:
-- dataset_query: Extract the core data topic (e.g. "budget", "traffic", "air quality")
+- dataset_query: Extract 2-5 keywords that UNIQUELY identify the dataset.
+  Include the core topic AND any grouping/comparison dimensions.
+  If the user asks "X by Y" (or "X eftir Y" in Icelandic), include BOTH X and Y
+  because the catalog may contain several datasets about X and only some are broken
+  down by Y.
+  Examples:
+    "Compare kindergartens by neighborhood" → "kindergartens neighborhood"
+    "Budget trends over time" → "budget"
+    "Air quality by district" → "air quality district"
 - dataset_query_local: Translate the dataset_query keywords into {portal_language}.
   This is used to search the city's open data catalog which is in {portal_language}.
   Use natural terms a data publisher would use, not literal translations.
+  Include 2-5 keywords — the topic AND any qualifying dimensions.
   Example: if the user asks about "waste collection" and portal language is Icelandic,
   use "úrgangur sorphirða" (not a word-for-word translation).
+  Example: "kindergartens by neighborhood" in Icelandic → "leikskólar hverfi"
   If the user's language already matches {portal_language}, copy dataset_query as-is.
 - analysis_type: Infer from the question:
   - "trend" for questions about change over time

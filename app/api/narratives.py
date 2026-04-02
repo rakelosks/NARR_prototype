@@ -50,31 +50,62 @@ class AskRequest(BaseModel):
 # Helpers
 # ---------------------------------------------------------------------------
 
+_STOP_WORDS_EN = {
+    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+    "have", "has", "had", "do", "does", "did", "will", "would", "could",
+    "should", "may", "might", "shall", "can", "need", "dare", "ought",
+    "used", "to", "of", "in", "for", "on", "with", "at", "by", "from",
+    "as", "into", "through", "during", "before", "after", "above", "below",
+    "between", "out", "off", "over", "under", "again", "further", "then",
+    "once", "here", "there", "when", "where", "why", "how", "all", "each",
+    "every", "both", "few", "more", "most", "other", "some", "such", "no",
+    "nor", "not", "only", "own", "same", "so", "than", "too", "very",
+    "just", "about", "what", "which", "who", "whom", "this", "that",
+    "these", "those", "i", "me", "my", "we", "our", "you", "your",
+    "he", "him", "his", "she", "her", "it", "its", "they", "them", "their",
+    "and", "but", "or", "if", "while", "because", "until", "although",
+    "tell", "show", "give", "get", "know", "think", "look", "like",
+    "much", "many", "over", "years", "year", "changed", "change",
+    "trends", "trend", "data", "city",
+}
+
+_STOP_WORDS_IS = {
+    # Question words
+    "hversu", "hvað", "hvad", "hvar", "hvenær", "hvenaer", "hvernig",
+    "hver", "hvers", "hverju", "hvern", "hverja", "hverjir",
+    # Prepositions / conjunctions
+    "eftir", "um", "við", "vid", "með", "med", "frá", "fra", "til",
+    "upp", "úr", "ur", "og", "eða", "eda", "en", "sem", "að", "ad",
+    # Pronouns
+    "ég", "eg", "þú", "thu", "hann", "hún", "hun", "það", "thad",
+    "við", "þið", "thid", "þeir", "their", "þær", "thaer", "mig",
+    "þig", "thig", "sig", "mér", "mer", "þér", "ther", "sér", "ser",
+    # Demonstratives
+    "þetta", "thetta", "þessi", "thessi", "þessu", "thessu", "þennan", "sú",
+    # Auxiliaries / common verbs
+    "er", "var", "voru", "eru", "vera", "verða", "verda", "sé", "sér",
+    "geta", "get", "fá", "fær", "fá", "má", "mun", "munu", "skyldi",
+    # Common verb forms
+    "berðu", "berdu", "segðu", "segdu", "segja", "sýna", "syna",
+    "skoða", "skoda",
+    # Adverbs / particles
+    "saman", "líka", "lika", "bara", "mjög", "mjog", "ekki", "hér",
+    "þar", "thar", "nú", "núna", "þá", "tha", "kannski",
+    # Misc function words
+    "einn", "ein", "eitt", "nokkur", "margir", "mörg", "morg", "mikið",
+    "mikid", "lítið", "litid", "fleiri", "flest", "allir", "allt",
+}
+
+_STOP_WORDS = _STOP_WORDS_EN | _STOP_WORDS_IS
+
+
 def _extract_keywords(text: str) -> list[str]:
     """Extract meaningful keywords from a natural language question."""
-    stop_words = {
-        "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
-        "have", "has", "had", "do", "does", "did", "will", "would", "could",
-        "should", "may", "might", "shall", "can", "need", "dare", "ought",
-        "used", "to", "of", "in", "for", "on", "with", "at", "by", "from",
-        "as", "into", "through", "during", "before", "after", "above", "below",
-        "between", "out", "off", "over", "under", "again", "further", "then",
-        "once", "here", "there", "when", "where", "why", "how", "all", "each",
-        "every", "both", "few", "more", "most", "other", "some", "such", "no",
-        "nor", "not", "only", "own", "same", "so", "than", "too", "very",
-        "just", "about", "what", "which", "who", "whom", "this", "that",
-        "these", "those", "i", "me", "my", "we", "our", "you", "your",
-        "he", "him", "his", "she", "her", "it", "its", "they", "them", "their",
-        "and", "but", "or", "if", "while", "because", "until", "although",
-        "tell", "show", "give", "get", "know", "think", "look", "like",
-        "much", "many", "over", "years", "year", "changed", "change",
-        "trends", "trend", "data", "city",
-    }
     words = text.lower().split()
     keywords = []
     for w in words:
         cleaned = w.strip("?.,!:;\"'()[]{}").strip()
-        if cleaned and cleaned not in stop_words and len(cleaned) > 2:
+        if cleaned and cleaned not in _STOP_WORDS and len(cleaned) > 2:
             keywords.append(cleaned)
     return keywords
 
@@ -162,23 +193,110 @@ async def _parse_intent(user_message: str):
     return fallback, fallback
 
 
-async def _search_ckan(client: CKANClient, search_terms: list[str]):
+def _stem_prefix(word: str, min_len: int = 4) -> str:
+    """Return a rough Icelandic stem by trimming the last 1-2 suffix chars.
+
+    Icelandic inflections mostly change word endings (-i, -a, -um, -ar,
+    -ir, -ur, etc.) while the stem is a prefix.  Trimming the shorter of
+    2 characters or 30 % of the word (minimum ``min_len`` chars) is a
+    pragmatic heuristic that covers most cases.
     """
-    Search CKAN portal with a list of search terms (tries each until a
-    dataset with supported formats is found).
-    Returns (dataset_name, ckan_slug) or (None, None).
+    if len(word) <= min_len:
+        return word
+    trim = min(2, max(1, len(word) // 3))
+    return word[: max(min_len, len(word) - trim)]
+
+
+def _score_candidate(
+    title: str,
+    description: str,
+    tags: list[str],
+    scoring_keywords: list[str],
+) -> float:
+    """Score a dataset candidate by how many user keywords it matches.
+
+    For each keyword, the scorer first tries an exact substring match
+    (score +1).  If that fails it tries a stem-prefix match (score +0.7)
+    to handle Icelandic inflection (e.g. "hverfi" stem "hverf" matches
+    "hverfum").
     """
-    for term in search_terms:
+    haystack = _ascii_fold(f"{title} {description} {' '.join(tags)}")
+    score = 0.0
+    for kw in scoring_keywords:
+        folded = _ascii_fold(kw)
+        if folded in haystack:
+            score += 1.0
+        elif _stem_prefix(folded) in haystack:
+            score += 0.7
+    return score
+
+
+def _build_scoring_keywords(
+    dataset_query: str,
+    dataset_query_local: str,
+    user_message: str,
+) -> list[str]:
+    """Build a de-duplicated list of meaningful keywords for candidate scoring."""
+    raw = (
+        _extract_keywords(dataset_query)
+        + _extract_keywords(dataset_query_local)
+        + _extract_keywords(user_message)
+    )
+    seen: set[str] = set()
+    out: list[str] = []
+    for kw in raw:
+        folded = _ascii_fold(kw)
+        if folded not in seen:
+            seen.add(folded)
+            out.append(kw)
+    return out
+
+
+async def _search_ckan(
+    client: CKANClient,
+    search_terms: list[str],
+    scoring_keywords: list[str],
+):
+    """Search CKAN portal, collect candidates, and return the best match.
+
+    Instead of stopping at the first hit, queries CKAN with up to
+    ``_CKAN_SEARCH_BREADTH`` terms, collects all unique datasets that have
+    supported resources, scores them by keyword overlap, and returns the
+    highest-scoring candidate.
+    """
+    _CKAN_SEARCH_BREADTH = 6
+
+    candidates: dict[str, tuple[str, str, float]] = {}  # slug → (name, slug, score)
+
+    for term in search_terms[:_CKAN_SEARCH_BREADTH]:
         try:
             results = await client.search_datasets(query=term, rows=5)
             for ds in results:
-                if ds.supported_resources:
-                    name = ds.title or ds.name
-                    logger.info(f"CKAN search found: '{name}' via '{term}'")
-                    return name, ds.name
+                if ds.name in candidates or not ds.supported_resources:
+                    continue
+                name = ds.title or ds.name
+                tags = [t for t in (ds.tags or [])]
+                score = _score_candidate(
+                    name, ds.notes or "", tags, scoring_keywords,
+                )
+                candidates[ds.name] = (name, ds.name, score)
+                logger.debug(
+                    f"CKAN candidate '{name}' (via '{term}') score={score}"
+                )
         except Exception as e:
             logger.warning(f"CKAN search failed for '{term}': {e}")
-    return None, None
+
+    if not candidates:
+        return None, None
+
+    best_name, best_slug, best_score = max(
+        candidates.values(), key=lambda c: c[2],
+    )
+    logger.info(
+        f"CKAN best match: '{best_name}' (score={best_score}, "
+        f"{len(candidates)} candidates evaluated)"
+    )
+    return best_name, best_slug
 
 
 def _reconstruct_match(config: dict, profile) -> MatchResult:
@@ -252,11 +370,14 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
     else:
         dataset_query, dataset_query_local = await _parse_intent(user_message)
 
-    # Build search term list: intent terms + user keywords + deterministic aliases
+    # Build search term list: intent terms + user message + keywords + aliases.
+    # The full user message is included because CKAN Solr tokenises
+    # multi-word strings and performs its own relevance ranking.
     search_terms = []
-    local_keywords = dataset_query_local.split()
     if dataset_query_local:
         search_terms.append(dataset_query_local)
+    search_terms.append(user_message)
+    local_keywords = dataset_query_local.split() if dataset_query_local else []
     search_terms.extend(local_keywords)
     search_terms.append(dataset_query)
     search_terms.extend(_extract_keywords(dataset_query))
@@ -268,21 +389,44 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
 
     logger.info(f"Dataset search terms: {search_terms}")
 
+    scoring_keywords = _build_scoring_keywords(
+        dataset_query, dataset_query_local, user_message,
+    )
+    logger.info(f"Scoring keywords: {scoring_keywords}")
+
     client = CKANClient(settings.ckan_portal_url)
 
-    # Strategy 1: Search CKAN portal API
-    dataset_name, ckan_slug = await _search_ckan(client, search_terms)
+    # Strategy 1: Search CKAN portal API (multi-candidate scoring)
+    dataset_name, ckan_slug = await _search_ckan(
+        client, search_terms, scoring_keywords,
+    )
 
-    # Strategy 2: Fallback to local catalog
+    # Strategy 2: Fallback to local catalog (also scored)
     if not ckan_slug:
+        local_candidates: dict[str, tuple[str, str, float]] = {}
         for kw in search_terms:
             results = _catalog_index.search(query=kw, limit=5)
-            if results:
-                catalog_entry = results[0]
-                dataset_name = catalog_entry["title"] or catalog_entry["name"]
-                ckan_slug = catalog_entry["name"]
-                logger.info(f"Local catalog found '{dataset_name}' via keyword '{kw}'")
-                break
+            for entry in results:
+                slug = entry["name"]
+                if slug in local_candidates:
+                    continue
+                title = entry["title"] or slug
+                tags = entry["tags"] if isinstance(entry["tags"], list) else []
+                score = _score_candidate(
+                    title, entry.get("description", ""), tags,
+                    scoring_keywords,
+                )
+                local_candidates[slug] = (title, slug, score)
+        if local_candidates:
+            best_name, best_slug, best_score = max(
+                local_candidates.values(), key=lambda c: c[2],
+            )
+            dataset_name = best_name
+            ckan_slug = best_slug
+            logger.info(
+                f"Local catalog best match: '{best_name}' "
+                f"(score={best_score}, {len(local_candidates)} candidates)"
+            )
 
     if not ckan_slug:
         raise HTTPException(

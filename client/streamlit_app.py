@@ -735,6 +735,7 @@ def render_story(pkg: dict, story_index: int = 0):
         )
 
     # Story blocks
+    referenced_viz: set[int] = set()
     for block in pkg.get("story_blocks", []):
         block_type = block.get("type", "narrative")
         if block_type == "callout":
@@ -743,6 +744,18 @@ def render_story(pkg: dict, story_index: int = 0):
             render_timeline(block)
         else:
             render_narrative(block, vizs)
+        viz_idx = block.get("viz_index")
+        if isinstance(viz_idx, int):
+            referenced_viz.add(viz_idx)
+
+    # Render any charts the LLM didn't reference in its story blocks.
+    # The Vega-Lite spec already contains its own title, so no heading needed.
+    for idx, viz in enumerate(vizs):
+        if idx not in referenced_viz:
+            try:
+                render_vega_lite(viz["vega_lite_spec"])
+            except Exception as e:
+                st.error(f"Chart rendering error: {e}")
 
     # Data note
     data_note = html_lib.escape(pkg.get("data_note", ""))

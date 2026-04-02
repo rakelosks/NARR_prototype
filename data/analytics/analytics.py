@@ -253,13 +253,28 @@ class AnalyticsEngine:
         for mcol in measure_cols:
             safe_m = f'"{mcol}"'
 
-            # Get the full time series ordered by time
-            ts_rows = conn.execute(f"""
-                SELECT {safe_time} as period, {safe_m} as val
-                FROM dataset
-                WHERE {safe_m} IS NOT NULL
-                ORDER BY {safe_time}
-            """).fetchall()
+            # When data is grouped, aggregate per period so we compare
+            # like-for-like totals instead of random group rows.
+            if group_col:
+                safe_group = f'"{group_col}"'
+                agg_labels = ", ".join(
+                    f"'{lbl}'" for lbl in self._AGGREGATE_LABELS
+                )
+                ts_rows = conn.execute(f"""
+                    SELECT {safe_time} as period, SUM({safe_m}) as val
+                    FROM dataset
+                    WHERE {safe_m} IS NOT NULL
+                      AND LOWER(TRIM({safe_group})) NOT IN ({agg_labels})
+                    GROUP BY {safe_time}
+                    ORDER BY {safe_time}
+                """).fetchall()
+            else:
+                ts_rows = conn.execute(f"""
+                    SELECT {safe_time} as period, {safe_m} as val
+                    FROM dataset
+                    WHERE {safe_m} IS NOT NULL
+                    ORDER BY {safe_time}
+                """).fetchall()
 
             if not ts_rows:
                 continue
@@ -1102,6 +1117,13 @@ class AnalyticsEngine:
         "measure", "financial_measure", "env_measure", "traffic_measure",
         "population_measure", "value", "capacity", "severity",
         "secondary_measure",
+    }
+
+    # Labels used for aggregate/total rows that should be excluded when
+    # computing per-period trends on grouped data.
+    _AGGREGATE_LABELS = {
+        "alls", "samtals", "total", "all", "heild", "sum",
+        "allt", "samtala", "totalt", "yhteensä", "yhteensa",
     }
 
     def _find_measure_columns(self, df: pd.DataFrame, columns: dict) -> list[str]:

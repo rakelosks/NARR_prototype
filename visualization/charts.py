@@ -373,8 +373,9 @@ def _select_time_series_chart(metrics: dict) -> ChartSelection:
         ))
         charts.append(ChartEntry(
             chart_type="bar",
-            title_suffix="(group comparison)",
-            description="Grouped bar chart comparing groups side-by-side per period.",
+            title_suffix="(latest comparison)",
+            description="Bar chart comparing groups for the most recent period.",
+            spec_overrides={"latest_period_only": True},
         ))
         if total_periods > 6:
             charts.append(ChartEntry(
@@ -409,6 +410,18 @@ def _select_time_series_chart(metrics: dict) -> ChartSelection:
                     title_suffix=f"— {english_name}",
                     description=f"Trend over time for {english_name}.",
                     spec_overrides={"single_measure": m},
+                ))
+            # Add a latest-year bar chart for the primary measure if grouped
+            if group_col:
+                primary_name = _resolve(measures[0])
+                charts.append(ChartEntry(
+                    chart_type="bar",
+                    title_suffix=f"— {primary_name} (latest)",
+                    description=f"Bar chart comparing groups for {primary_name} in the most recent period.",
+                    spec_overrides={
+                        "latest_period_only": True,
+                        "single_measure": measures[0],
+                    },
                 ))
         else:
             # Measures are on similar scales — combined charts work well
@@ -1023,6 +1036,31 @@ def generate_spec(
     return spec
 
 
+_AGGREGATE_LABELS = {
+    "alls", "samtals", "total", "all", "heild", "sum",
+    "allt", "samtala", "totalt", "yhteensä", "yhteensa",
+}
+
+
+def _filter_aggregate_transform(group_col: str, data: list[dict]) -> list[dict]:
+    """Return Vega-Lite filter transforms that remove aggregate/total rows.
+
+    Checks the actual data values to avoid injecting a useless filter
+    when no aggregate rows are present.
+    """
+    present = set()
+    for row in data:
+        val = str(row.get(group_col, "")).strip().lower()
+        if val in _AGGREGATE_LABELS:
+            present.add(val)
+    if not present:
+        return []
+    conditions = " && ".join(
+        f"lower(datum['{group_col}']) !== '{lbl}'" for lbl in sorted(present)
+    )
+    return [{"filter": conditions}]
+
+
 def _sanitize_data(data: list[dict]) -> list[dict]:
     """Replace NaN/Infinity values with None for JSON-safe serialization."""
     import math
@@ -1112,6 +1150,9 @@ def _gen_line_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
 
     if group_col and len(measure_cols) == 1:
         # Multi-series: color by group
+        agg_transforms = _filter_aggregate_transform(group_col, chart_data)
+        if agg_transforms:
+            spec.setdefault("transform", []).extend(agg_transforms)
         spec["mark"] = {"type": "line", "point": True, "tooltip": True}
         spec["encoding"] = {
             "x": x_enc,
@@ -1158,6 +1199,20 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
     """Generate a bar chart spec."""
     cat_col = columns.get("category", columns.get("time_axis", ""))
     measure_cols = metrics.get("measure_columns", [])
+    group_col = columns.get("series_group")
+    overrides = metrics.get("_spec_overrides", {})
+
+    # single_measure override for per-measure charts
+    single_measure = overrides.get("single_measure")
+    if single_measure and single_measure in measure_cols:
+        measure_cols = [single_measure]
+
+    # latest_period_only: pivot to a categorical bar chart of the last period
+    latest_only = overrides.get("latest_period_only", False)
+    if latest_only and group_col:
+        return _gen_latest_period_bar(
+            data, columns, metrics, measure_cols, group_col, title,
+        )
 
     # Detect if x-axis is temporal (time-series shown as bars)
     is_temporal = "time_axis" in columns and cat_col == columns["time_axis"]
@@ -1191,7 +1246,30 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
     total_cats = metrics.get("total_categories", len(data))
     MAX_CHART_CATEGORIES = 30
 
-    if not is_temporal and total_cats > 10:
+    if group_col and len(measure_cols) == 1:
+        # Grouped time-series: color bars by group with legend
+        agg_transforms = _filter_aggregate_transform(group_col, chart_data)
+        if agg_transforms:
+            spec.setdefault("transform", []).extend(agg_transforms)
+        y_field = measure_cols[0]
+        spec["mark"] = {"type": "bar", "tooltip": True}
+        spec["encoding"] = {
+            "x": _x_enc(),
+            "y": {
+                "field": y_field,
+                "type": "quantitative",
+                "title": _english_label(y_field, metrics, "Value"),
+            },
+            "color": {
+                "field": group_col,
+                "type": "nominal",
+                "title": _english_label(group_col, metrics, "Category"),
+                "legend": {"orient": "top"},
+            },
+        }
+        if not is_temporal:
+            spec["encoding"]["xOffset"] = {"field": group_col}
+    elif not is_temporal and total_cats > 10:
         # Horizontal bars for many categories (not for temporal data)
         measure_field = measure_cols[0] if measure_cols else ""
         spec["mark"] = {"type": "bar", "tooltip": True}
@@ -1252,8 +1330,67 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
     return spec
 
 
+def _gen_latest_period_bar(
+    data: list[dict],
+    columns: dict,
+    metrics: dict,
+    measure_cols: list[str],
+    group_col: str,
+    title: str,
+) -> dict:
+    """Bar chart showing only the most recent time period, grouped by category.
+
+    Filters data to the maximum value of the time axis, removes aggregate
+    rows, and renders a horizontal bar chart sorted by the measure.
+    """
+    time_col = columns.get("time_axis", "")
+    date_range = metrics.get("date_range", {})
+    max_period = date_range.get("max")
+
+    # Pre-filter data to the latest period (Python-side for simplicity)
+    if time_col and max_period is not None:
+        max_str = str(max_period)
+        latest_data = [
+            row for row in data if str(row.get(time_col, "")) == max_str
+        ]
+        if not latest_data:
+            latest_data = data[-20:]  # fallback: last N rows
+    else:
+        latest_data = data
+
+    # Remove aggregate rows
+    latest_data = [
+        row for row in latest_data
+        if str(row.get(group_col, "")).strip().lower() not in _AGGREGATE_LABELS
+    ]
+
+    y_field = measure_cols[0] if measure_cols else ""
+    spec = _base_spec(latest_data, title)
+    spec["mark"] = {"type": "bar", "tooltip": True}
+    spec["encoding"] = {
+        "y": {
+            "field": group_col,
+            "type": "nominal",
+            "sort": "-x",
+            "title": _english_label(group_col, metrics, "Category"),
+        },
+        "x": {
+            "field": y_field,
+            "type": "quantitative",
+            "title": _english_label(y_field, metrics, "Value"),
+        },
+        "color": {
+            "field": group_col,
+            "type": "nominal",
+            "legend": None,
+        },
+    }
+    return spec
+
+
 def _gen_area_spec(data: list[dict], columns: dict, metrics: dict, title: str) -> dict:
     """Generate an area chart spec."""
+    stacked = metrics.get("_spec_overrides", {}).get("stacked", False)
     spec = _gen_line_spec(data, columns, metrics, title)
     # Convert line to area
     if isinstance(spec.get("mark"), dict):
@@ -1262,6 +1399,10 @@ def _gen_area_spec(data: list[dict], columns: dict, metrics: dict, title: str) -
         spec["mark"]["line"] = True
     else:
         spec["mark"] = {"type": "area", "opacity": 0.6, "line": True, "tooltip": True}
+
+    if stacked and "encoding" in spec and "y" in spec["encoding"]:
+        spec["encoding"]["y"]["stack"] = True
+
     return spec
 
 
