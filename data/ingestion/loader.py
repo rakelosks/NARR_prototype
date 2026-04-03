@@ -174,6 +174,65 @@ def _fix_european_decimals(df: pd.DataFrame) -> pd.DataFrame:
 # Parsing
 # ---------------------------------------------------------------------------
 
+def dataframe_from_geojson_bytes(raw: bytes) -> pd.DataFrame:
+    """Parse GeoJSON bytes into a DataFrame (properties + geometry column).
+
+    Handles UTF-8 BOM, empty/HTML error pages, single *Feature* roots, and
+    *FeatureCollection*. Raises :class:`ValueError` with a short, actionable
+    message when the payload is not usable GeoJSON.
+    """
+    text = raw.decode("utf-8-sig", errors="replace").strip()
+    if not text:
+        raise ValueError(
+            "Downloaded file is empty. The catalog URL may be broken, the file "
+            "may have been removed, or the portal may require authentication."
+        )
+    lead = text.lstrip()
+    if lead.startswith("<"):
+        raise ValueError(
+            "Response is HTML, not GeoJSON (often a login page, 404 page, or a "
+            "mislabeled resource in the catalog). Try another format on the "
+            "same dataset if one is available (e.g. CSV or Shapefile)."
+        )
+    try:
+        geojson = json.loads(text)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Not valid JSON ({e}). The resource may be mislabeled as GeoJSON "
+            "in the catalog, or the file may be corrupt."
+        ) from e
+
+    if not isinstance(geojson, dict):
+        raise ValueError("GeoJSON root must be a JSON object")
+
+    gtype = geojson.get("type")
+    if gtype == "Feature":
+        features = [geojson]
+    elif gtype == "FeatureCollection":
+        features = geojson.get("features") or []
+    else:
+        raise ValueError(
+            f"Unsupported GeoJSON type {gtype!r}; expected Feature or "
+            "FeatureCollection."
+        )
+
+    if not features:
+        raise ValueError("GeoJSON contains no features")
+
+    rows = []
+    for f in features:
+        if not isinstance(f, dict):
+            continue
+        row = dict(f.get("properties") or {})
+        row["geometry"] = f.get("geometry")
+        rows.append(row)
+
+    if not rows:
+        raise ValueError("GeoJSON features list was empty or invalid")
+
+    return pd.DataFrame(rows)
+
+
 def parse_bytes(raw: bytes, fmt: FileFormat) -> pd.DataFrame:
     """
     Parse raw bytes into a pandas DataFrame based on format.
@@ -209,19 +268,7 @@ def parse_bytes(raw: bytes, fmt: FileFormat) -> pd.DataFrame:
             raise ValueError("JSON must be an array of objects or tabular format")
 
     elif fmt == FileFormat.GEOJSON:
-        try:
-            geojson = json.loads(raw)
-        except (json.JSONDecodeError, UnicodeDecodeError) as e:
-            raise ValueError(f"Invalid GeoJSON data: {e}")
-        features = geojson.get("features", [])
-        if not features:
-            raise ValueError("GeoJSON contains no features")
-        rows = []
-        for f in features:
-            row = f.get("properties", {})
-            row["geometry"] = f.get("geometry")
-            rows.append(row)
-        return pd.DataFrame(rows)
+        return dataframe_from_geojson_bytes(raw)
 
     elif fmt in (FileFormat.XLS, FileFormat.XLSX):
         try:

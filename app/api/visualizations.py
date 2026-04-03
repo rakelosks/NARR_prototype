@@ -33,14 +33,16 @@ class VizRequest(BaseModel):
 async def generate_visualization(request: VizRequest):
     """Generate a Vega-Lite visualization spec for a dataset."""
     try:
-        df = load_snapshot(request.dataset_id)
+        config = _metadata_store.get_config(request.dataset_id)
+        ru = (config or {}).get("resource_url") or None
+        df = load_snapshot(request.dataset_id, ru) if ru else None
+        if df is None:
+            df = load_snapshot(request.dataset_id)
         if df is None:
             raise HTTPException(status_code=404, detail=f"Dataset '{request.dataset_id}' not found or cache expired")
 
         # Profile and match (reuse config if available)
         profile = profile_dataset(df, dataset_id=request.dataset_id)
-
-        config = _metadata_store.get_config(request.dataset_id)
         if config:
             from app.api.narratives import _reconstruct_match
             match = _reconstruct_match(config, profile)

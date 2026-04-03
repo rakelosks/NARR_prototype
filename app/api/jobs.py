@@ -85,11 +85,13 @@ async def run_generation_job(job_id: str):
     logger.info(f"Job {job_id} started for dataset '{job.dataset_id}'")
 
     try:
-        df = load_snapshot(job.dataset_id)
+        config = _metadata_store.get_config(job.dataset_id)
+        ru = (config or {}).get("resource_url") or None
+        df = load_snapshot(job.dataset_id, ru) if ru else None
+        if df is None:
+            df = load_snapshot(job.dataset_id)
         if df is None:
             raise FileNotFoundError(f"Dataset '{job.dataset_id}' not found or cache expired")
-
-        config = _metadata_store.get_config(job.dataset_id)
         profile_source = ""
         if config:
             profile_source = config.get("resource_url", "")
@@ -192,7 +194,11 @@ async def create_generation_job(
     Create an async narrative generation job.
     Returns immediately with a job ID that can be polled for status.
     """
-    df = load_snapshot(request.dataset_id)
+    config = _metadata_store.get_config(request.dataset_id)
+    ru = (config or {}).get("resource_url") or None
+    df = load_snapshot(request.dataset_id, ru) if ru else None
+    if df is None:
+        df = load_snapshot(request.dataset_id)
     if df is None:
         raise HTTPException(status_code=404, detail=f"Dataset '{request.dataset_id}' not found or cache expired")
 

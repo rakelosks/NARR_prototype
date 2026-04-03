@@ -5,15 +5,17 @@ For async/long-running jobs, use the /jobs endpoint instead.
 """
 
 import logging
+import os
 import re
 import unicodedata
 from typing import Optional
+from urllib.parse import unquote
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from config import settings
-from data.cache.parquet_cache import load_snapshot, snapshot_exists, save_snapshot
+from data.cache.parquet_cache import load_snapshot, save_snapshot
 from data.profiling.profiler import profile_dataset, coerce_numeric_text_columns
 from data.profiling.matcher import match_template, MatchResult, TemplateMatch
 from data.profiling.template_definitions import TemplateType, TEMPLATE_MAP
@@ -155,8 +157,17 @@ _TOPIC_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
          "þjónusta", "thjonusta"],
     ),
     (
-        ("kindergarten", "preschool", "leikskol"),
-        ["leikskóli", "leikskoli", "leikskóla", "leikskola"],
+        ("kindergarten", "preschool", "leikskol", "waiting list", "waitlist",
+         "daycare", "bidlisti", "bidlista"),
+        ["leikskóli", "leikskoli", "leikskóla", "leikskola",
+         "biðlisti", "bidlisti", "biðlista", "bidlista",
+         "aldursbil", "aldursbili", "aldur",
+         "hverfi", "hverfum", "hverfa"],
+    ),
+    (
+        ("district", "neighborhood", "neighbourhood", "borough", "ward",
+         "hverfi", "hverfum"),
+        ["hverfi", "hverfum", "hverfa", "svæði", "svaedi"],
     ),
     (
         ("primary school", "elementary school", "grunnskol"),
@@ -184,6 +195,12 @@ _TOPIC_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
         ["hjólreiðar hjólateljari", "hjólreiðar hjólateljurum",
          "hjólreiðar", "hjolreidar", "hjólateljari", "hjolateljari",
          "hjólateljurum", "hjolateljurum", "reiðhjól", "reidhjol"],
+    ),
+    (
+        ("saltbox", "salt box", "saltkistur", "saltkistu",
+         "salt box house", "saltbox house"),
+        ["saltkistur", "saltkistu", "saltkistuhús", "saltkistuhus",
+         "saltkista"],
     ),
 ]
 
@@ -318,6 +335,73 @@ def _build_scoring_keywords(
             seen.add(folded)
             out.append(kw)
     return out
+
+
+def _build_full_scoring_keywords(
+    dataset_query: str,
+    dataset_query_local: str,
+    user_message: str,
+) -> list[str]:
+    """Scoring keywords for packages *and* resources, including topic-hint aliases."""
+    scoring_keywords = _build_scoring_keywords(
+        dataset_query, dataset_query_local, user_message,
+    )
+    for src in (dataset_query, dataset_query_local, user_message):
+        for term in _topic_hint_terms(src):
+            folded = _ascii_fold(term)
+            for word in folded.split():
+                existing = {_ascii_fold(k) for k in scoring_keywords}
+                if word not in existing:
+                    scoring_keywords.append(word)
+    return scoring_keywords
+
+
+def _normalize_resource_url(url: str) -> str:
+    if not url:
+        return ""
+    return unquote(url.split("?", 1)[0]).rstrip("/")
+
+
+def _find_resource_by_url(supported, url: str):
+    """Match a CKAN resource by full URL or by filename (basename)."""
+    if not url or not supported:
+        return None
+    norm = _normalize_resource_url(url)
+    for r in supported:
+        if not r.url:
+            continue
+        if _normalize_resource_url(r.url) == norm:
+            return r
+    target_base = os.path.basename(norm).lower()
+    if not target_base:
+        return None
+    for r in supported:
+        if not r.url:
+            continue
+        rb = os.path.basename(_normalize_resource_url(r.url)).lower()
+        if rb == target_base:
+            return r
+    return None
+
+
+def _resource_keyword_score(resource, scoring_keywords: list[str]) -> float:
+    """Score a downloadable resource by name, description, and URL basename."""
+    url = resource.url or ""
+    try:
+        basename = os.path.basename(_normalize_resource_url(url))
+    except Exception:
+        basename = ""
+    haystack = _ascii_fold(
+        f"{resource.name} {resource.description} {basename}"
+    )
+    score = 0.0
+    for kw in scoring_keywords:
+        folded = _ascii_fold(kw)
+        if folded in haystack:
+            score += 1.0
+        elif _stem_prefix(folded) in haystack:
+            score += 0.7
+    return score
 
 
 async def _search_ckan(
@@ -476,18 +560,9 @@ async def _find_dataset(
 
     logger.info(f"Dataset search terms: {search_terms}")
 
-    scoring_keywords = _build_scoring_keywords(
+    scoring_keywords = _build_full_scoring_keywords(
         dataset_query, dataset_query_local, user_message,
     )
-    # Inject topic-hint terms into scoring so the most specific dataset wins.
-    # E.g. "hjólateljari" boosts datasets about bicycle *counters* above
-    # generic bicycle datasets.
-    for src in (dataset_query, dataset_query_local, user_message):
-        for term in _topic_hint_terms(src):
-            folded = _ascii_fold(term)
-            for word in folded.split():
-                if word not in {_ascii_fold(k) for k in scoring_keywords}:
-                    scoring_keywords.append(word)
     logger.info(f"Scoring keywords: {scoring_keywords}")
 
     client = CKANClient(settings.ckan_portal_url)
@@ -551,19 +626,35 @@ async def _find_dataset(
 _YEAR_IN_NAME = re.compile(r"((?:19|20)\d{2})")
 
 
-def _pick_best_resource(resources: list) -> object:
-    """Choose the best resource from a list of supported CKAN resources.
+def _pick_best_resource(resources: list, scoring_keywords: Optional[list[str]] = None) -> object:
+    """Choose the best supported CKAN resource.
 
-    When multiple resources exist with a year embedded in their name or
-    URL (e.g. ``data_2023.csv``, ``data_2024.csv``), pick the one with
-    the highest (most recent) year.  Otherwise fall back to the first
-    resource in the list.
+    When *scoring_keywords* is non-empty, rank resources by keyword overlap
+    on name, description, and URL basename; break ties with the newest year
+    in name/URL.  Without keywords, tie-break by year only, then list order.
     """
     if len(resources) <= 1:
         return resources[0]
 
+    pool = resources
+    if scoring_keywords:
+        kw_scored: list[tuple[float, int, object]] = []
+        for idx, r in enumerate(resources):
+            score = _resource_keyword_score(r, scoring_keywords)
+            kw_scored.append((score, -idx, r))
+        kw_scored.sort(key=lambda t: (t[0], t[1]), reverse=True)
+        best_kw = kw_scored[0][0]
+        pool = [t[2] for t in kw_scored if t[0] == best_kw]
+        if len(pool) == 1:
+            label = pool[0].name or pool[0].url or ""
+            logger.info(
+                f"Picked resource '{label}' by keyword score {best_kw} "
+                f"from {len(resources)} candidates"
+            )
+            return pool[0]
+
     scored: list[tuple[int, int, object]] = []
-    for idx, r in enumerate(resources):
+    for idx, r in enumerate(pool):
         text = f"{r.name} {r.url}"
         years = _YEAR_IN_NAME.findall(text)
         max_year = max(int(y) for y in years) if years else 0
@@ -574,61 +665,113 @@ def _pick_best_resource(resources: list) -> object:
     if best[0] > 0:
         logger.info(
             f"Picked resource '{best[2].name or best[2].url}' "
-            f"(year {best[0]}) from {len(resources)} candidates"
+            f"(year {best[0]}) from {len(pool)} candidates"
         )
     return best[2]
 
 
-async def _get_dataframe(dataset_id: str, config: Optional[dict] = None):
+async def _get_dataframe(
+    dataset_id: str,
+    config: Optional[dict] = None,
+    scoring_keywords: Optional[list[str]] = None,
+):
     """
     Get a DataFrame for a dataset, using TTL cache or re-downloading.
-    Returns (df, resource_url, ckan_dataset_or_None).
+
+    Returns (df, resource_url, ckan_dataset_or_None, discard_stored_config).
+    *discard_stored_config* is True when the resolved resource URL differs
+    from the stored template config so column mappings must be re-matched.
     """
-    # Check TTL cache first
-    df = load_snapshot(dataset_id)
-    if df is not None:
-        resource_url = config["resource_url"] if config else ""
-        # Still fetch CKAN metadata even from cache
-        try:
-            client = CKANClient(settings.ckan_portal_url)
-            ckan_ds = await client.get_dataset(dataset_id)
-            if not resource_url and ckan_ds and ckan_ds.resources:
-                resource_url = ckan_ds.resources[0].url or ""
-        except Exception:
-            ckan_ds = None
-        return df, resource_url, ckan_ds
-
-    # Need to download — get resource URL from config or CKAN API
     client = CKANClient(settings.ckan_portal_url)
-
-    if config and config.get("resource_url"):
-        # Re-download using stored resource URL
-        logger.info(f"Re-downloading {dataset_id} from stored resource URL")
-        from data.ingestion.ckan_client import CKANResource
-        resource = CKANResource(id=dataset_id, url=config["resource_url"], format="CSV", name=dataset_id)
-        df = await client.download_resource_as_dataframe(resource)
-        save_snapshot(df, dataset_id)
-        # Fetch metadata
-        try:
-            ckan_ds = await client.get_dataset(dataset_id)
-        except Exception:
-            ckan_ds = None
-        return df, config["resource_url"], ckan_ds
-
-    # Fetch from CKAN API
-    logger.info(f"Fetching {dataset_id} from CKAN API")
     dataset = await client.get_dataset(dataset_id)
-    supported = dataset.supported_resources
+    supported = dataset.supported_resources if dataset else []
     if not supported:
         raise HTTPException(
             status_code=422,
             detail=f"Dataset '{dataset_id}' has no supported file formats (CSV/JSON/Excel).",
         )
 
-    resource = _pick_best_resource(supported)
-    df = await client.download_resource_as_dataframe(resource)
-    save_snapshot(df, dataset_id)
-    return df, resource.url, dataset
+    config_url = (config or {}).get("resource_url") or ""
+    discard_stored = False
+
+    if len(supported) == 1:
+        chosen = supported[0]
+        cu = _normalize_resource_url(config_url)
+        du = _normalize_resource_url(chosen.url or "")
+        discard_stored = bool(cu and cu != du)
+    elif scoring_keywords:
+        keyword_best = _pick_best_resource(supported, scoring_keywords)
+        cfg_res = _find_resource_by_url(supported, config_url) if config_url else None
+        kb = _resource_keyword_score(keyword_best, scoring_keywords)
+        cb = _resource_keyword_score(cfg_res, scoring_keywords) if cfg_res else -1.0
+        if cfg_res is not None and cb >= kb:
+            chosen = cfg_res
+        else:
+            chosen = keyword_best
+            if config_url and (
+                cfg_res is None
+                or _normalize_resource_url(chosen.url or "")
+                != _normalize_resource_url(cfg_res.url or "")
+            ):
+                discard_stored = True
+    elif config_url:
+        cfg_res = _find_resource_by_url(supported, config_url)
+        if cfg_res:
+            chosen = cfg_res
+        else:
+            logger.warning(
+                f"Stored resource URL not found in package '{dataset_id}', "
+                "falling back to default resource pick"
+            )
+            chosen = _pick_best_resource(supported, None)
+            discard_stored = True
+    else:
+        chosen = _pick_best_resource(supported, None)
+
+    resource_url = chosen.url or ""
+
+    df = load_snapshot(dataset_id, resource_url)
+    if df is not None:
+        return df, resource_url, dataset, discard_stored
+
+    if config_url:
+        cfg_match = _find_resource_by_url(supported, config_url)
+        if cfg_match is chosen:
+            df_legacy = load_snapshot(dataset_id)
+            if df_legacy is not None:
+                logger.info(f"Using legacy parquet cache for {dataset_id}")
+                return df_legacy, resource_url, dataset, False
+    elif len(supported) == 1:
+        df_legacy = load_snapshot(dataset_id)
+        if df_legacy is not None:
+            return df_legacy, resource_url, dataset, discard_stored
+
+    logger.info(
+        f"Downloading resource '{chosen.name or resource_url}' for {dataset_id}"
+    )
+    try:
+        df = await client.download_resource_as_dataframe(chosen)
+    except CKANError as err:
+        alt_pool = [
+            r for r in supported
+            if r.normalized_format != "geojson" and r is not chosen
+        ]
+        if chosen.normalized_format == "geojson" and alt_pool:
+            alt = _pick_best_resource(alt_pool, scoring_keywords)
+            logger.warning(
+                "GeoJSON resource failed (%s); trying '%s' instead",
+                err,
+                alt.name or alt.url,
+            )
+            chosen = alt
+            resource_url = chosen.url or ""
+            discard_stored = True
+            df = await client.download_resource_as_dataframe(chosen)
+        else:
+            raise HTTPException(status_code=502, detail=str(err)) from err
+
+    save_snapshot(df, dataset_id, resource_url)
+    return df, resource_url, dataset, discard_stored
 
 
 def _domain_hit_counts_from_profile(profile) -> dict[str, int]:
@@ -749,7 +892,16 @@ async def preview_narrative(request: GenerateRequest):
     """
     try:
         config = _metadata_store.get_config(request.dataset_id)
-        df, resource_url, ckan_ds = await _get_dataframe(request.dataset_id, config)
+        sk = None
+        if request.user_message:
+            sk = _build_full_scoring_keywords(
+                request.user_message, request.user_message, request.user_message,
+            )
+        df, resource_url, ckan_ds, discard_stored = await _get_dataframe(
+            request.dataset_id, config, sk,
+        )
+        if discard_stored:
+            config = None
 
         mt, md, mtags = "", "", None
         if ckan_ds:
@@ -799,7 +951,16 @@ async def generate_narrative(request: GenerateRequest):
     """
     try:
         config = _metadata_store.get_config(request.dataset_id)
-        df, resource_url, ckan_ds = await _get_dataframe(request.dataset_id, config)
+        sk = None
+        if request.user_message:
+            sk = _build_full_scoring_keywords(
+                request.user_message, request.user_message, request.user_message,
+            )
+        df, resource_url, ckan_ds, discard_stored = await _get_dataframe(
+            request.dataset_id, config, sk,
+        )
+        if discard_stored:
+            config = None
 
         mt, md, mtags = "", "", None
         if ckan_ds:
@@ -922,7 +1083,14 @@ async def ask_narrative(request: AskRequest):
         config = _metadata_store.get_config(ckan_slug)
 
         # Step 4: Get data (TTL cache or re-download)
-        df, resource_url, ckan_ds = await _get_dataframe(ckan_slug, config)
+        sk = _build_full_scoring_keywords(
+            dataset_query, dataset_query_local, request.user_message,
+        )
+        df, resource_url, ckan_ds, discard_stored = await _get_dataframe(
+            ckan_slug, config, sk,
+        )
+        if discard_stored:
+            config = None
 
         # Step 5: Profile and match (skip matching if config exists)
         mt, md, mtags = "", "", None

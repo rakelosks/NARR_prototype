@@ -395,17 +395,13 @@ class CKANClient:
             elif fmt == "json":
                 return pd.read_json(BytesIO(raw))
             elif fmt == "geojson":
-                import json
-                geojson = json.loads(raw)
-                features = geojson.get("features", [])
-                if not features:
-                    raise CKANError("GeoJSON contains no features")
-                rows = []
-                for f in features:
-                    row = f.get("properties", {})
-                    row["geometry"] = f.get("geometry")
-                    rows.append(row)
-                return pd.DataFrame(rows)
+                from data.ingestion.loader import dataframe_from_geojson_bytes
+
+                label = resource.name or resource.url or resource.id
+                try:
+                    return dataframe_from_geojson_bytes(raw)
+                except ValueError as e:
+                    raise CKANError(f"GeoJSON resource '{label}': {e}") from e
             elif fmt in ("xls", "xlsx"):
                 return pd.read_excel(BytesIO(raw))
             else:

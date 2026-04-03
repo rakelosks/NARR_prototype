@@ -2,8 +2,13 @@
 Parquet-based data caching with TTL expiration.
 Provides columnar storage optimized for analytical workloads.
 Files auto-expire after a configurable TTL (default 24 hours).
+
+Snapshots are keyed by dataset_id plus an optional resource URL hash so
+different CSV resources under the same CKAN package do not overwrite each
+other (legacy files named ``{dataset_id}.parquet`` are still supported).
 """
 
+import hashlib
 import os
 import time
 import logging
@@ -18,8 +23,16 @@ logger = logging.getLogger(__name__)
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "snapshots")
 
 
-def _filepath(dataset_id: str) -> str:
-    return os.path.join(CACHE_DIR, f"{dataset_id}.parquet")
+def _snapshot_stem(dataset_id: str, resource_url: Optional[str] = None) -> str:
+    if not resource_url:
+        return dataset_id
+    digest = hashlib.sha256(resource_url.encode("utf-8")).hexdigest()[:16]
+    return f"{dataset_id}__{digest}"
+
+
+def _filepath(dataset_id: str, resource_url: Optional[str] = None) -> str:
+    stem = _snapshot_stem(dataset_id, resource_url)
+    return os.path.join(CACHE_DIR, f"{stem}.parquet")
 
 
 def _is_expired(filepath: str) -> bool:
@@ -30,17 +43,35 @@ def _is_expired(filepath: str) -> bool:
     return age_hours > settings.cache_ttl_hours
 
 
-def save_snapshot(df: pd.DataFrame, dataset_id: str) -> str:
+def save_snapshot(
+    df: pd.DataFrame, dataset_id: str, resource_url: Optional[str] = None,
+) -> str:
     """Save a DataFrame as a Parquet snapshot."""
     os.makedirs(CACHE_DIR, exist_ok=True)
-    path = _filepath(dataset_id)
+    path = _filepath(dataset_id, resource_url)
     df.to_parquet(path, index=False)
     return path
 
 
-def load_snapshot(dataset_id: str) -> Optional[pd.DataFrame]:
-    """Load a Parquet snapshot if it exists and is fresh. Returns None if missing or expired."""
-    path = _filepath(dataset_id)
+def load_snapshot(
+    dataset_id: str, resource_url: Optional[str] = None,
+) -> Optional[pd.DataFrame]:
+    """Load a Parquet snapshot if it exists and is fresh. Returns None if missing or expired.
+
+    When *resource_url* is set, loads the composite key snapshot. When it is
+    omitted, only the legacy ``{dataset_id}.parquet`` file is considered.
+    """
+    if resource_url:
+        path = _filepath(dataset_id, resource_url)
+        if os.path.exists(path):
+            if _is_expired(path):
+                logger.info(f"Snapshot expired for {dataset_id} (resource hash), removing")
+                os.remove(path)
+                return None
+            return pd.read_parquet(path)
+        return None
+
+    path = _filepath(dataset_id, None)
     if not os.path.exists(path):
         return None
     if _is_expired(path):
@@ -50,9 +81,11 @@ def load_snapshot(dataset_id: str) -> Optional[pd.DataFrame]:
     return pd.read_parquet(path)
 
 
-def snapshot_exists(dataset_id: str) -> bool:
-    """Check if a fresh snapshot exists for a dataset."""
-    path = _filepath(dataset_id)
+def snapshot_exists(
+    dataset_id: str, resource_url: Optional[str] = None,
+) -> bool:
+    """Check if a fresh snapshot exists for a dataset (optionally for one resource)."""
+    path = _filepath(dataset_id, resource_url)
     if not os.path.exists(path):
         return False
     if _is_expired(path):
