@@ -253,21 +253,12 @@ class AnalyticsEngine:
         for mcol in measure_cols:
             safe_m = f'"{mcol}"'
 
-            # When data is grouped, aggregate per period so we compare
-            # like-for-like totals instead of random group rows.
             if group_col:
-                safe_group = f'"{group_col}"'
-                agg_labels = ", ".join(
-                    f"'{lbl}'" for lbl in self._AGGREGATE_LABELS
+                # Compute trend per group so we don't sum unrelated
+                # categories (e.g. children vs. requests).
+                trend[mcol] = self._compute_grouped_trend(
+                    conn, safe_time, safe_m, group_col,
                 )
-                ts_rows = conn.execute(f"""
-                    SELECT {safe_time} as period, SUM({safe_m}) as val
-                    FROM dataset
-                    WHERE {safe_m} IS NOT NULL
-                      AND LOWER(TRIM({safe_group})) NOT IN ({agg_labels})
-                    GROUP BY {safe_time}
-                    ORDER BY {safe_time}
-                """).fetchall()
             else:
                 ts_rows = conn.execute(f"""
                     SELECT {safe_time} as period, {safe_m} as val
@@ -275,52 +266,8 @@ class AnalyticsEngine:
                     WHERE {safe_m} IS NOT NULL
                     ORDER BY {safe_time}
                 """).fetchall()
-
-            if not ts_rows:
-                continue
-
-            first_val = float(ts_rows[0][1])
-            last_val = float(ts_rows[-1][1])
-            pct_change = round(((last_val - first_val) / first_val) * 100, 2) if first_val != 0 else 0
-
-            # Peak and trough detection
-            values = [float(r[1]) for r in ts_rows]
-            periods = [str(r[0]) for r in ts_rows]
-            peak_val = max(values)
-            peak_idx = values.index(peak_val)
-            trough_val = min(values)
-            trough_idx = values.index(trough_val)
-
-            trend_info = {
-                "first": first_val,
-                "last": last_val,
-                "pct_change": pct_change,
-                "direction": "increasing" if last_val > first_val else "decreasing" if last_val < first_val else "stable",
-                "peak": peak_val,
-                "peak_period": periods[peak_idx],
-                "trough": trough_val,
-                "trough_period": periods[trough_idx],
-            }
-
-            # Detect shape: is it rise-then-fall, steady, etc.?
-            # If peak is not at the end and the drop from peak is significant
-            if peak_idx < len(values) - 1 and peak_val > 0:
-                drop_from_peak = peak_val - last_val
-                drop_pct = round((drop_from_peak / peak_val) * 100, 1)
-                if drop_pct > 15:
-                    trend_info["shape"] = "rise_then_fall"
-                    trend_info["drop_from_peak_pct"] = drop_pct
-                    trend_info["drop_from_peak"] = round(drop_from_peak, 2)
-
-            # If trough is not at the start and the recovery is significant
-            if trough_idx > 0 and trough_idx < len(values) - 1:
-                recovery = last_val - trough_val
-                if trough_val > 0:
-                    recovery_pct = round((recovery / trough_val) * 100, 1)
-                    if recovery_pct > 15:
-                        trend_info["recovery_from_trough_pct"] = recovery_pct
-
-            trend[mcol] = trend_info
+                if ts_rows:
+                    trend[mcol] = self._compute_trend_info(ts_rows)
 
         # Build aggregation table
         select_cols = [safe_time] + [f'"{m}"' for m in measure_cols]
@@ -1125,6 +1072,194 @@ class AnalyticsEngine:
         "alls", "samtals", "total", "all", "heild", "sum",
         "allt", "samtala", "totalt", "yhteensä", "yhteensa",
     }
+
+    # ------------------------------------------------------------------
+    # Trend helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _compute_trend_info(ts_rows: list) -> dict:
+        """Compute trend stats from a list of (period, value) rows."""
+        first_val = float(ts_rows[0][1])
+        last_val = float(ts_rows[-1][1])
+        pct_change = (
+            round(((last_val - first_val) / first_val) * 100, 2)
+            if first_val != 0
+            else 0
+        )
+
+        values = [float(r[1]) for r in ts_rows]
+        periods = [str(r[0]) for r in ts_rows]
+        peak_val = max(values)
+        peak_idx = values.index(peak_val)
+        trough_val = min(values)
+        trough_idx = values.index(trough_val)
+
+        info: dict = {
+            "first": first_val,
+            "last": last_val,
+            "pct_change": pct_change,
+            "direction": (
+                "increasing" if last_val > first_val
+                else "decreasing" if last_val < first_val
+                else "stable"
+            ),
+            "peak": peak_val,
+            "peak_period": periods[peak_idx],
+            "trough": trough_val,
+            "trough_period": periods[trough_idx],
+        }
+
+        if peak_idx < len(values) - 1 and peak_val > 0:
+            drop_from_peak = peak_val - last_val
+            drop_pct = round((drop_from_peak / peak_val) * 100, 1)
+            if drop_pct > 15:
+                info["shape"] = "rise_then_fall"
+                info["drop_from_peak_pct"] = drop_pct
+                info["drop_from_peak"] = round(drop_from_peak, 2)
+
+        if trough_idx > 0 and trough_idx < len(values) - 1:
+            recovery = last_val - trough_val
+            if trough_val > 0:
+                recovery_pct = round((recovery / trough_val) * 100, 1)
+                if recovery_pct > 15:
+                    info["recovery_from_trough_pct"] = recovery_pct
+
+        # Detect incomplete current-year data: if the last period is the
+        # current calendar year the values likely cover only a few months,
+        # making year-over-year comparisons misleading.
+        from datetime import datetime
+        current_year = datetime.now().year
+        last_period_str = periods[-1]
+        try:
+            last_year = int(float(last_period_str[:4]))
+            if last_year == current_year:
+                info["incomplete_period"] = True
+                info["incomplete_period_label"] = str(last_year)
+        except (ValueError, IndexError):
+            pass
+
+        return info
+
+    def _compute_grouped_trend(
+        self,
+        conn,
+        safe_time: str,
+        safe_measure: str,
+        group_col: str,
+    ) -> dict:
+        """Compute trend per group and return combined trend info.
+
+        The top-level keys (first, last, peak, etc.) represent the
+        **overall total** — sourced from an aggregate row in the data
+        (e.g. "Alls") when one exists, or computed by summing across
+        groups per period.  A ``groups`` dict contains per-group trend
+        info for richer narratives.
+        """
+        safe_group = f'"{group_col}"'
+        agg_labels = ", ".join(f"'{lbl}'" for lbl in self._AGGREGATE_LABELS)
+
+        # 1. Fetch the aggregate/total row (e.g. "Alls") for overall trend
+        agg_rows = conn.execute(f"""
+            SELECT {safe_time} as period, {safe_measure} as val
+            FROM dataset
+            WHERE {safe_measure} IS NOT NULL
+              AND LOWER(TRIM({safe_group})) IN ({agg_labels})
+            ORDER BY {safe_time}
+        """).fetchall()
+
+        # 2. Fetch per-group rows (excluding aggregates)
+        rows = conn.execute(f"""
+            SELECT {safe_group} as grp, {safe_time} as period, {safe_measure} as val
+            FROM dataset
+            WHERE {safe_measure} IS NOT NULL
+              AND LOWER(TRIM({safe_group})) NOT IN ({agg_labels})
+            ORDER BY {safe_group}, {safe_time}
+        """).fetchall()
+
+        if not rows:
+            return {}
+
+        # Partition rows by group
+        from collections import OrderedDict
+        groups: OrderedDict[str, list] = OrderedDict()
+        for grp, period, val in rows:
+            grp_str = str(grp)
+            groups.setdefault(grp_str, []).append((period, val))
+
+        per_group: dict[str, dict] = {}
+        for grp_name, grp_rows in groups.items():
+            if grp_rows:
+                per_group[grp_name] = self._compute_trend_info(grp_rows)
+
+        if not per_group:
+            return {}
+
+        # 3. Determine the overall/total trend.
+        #    Prefer the aggregate row from the data (most reliable),
+        #    otherwise compute totals by summing across groups per period.
+        overall_trend = None
+        if agg_rows:
+            overall_trend = self._compute_trend_info(agg_rows)
+            overall_trend["total_source"] = "aggregate_row"
+        else:
+            from collections import defaultdict
+            period_totals: defaultdict[str, float] = defaultdict(float)
+            period_order: list[str] = []
+            seen: set[str] = set()
+            for grp_name, grp_rows in groups.items():
+                for period, val in grp_rows:
+                    p_str = str(period)
+                    period_totals[p_str] += float(val)
+                    if p_str not in seen:
+                        period_order.append(p_str)
+                        seen.add(p_str)
+            if period_totals:
+                total_rows = [(p, period_totals[p]) for p in period_order]
+                overall_trend = self._compute_trend_info(total_rows)
+                overall_trend["total_source"] = "computed_sum"
+
+        if overall_trend:
+            result = dict(overall_trend)
+            result["is_total"] = True
+        else:
+            primary_name = next(iter(per_group))
+            result = dict(per_group[primary_name])
+            result["primary_group"] = primary_name
+
+        result["groups"] = per_group
+
+        # 4. Compare groups at the latest period so the narrative can
+        #    highlight gaps (e.g. more requests than children served).
+        latest_values: dict[str, float] = {}
+        latest_period = None
+        for grp_name, grp_rows in groups.items():
+            if grp_rows:
+                period, val = grp_rows[-1]
+                latest_period = str(period)
+                latest_values[grp_name] = float(val)
+
+        if len(latest_values) >= 2 and latest_period is not None:
+            sorted_groups = sorted(
+                latest_values.items(), key=lambda kv: kv[1], reverse=True,
+            )
+            highest_name, highest_val = sorted_groups[0]
+            lowest_name, lowest_val = sorted_groups[-1]
+            gap = highest_val - lowest_val
+            gap_pct = (
+                round((gap / lowest_val) * 100, 1)
+                if lowest_val > 0 else None
+            )
+            result["latest_period_comparison"] = {
+                "period": latest_period,
+                "values": latest_values,
+                "highest": {"group": highest_name, "value": highest_val},
+                "lowest": {"group": lowest_name, "value": lowest_val},
+                "gap": round(gap, 2),
+                "gap_pct": gap_pct,
+            }
+
+        return result
 
     def _find_measure_columns(self, df: pd.DataFrame, columns: dict) -> list[str]:
         """Find all numerical columns suitable as measures.

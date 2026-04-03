@@ -144,6 +144,46 @@ def _finance_hint_terms(text: str) -> list[str]:
     ]
 
 
+# Deterministic English → Icelandic topic aliases for CKAN search.
+# Each entry: (english_triggers, icelandic_search_terms)
+_TOPIC_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
+    (
+        ("school service", "school-service", "schoolservice",
+         "skolathjonusta", "skolathjonu"),
+        ["skólaþjónusta", "skolathjonusta", "skóli", "skoli",
+         "þjónusta", "thjonusta"],
+    ),
+    (
+        ("kindergarten", "preschool", "leikskol"),
+        ["leikskóli", "leikskoli", "leikskóla", "leikskola"],
+    ),
+    (
+        ("primary school", "elementary school", "grunnskol"),
+        ["grunnskóli", "grunnskoli", "grunnskóla", "grunnskola"],
+    ),
+    (
+        ("waste", "garbage", "rubbish", "recycling", "sorp"),
+        ["sorp", "úrgangur", "urgangur", "endurvinnsla"],
+    ),
+    (
+        ("public transport", "bus ridership", "transit",
+         "almenningssamgong", "straeto"),
+        ["strætó", "straeto", "almenningssamgöngur",
+         "almenningssamgongur", "farþegafjöldi"],
+    ),
+]
+
+
+def _topic_hint_terms(text: str) -> list[str]:
+    """Add deterministic Icelandic aliases for known English topics."""
+    folded = _ascii_fold(text)
+    hints: list[str] = []
+    for triggers, terms in _TOPIC_HINTS:
+        if any(t in folded for t in triggers):
+            hints.extend(terms)
+    return hints
+
+
 def _dedupe_terms(terms: list[str]) -> list[str]:
     """Deduplicate while preserving order, dropping empty terms."""
     seen = set()
@@ -385,6 +425,9 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
     search_terms.extend(_finance_hint_terms(dataset_query))
     search_terms.extend(_finance_hint_terms(dataset_query_local))
     search_terms.extend(_finance_hint_terms(user_message))
+    search_terms.extend(_topic_hint_terms(dataset_query))
+    search_terms.extend(_topic_hint_terms(dataset_query_local))
+    search_terms.extend(_topic_hint_terms(user_message))
     search_terms = _dedupe_terms(search_terms)
 
     logger.info(f"Dataset search terms: {search_terms}")

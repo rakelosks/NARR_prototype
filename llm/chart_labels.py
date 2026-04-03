@@ -86,16 +86,24 @@ class ChartLabeler:
             period = f"{str(date_range['min'])[:4]}\u2013{str(date_range['max'])[:4]}"
 
         dataset_title = self._dataset_title(bundle)
+        title_lang_matches = dataset_title and self._title_matches_language(
+            dataset_title, language,
+        )
 
         seen: set[str] = set()
         for idx, viz in enumerate(bundle.visualizations):
             if dataset_title:
-                title = self._compose_title_from_dataset(
-                    dataset_title=dataset_title,
-                    period=period,
-                    template_type=bundle.template_type,
-                    language=language,
-                )
+                if title_lang_matches:
+                    title = self._compose_title_from_dataset(
+                        dataset_title=dataset_title,
+                        period=period,
+                        template_type=bundle.template_type,
+                        language=language,
+                    )
+                else:
+                    # Narrative language doesn't match dataset title language.
+                    # Use a generic all-English title to avoid mixed languages.
+                    title = f"Dataset overview ({period})" if period else "Dataset overview"
             else:
                 subject = self._localized_subject(bundle, language)
                 metric_phrase = self._infer_metric_phrase_for_chart(
@@ -114,12 +122,13 @@ class ChartLabeler:
 
             key = title.lower()
             if key in seen:
-                # Try to differentiate by the measure shown in the chart
                 measure_label = self._extract_measure_label(viz)
+                desc_lower = (viz.description or "").lower()
+                is_latest = "latest" in desc_lower or "most recent" in desc_lower
+
                 if measure_label:
-                    # Use only the latest year for "latest period" charts
-                    desc_lower = (viz.description or "").lower()
-                    is_latest = "latest" in desc_lower or "most recent" in desc_lower
+                    if not title_lang_matches:
+                        measure_label = _ascii_fold(measure_label).strip().title()
                     if is_latest and date_range.get("max"):
                         year_str = str(date_range["max"])[:4]
                         title = f"{measure_label} ({year_str})"
@@ -128,11 +137,13 @@ class ChartLabeler:
                     else:
                         title = measure_label
                 else:
-                    # Fallback to chart-type qualifier
                     qualifier = self._chart_type_qualifier(
                         viz.chart_type, language,
                     )
-                    title = f"{title} — {qualifier}"
+                    if not title_lang_matches:
+                        title = f"Dataset overview \u2014 {qualifier}"
+                    else:
+                        title = f"{title} \u2014 {qualifier}"
             seen.add(title.lower())
 
             viz.title = title[:120]
@@ -146,6 +157,19 @@ class ChartLabeler:
 
             if language != "en":
                 self._localize_axis_labels(viz.vega_lite_spec, language)
+
+    @staticmethod
+    def _title_matches_language(title: str, language: str) -> bool:
+        """Check if a dataset title appears to be in the requested language.
+
+        Uses a simple heuristic: non-ASCII characters (accented letters)
+        indicate a non-English title.
+        """
+        has_non_ascii = _contains_non_ascii(title)
+        if language.startswith("en"):
+            return not has_non_ascii
+        # For non-English narrative languages, a non-ASCII title is expected
+        return has_non_ascii
 
     @staticmethod
     def _extract_measure_label(viz) -> Optional[str]:

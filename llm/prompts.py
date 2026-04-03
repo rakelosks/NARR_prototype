@@ -384,8 +384,14 @@ You must respond with ONLY a valid JSON object matching this schema:
         if bundle.visualizations:
             for i, viz in enumerate(bundle.visualizations):
                 primary_tag = " (primary)" if viz.is_primary else " (secondary)"
+                desc = f" — {viz.description}" if viz.description else ""
                 parts.append(
-                    f"Chart {i}{primary_tag}: {viz.chart_type} — \"{viz.title}\""
+                    f"Chart {i}{primary_tag}: {viz.chart_type} — \"{viz.title}\"{desc}"
+                )
+                parts.append(
+                    f"  → Your narrative block for this chart should describe "
+                    f"what THIS specific chart shows, not repeat the same "
+                    f"analysis from another chart."
                 )
             num_viz = len(bundle.visualizations)
             if num_viz == 1:
@@ -441,7 +447,9 @@ You must respond with ONLY a valid JSON object matching this schema:
                 f"Focus on the time period: {intent.time_range}",
             ])
 
-        parts.extend([
+        # Build final instruction block, reinforcing language at the very end
+        # so it's the last thing the model sees before generating.
+        instruction_lines = [
             "",
             "=== INSTRUCTION ===",
             "Generate an editorial data story based on the evidence above.",
@@ -451,7 +459,14 @@ You must respond with ONLY a valid JSON object matching this schema:
             "real-world size or weight comparisons — they are usually wrong.",
             "Prepare the reader for each chart by describing what to look for.",
             "Respond with ONLY the JSON object, no other text.",
-        ])
+        ]
+        if intent.language != "en":
+            lang_name = _LANGUAGE_NAMES.get(intent.language, intent.language)
+            instruction_lines.append(
+                f"REMINDER: Write ALL narrative text in {lang_name}. "
+                f"Only JSON keys stay in English."
+            )
+        parts.extend(instruction_lines)
 
         return "\n".join(parts)
 

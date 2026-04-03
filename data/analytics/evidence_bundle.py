@@ -226,8 +226,19 @@ class EvidenceBundle(BaseModel):
         lines.append(f"Total periods: {m.get('total_periods')}")
 
         for col, trend in m.get("trend", {}).items():
+            # Label the trend clearly as "total" when it comes from an
+            # aggregate row or computed sum, so the LLM doesn't confuse
+            # it with a single group's numbers.
+            total_label = ""
+            if trend.get("is_total"):
+                src = trend.get("total_source", "")
+                if src == "aggregate_row":
+                    total_label = " [TOTAL from aggregate row]"
+                else:
+                    total_label = " [TOTAL summed across groups]"
+
             lines.append(
-                f"Trend ({col}): {trend['direction']}, "
+                f"Overall trend ({col}){total_label}: {trend['direction']}, "
                 f"from {trend['first']} to {trend['last']} "
                 f"({trend['pct_change']:+.1f}%)"
             )
@@ -247,6 +258,62 @@ class EvidenceBundle(BaseModel):
                 lines.append(
                     f"  Trough: {trend['trough']} at {trend.get('trough_period', '?')}, "
                     f"then recovered {trend['recovery_from_trough_pct']:.0f}%"
+                )
+
+            # Incomplete current-year warning
+            if trend.get("incomplete_period"):
+                year_label = trend.get("incomplete_period_label", "this year")
+                lines.append(
+                    f"  ⚠ YEAR-TO-DATE: The {year_label} figure ({trend['last']}) "
+                    f"covers only the first months of the year, NOT the full year. "
+                    f"Any apparent drop from the previous year to {year_label} is "
+                    f"partly (or largely) because the year is still in progress. "
+                    f"You MUST mention this caveat when discussing recent changes. "
+                    f"Do NOT present the {year_label} number as a completed annual total."
+                )
+
+            # Per-group trend summaries so the LLM can discuss individual
+            # groups (districts, categories, etc.) accurately.
+            per_group = trend.get("groups", {})
+            if per_group:
+                lines.append(f"  Per-group trends ({col}):")
+                for grp_name, grp_trend in per_group.items():
+                    direction = grp_trend.get("direction", "?")
+                    first = grp_trend.get("first", "?")
+                    last = grp_trend.get("last", "?")
+                    pct = grp_trend.get("pct_change", 0)
+                    lines.append(
+                        f"    {grp_name}: {direction}, "
+                        f"from {first} to {last} ({pct:+.1f}%)"
+                    )
+                    if grp_trend.get("incomplete_period"):
+                        year_label = grp_trend.get("incomplete_period_label", "this year")
+                        lines.append(
+                            f"      ⚠ YEAR-TO-DATE: {year_label} figure "
+                            f"({last}) is year-to-date only."
+                        )
+
+            # Latest-period group comparison for categorical bar chart context
+            comparison = trend.get("latest_period_comparison")
+            if comparison and len(comparison.get("values", {})) >= 2:
+                period = comparison["period"]
+                lines.append(f"  Latest period group comparison ({period}):")
+                for grp, val in comparison["values"].items():
+                    lines.append(f"    {grp}: {val:,.0f}")
+                highest = comparison["highest"]
+                lowest = comparison["lowest"]
+                gap = comparison["gap"]
+                gap_pct = comparison.get("gap_pct")
+                gap_str = f" ({gap_pct:.1f}% higher)" if gap_pct else ""
+                lines.append(
+                    f"    → {highest['group']} is {gap:,.0f} higher than "
+                    f"{lowest['group']}{gap_str}"
+                )
+                lines.append(
+                    f"  ⚠ CHART INSIGHT: The bar chart for this period compares "
+                    f"these categories side by side. Describe what the GAP between "
+                    f"them means — e.g. if requests exceed the number of people "
+                    f"served, it may indicate unmet demand."
                 )
 
         for col, stats in m.get("summary_stats", {}).items():
