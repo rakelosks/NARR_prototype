@@ -142,6 +142,7 @@ ENVIRONMENTAL_TEMPLATE = DatasetTemplate(
     domain_keywords=[
         "air_quality", "pm2_5", "pm10", "no2", "co2", "ozone",
         "temperature", "humidity", "noise", "emission", "pollution", "sensor",
+        "concentration", "substance", "exceedance", "measurement",
     ],
     chart_recommendations=[
         ChartRecommendation(

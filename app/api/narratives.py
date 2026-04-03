@@ -631,7 +631,43 @@ async def _get_dataframe(dataset_id: str, config: Optional[dict] = None):
     return df, resource.url, dataset
 
 
-def _profile_and_match(df, dataset_id: str, config: Optional[dict] = None, resource_url: str = ""):
+def _domain_hit_counts_from_profile(profile) -> dict[str, int]:
+    """Count how many columns emit each keyword-dictionary domain signal."""
+    counts: dict[str, int] = {}
+    for col in profile.columns:
+        sig = col.keyword_signal
+        if not sig or not sig.domain_signals:
+            continue
+        for d in sig.domain_signals:
+            counts[d] = counts.get(d, 0) + 1
+    return counts
+
+
+def _stored_budget_config_is_stale(profile, config: dict) -> bool:
+    """
+    Detect a previously saved *budget* template that should be re-matched.
+
+    Older runs stored *budget* because Icelandic *styrkur* matched *grant*.
+    After dictionary fixes, many columns still signal *environmental* while
+    the on-disk config keeps forcing the wrong template.
+    """
+    if not config or config.get("template_type") != "budget":
+        return False
+    c = _domain_hit_counts_from_profile(profile)
+    env = c.get("environmental", 0)
+    bud = c.get("budget", 0)
+    return env >= 2 and env > bud
+
+
+def _profile_and_match(
+    df,
+    dataset_id: str,
+    config: Optional[dict] = None,
+    resource_url: str = "",
+    metadata_title: str = "",
+    metadata_description: str = "",
+    metadata_tags: Optional[list[str]] = None,
+):
     """
     Profile a dataset and match a template.
     If a config exists, skip match_template() and reconstruct from stored config.
@@ -646,6 +682,13 @@ def _profile_and_match(df, dataset_id: str, config: Optional[dict] = None, resou
 
     profile_source = resource_url or settings.ckan_portal_url
     profile = profile_dataset(df, dataset_id=dataset_id, source=profile_source)
+
+    if config and _stored_budget_config_is_stale(profile, config):
+        logger.info(
+            f"Discarding stale stored 'budget' template for {dataset_id} "
+            f"(environmental column signals outweigh budget); re-matching"
+        )
+        config = None
 
     if config:
         # Try to reuse stored template configuration
@@ -670,7 +713,12 @@ def _profile_and_match(df, dataset_id: str, config: Optional[dict] = None, resou
 
     if not config:
         # First time or stale config: full matching
-        match = match_template(profile)
+        match = match_template(
+            profile,
+            metadata_title=metadata_title or "",
+            metadata_description=metadata_description or "",
+            metadata_tags=metadata_tags,
+        )
         if match.best_match and match.best_match.is_viable:
             _metadata_store.save_config(
                 dataset_id=dataset_id,
@@ -703,7 +751,16 @@ async def preview_narrative(request: GenerateRequest):
         config = _metadata_store.get_config(request.dataset_id)
         df, resource_url, ckan_ds = await _get_dataframe(request.dataset_id, config)
 
-        profile, match = _profile_and_match(df, request.dataset_id, config, resource_url)
+        mt, md, mtags = "", "", None
+        if ckan_ds:
+            mt = ckan_ds.title or ""
+            md = ckan_ds.notes or ""
+            mtags = list(ckan_ds.tags) if ckan_ds.tags else None
+
+        profile, match = _profile_and_match(
+            df, request.dataset_id, config, resource_url,
+            metadata_title=mt, metadata_description=md, metadata_tags=mtags,
+        )
 
         if not match.best_match or not match.best_match.is_viable:
             raise HTTPException(
@@ -744,7 +801,16 @@ async def generate_narrative(request: GenerateRequest):
         config = _metadata_store.get_config(request.dataset_id)
         df, resource_url, ckan_ds = await _get_dataframe(request.dataset_id, config)
 
-        profile, match = _profile_and_match(df, request.dataset_id, config, resource_url)
+        mt, md, mtags = "", "", None
+        if ckan_ds:
+            mt = ckan_ds.title or ""
+            md = ckan_ds.notes or ""
+            mtags = list(ckan_ds.tags) if ckan_ds.tags else None
+
+        profile, match = _profile_and_match(
+            df, request.dataset_id, config, resource_url,
+            metadata_title=mt, metadata_description=md, metadata_tags=mtags,
+        )
 
         if not match.best_match or not match.best_match.is_viable:
             raise HTTPException(
@@ -859,7 +925,15 @@ async def ask_narrative(request: AskRequest):
         df, resource_url, ckan_ds = await _get_dataframe(ckan_slug, config)
 
         # Step 5: Profile and match (skip matching if config exists)
-        profile, match = _profile_and_match(df, ckan_slug, config, resource_url)
+        mt, md, mtags = "", "", None
+        if ckan_ds:
+            mt = ckan_ds.title or ""
+            md = ckan_ds.notes or ""
+            mtags = list(ckan_ds.tags) if ckan_ds.tags else None
+        profile, match = _profile_and_match(
+            df, ckan_slug, config, resource_url,
+            metadata_title=mt, metadata_description=md, metadata_tags=mtags,
+        )
 
         if not match.best_match or not match.best_match.is_viable:
             raise HTTPException(

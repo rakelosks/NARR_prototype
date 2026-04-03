@@ -15,6 +15,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from data.profiling.profiler import DatasetProfile, _column_name_words
+from data.profiling.keyword_dictionary import column_suggests_air_quality_context
 from data.profiling.template_definitions import (
     DatasetTemplate,
     TemplateType,
@@ -174,6 +175,7 @@ ROLE_NAME_HINTS: dict[str, set[str]] = {
     "env_measure": {
         "pm2_5", "pm10", "no2", "co2", "ozone", "temperature",
         "humidity", "noise", "emission", "pollution",
+        "concentration", "exceedance", "measurement",
     },
     "traffic_measure": {
         "traffic", "vehicle", "passenger", "ridership", "speed", "flow",
@@ -234,13 +236,58 @@ def _pick_best_candidate(candidates: list, role: str):
 
     Scores by:
       - Name hint bonus (-0.5 if column name words match the role's hints)
+      - Keyword-dictionary role hints (-0.45 when the column resolves to this role)
+      - env_measure: prefer concentration / pollutant units over exceedance counts
+      - financial_measure: deprioritize obvious environmental columns
       - Null rate (lower is better)
     """
     hints = ROLE_NAME_HINTS.get(role, set())
 
+    def _env_measure_priority(col) -> float:
+        if role != "env_measure":
+            return 0.0
+        sig = col.keyword_signal
+        if not sig:
+            return 0.0
+        mc = set(sig.matched_canonicals or [])
+        if "concentration" in mc:
+            return -0.4
+        if mc & {"pm10", "pm2_5", "no2", "ozone", "co2"}:
+            return -0.3
+        if "exceedance" in mc:
+            return -0.12
+        return 0.0
+
+    def _sig_bonus(col) -> float:
+        sig = col.keyword_signal
+        if sig and role in (sig.role_hints or []):
+            return -0.45
+        return 0.0
+
+    def _financial_env_penalty(col) -> float:
+        if role != "financial_measure":
+            return 0.0
+        sig = col.keyword_signal
+        if not sig:
+            return 0.0
+        rh = sig.role_hints or []
+        if "env_measure" in rh or (
+            column_suggests_air_quality_context(col.name)
+            and "concentration" in (sig.matched_canonicals or [])
+        ):
+            return 0.55
+        return 0.0
+
     def _score(col):
-        name_bonus = -0.5 if (hints & _column_name_words(col.name)) else 0
-        return col.null_rate + name_bonus
+        w = _column_name_words(col.name)
+        name_bonus = -0.5 if (hints & w) else 0
+        return (
+            col.null_rate
+            + name_bonus
+            + _sig_bonus(col)
+            + _env_measure_priority(col)
+            + _financial_env_penalty(col)
+        )
 
     return min(candidates, key=_score)
 

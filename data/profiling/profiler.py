@@ -140,14 +140,14 @@ def _column_name_words(col_name: str) -> set[str]:
     """
     Split a column name into a set of lowercase word tokens.
 
-    Handles common separators (_, -, ., whitespace) and camelCase.
+    Handles common separators (_, -, ., /, (), whitespace) and camelCase.
     E.g. "myLatitude_value" → {"my", "latitude", "value"}
-         "flat_rate" → {"flat", "rate"}
+         "Styrkur i (ug/ m3)" → {"styrkur", "i", "ug", "m3"}
     """
     # Split camelCase first
     expanded = _CAMEL_SPLIT.sub("_", col_name)
-    # Split on _, -, ., whitespace
-    tokens = re.split(r"[_\-.\s]+", expanded.lower())
+    # Split on _, -, ., /, (), whitespace
+    tokens = re.split(r"[_\-.\s()/]+", expanded.lower())
     return {t for t in tokens if t}
 
 

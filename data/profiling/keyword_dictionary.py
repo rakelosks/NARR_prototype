@@ -37,11 +37,11 @@ _CAMEL_SPLIT = re.compile(r"(?<=[a-z])(?=[A-Z])")
 def _column_name_words(col_name: str) -> set[str]:
     """
     Split a column name into lowercase word tokens.
-    Handles _, -, ., whitespace, and camelCase.
+    Handles _, -, ., /, (), whitespace, and camelCase.
     Also strips accents so 'ar' matches 'ár', etc.
     """
     expanded = _CAMEL_SPLIT.sub("_", col_name)
-    tokens = re.split(r"[_\-.\s]+", expanded.lower())
+    tokens = re.split(r"[_\-.\s()/]+", expanded.lower())
     return {_strip_accents(t) for t in tokens if t}
 
 
@@ -638,6 +638,70 @@ KEYWORD_DICTIONARY: list[KeywordEntry] = [
         match_mode="exact",
         domains=["environmental"],
         roles=["station"],
+    ),
+    KeywordEntry(
+        canonical="concentration",
+        translations={
+            "is": ["styrkur"],
+            "de": ["konzentration"],
+            "fr": ["concentration"],
+            "es": ["concentración", "concentracion"],
+            "nl": ["concentratie"],
+            "da": ["koncentration"],
+            "no": ["konsentrasjon"],
+            "fi": ["pitoisuus"],
+        },
+        match_mode="exact",
+        domains=["environmental"],
+        roles=["env_measure"],
+    ),
+    KeywordEntry(
+        canonical="substance",
+        translations={
+            "is": ["efni"],
+            "de": ["stoff", "substanz"],
+            "fr": ["substance"],
+            "es": ["sustancia"],
+            "nl": ["stof"],
+            "da": ["stof"],
+            "no": ["stoff"],
+            "fi": ["aine"],
+        },
+        match_mode="exact",
+        domains=["environmental"],
+        roles=["category"],
+    ),
+    KeywordEntry(
+        canonical="exceedance",
+        translations={
+            "is": ["yfir"],
+            "de": ["überschreitung", "uberschreitung"],
+            "fr": ["dépassement", "depassement"],
+            "es": ["excedencia"],
+            "nl": ["overschrijding"],
+            "da": ["overskridelse"],
+            "no": ["overskridelse"],
+            "fi": ["ylitys"],
+        },
+        match_mode="exact",
+        domains=["environmental"],
+        roles=["env_measure"],
+    ),
+    KeywordEntry(
+        canonical="measurement",
+        translations={
+            "is": ["mæling", "maeling", "mælingar", "maelingar"],
+            "de": ["messung"],
+            "fr": ["mesure"],
+            "es": ["medición", "medicion"],
+            "nl": ["meting"],
+            "da": ["måling", "maling"],
+            "no": ["måling", "maling"],
+            "fi": ["mittaus"],
+        },
+        match_mode="stem",
+        domains=["environmental"],
+        roles=["env_measure"],
     ),
 
     # -----------------------------------------------------------------------
@@ -1607,6 +1671,47 @@ def get_who_threshold(canonical: str) -> Optional[dict]:
 # Lookup algorithm
 # ---------------------------------------------------------------------------
 
+def column_suggests_air_quality_context(col_name: str) -> bool:
+    """
+    True when a column name looks like a pollutant concentration field
+    (µg/m³, etc.), not a financial grant column.
+
+    Icelandic *styrkur* means both "grant" and "concentration"; this
+    disambiguates using units and air-quality tokens.
+    """
+    if not col_name:
+        return False
+    n = _strip_accents(col_name.lower())
+    for u in ("\u00b5", "\u03bc", "µ"):
+        n = n.replace(u, "u")
+    n = n.replace("m³", "m3").replace("m^3", "m3")
+    markers = (
+        "ug/", " ug/", "(ug", " ug ", "m3", "/m3",
+        "pm10", "pm2", "no2", "so2", "o3", "h2s",
+        "svifryk", "loft", "mengun", "maeling",
+    )
+    return any(m in n for m in markers)
+
+
+def _disambiguate_styrkur_homonym(
+    col_name: str,
+    matched_canonicals: list[str],
+    domain_signals: set[str],
+    role_hints: list[str],
+) -> None:
+    """Resolve grant vs concentration when both dictionary entries hit *styrkur*."""
+    if "grant" not in matched_canonicals or "concentration" not in matched_canonicals:
+        return
+    if column_suggests_air_quality_context(col_name):
+        matched_canonicals[:] = [c for c in matched_canonicals if c != "grant"]
+        domain_signals.discard("budget")
+        role_hints[:] = [r for r in role_hints if r != "financial_measure"]
+    else:
+        matched_canonicals[:] = [c for c in matched_canonicals if c != "concentration"]
+        domain_signals.discard("environmental")
+        role_hints[:] = [r for r in role_hints if r != "env_measure"]
+
+
 def resolve_column(col_name: str) -> ColumnSignal:
     """
     Resolve a column name through the keyword dictionary.
@@ -1663,6 +1768,10 @@ def resolve_column(col_name: str) -> ColumnSignal:
             for role in entry.roles:
                 if role not in role_hints:
                     role_hints.append(role)
+
+    _disambiguate_styrkur_homonym(
+        col_name, matched_canonicals, domain_signals, role_hints,
+    )
 
     return ColumnSignal(
         column_name=col_name,
