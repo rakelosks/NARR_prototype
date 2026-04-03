@@ -5,6 +5,7 @@ For async/long-running jobs, use the /jobs endpoint instead.
 """
 
 import logging
+import re
 import unicodedata
 from typing import Optional
 
@@ -13,7 +14,7 @@ from pydantic import BaseModel
 
 from config import settings
 from data.cache.parquet_cache import load_snapshot, snapshot_exists, save_snapshot
-from data.profiling.profiler import profile_dataset
+from data.profiling.profiler import profile_dataset, coerce_numeric_text_columns
 from data.profiling.matcher import match_template, MatchResult, TemplateMatch
 from data.profiling.template_definitions import TemplateType, TEMPLATE_MAP
 from data.analytics.evidence_bundle import BundleBuilder
@@ -171,6 +172,19 @@ _TOPIC_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
         ["strætó", "straeto", "almenningssamgöngur",
          "almenningssamgongur", "farþegafjöldi"],
     ),
+    (
+        ("air quality", "air pollution", "loftgaedi", "loftmengun"),
+        ["loftgæði", "loftgaedi", "loftmengun", "svifryk",
+         "NO2", "PM10", "PM2.5"],
+    ),
+    (
+        ("bicycle counter", "bicycle traffic", "bike counter",
+         "bike traffic", "cycling traffic", "cycling counter",
+         "hjolreid", "hjolatelj"),
+        ["hjólreiðar hjólateljari", "hjólreiðar hjólateljurum",
+         "hjólreiðar", "hjolreidar", "hjólateljari", "hjolateljari",
+         "hjólateljurum", "hjolateljurum", "reiðhjól", "reidhjol"],
+    ),
 ]
 
 
@@ -182,6 +196,20 @@ def _topic_hint_terms(text: str) -> list[str]:
         if any(t in folded for t in triggers):
             hints.extend(terms)
     return hints
+
+
+def _is_spatial_query(text: str) -> bool:
+    """Detect if the user is asking for a map / location-based view."""
+    folded = _ascii_fold(text)
+    spatial_triggers = (
+        "where are", "where is", "show on map", "show me on a map",
+        "on a map", "map of", "locate", "locations of",
+        "show map", "display on map",
+        # Icelandic
+        "hvar er", "hvar eru", "a korti", "syна a korti",
+        "stadsetning", "kort af",
+    )
+    return any(t in folded for t in spatial_triggers)
 
 
 def _dedupe_terms(terms: list[str]) -> list[str]:
@@ -296,6 +324,7 @@ async def _search_ckan(
     client: CKANClient,
     search_terms: list[str],
     scoring_keywords: list[str],
+    require_geojson: bool = False,
 ):
     """Search CKAN portal, collect candidates, and return the best match.
 
@@ -303,6 +332,9 @@ async def _search_ckan(
     ``_CKAN_SEARCH_BREADTH`` terms, collects all unique datasets that have
     supported resources, scores them by keyword overlap, and returns the
     highest-scoring candidate.
+
+    When *require_geojson* is True, only datasets with a GeoJSON resource
+    are considered (for spatial / map queries).
     """
     _CKAN_SEARCH_BREADTH = 6
 
@@ -314,6 +346,12 @@ async def _search_ckan(
             for ds in results:
                 if ds.name in candidates or not ds.supported_resources:
                     continue
+                if require_geojson:
+                    has_geo = any(
+                        r.normalized_format == "geojson" for r in ds.resources
+                    )
+                    if not has_geo:
+                        continue
                 name = ds.title or ds.name
                 tags = [t for t in (ds.tags or [])]
                 score = _score_candidate(
@@ -395,7 +433,11 @@ async def _parse_full_intent(user_message: str):
     return fallback, fallback, intent
 
 
-async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, str]:
+async def _find_dataset(
+    user_message: str,
+    intent_queries=None,
+    require_geojson: bool = False,
+) -> tuple[str, str]:
     """
     Search the catalog for a dataset matching the user's question.
     Returns (dataset_name, ckan_slug).
@@ -404,6 +446,8 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
         user_message: The user's question.
         intent_queries: Optional (dataset_query, dataset_query_local) tuple
             from a prior intent parse, to avoid redundant LLM calls.
+        require_geojson: If True, only datasets with GeoJSON resources are
+            accepted (for spatial / map queries).
     """
     if intent_queries:
         dataset_query, dataset_query_local = intent_queries
@@ -435,6 +479,15 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
     scoring_keywords = _build_scoring_keywords(
         dataset_query, dataset_query_local, user_message,
     )
+    # Inject topic-hint terms into scoring so the most specific dataset wins.
+    # E.g. "hjólateljari" boosts datasets about bicycle *counters* above
+    # generic bicycle datasets.
+    for src in (dataset_query, dataset_query_local, user_message):
+        for term in _topic_hint_terms(src):
+            folded = _ascii_fold(term)
+            for word in folded.split():
+                if word not in {_ascii_fold(k) for k in scoring_keywords}:
+                    scoring_keywords.append(word)
     logger.info(f"Scoring keywords: {scoring_keywords}")
 
     client = CKANClient(settings.ckan_portal_url)
@@ -442,6 +495,7 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
     # Strategy 1: Search CKAN portal API (multi-candidate scoring)
     dataset_name, ckan_slug = await _search_ckan(
         client, search_terms, scoring_keywords,
+        require_geojson=require_geojson,
     )
 
     # Strategy 2: Fallback to local catalog (also scored)
@@ -453,6 +507,10 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
                 slug = entry["name"]
                 if slug in local_candidates:
                     continue
+                if require_geojson:
+                    formats = entry.get("resource_formats", [])
+                    if not any(f.lower() == "geojson" for f in formats):
+                        continue
                 title = entry["title"] or slug
                 tags = entry["tags"] if isinstance(entry["tags"], list) else []
                 score = _score_candidate(
@@ -472,12 +530,53 @@ async def _find_dataset(user_message: str, intent_queries=None) -> tuple[str, st
             )
 
     if not ckan_slug:
+        if require_geojson:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    "I couldn't find geographic (GeoJSON) data matching your "
+                    "question. Map visualizations require datasets published "
+                    "in GeoJSON format. Try rephrasing without the map "
+                    "request, or ask about a different topic!"
+                ),
+            )
         raise HTTPException(
             status_code=404,
             detail="Oops! I couldn't find data matching your question. Try different keywords!",
         )
 
     return dataset_name, ckan_slug
+
+
+_YEAR_IN_NAME = re.compile(r"((?:19|20)\d{2})")
+
+
+def _pick_best_resource(resources: list) -> object:
+    """Choose the best resource from a list of supported CKAN resources.
+
+    When multiple resources exist with a year embedded in their name or
+    URL (e.g. ``data_2023.csv``, ``data_2024.csv``), pick the one with
+    the highest (most recent) year.  Otherwise fall back to the first
+    resource in the list.
+    """
+    if len(resources) <= 1:
+        return resources[0]
+
+    scored: list[tuple[int, int, object]] = []
+    for idx, r in enumerate(resources):
+        text = f"{r.name} {r.url}"
+        years = _YEAR_IN_NAME.findall(text)
+        max_year = max(int(y) for y in years) if years else 0
+        scored.append((max_year, -idx, r))
+
+    scored.sort(key=lambda t: (t[0], t[1]), reverse=True)
+    best = scored[0]
+    if best[0] > 0:
+        logger.info(
+            f"Picked resource '{best[2].name or best[2].url}' "
+            f"(year {best[0]}) from {len(resources)} candidates"
+        )
+    return best[2]
 
 
 async def _get_dataframe(dataset_id: str, config: Optional[dict] = None):
@@ -526,7 +625,7 @@ async def _get_dataframe(dataset_id: str, config: Optional[dict] = None):
             detail=f"Dataset '{dataset_id}' has no supported file formats (CSV/JSON/Excel).",
         )
 
-    resource = supported[0]
+    resource = _pick_best_resource(supported)
     df = await client.download_resource_as_dataframe(resource)
     save_snapshot(df, dataset_id)
     return df, resource.url, dataset
@@ -539,6 +638,12 @@ def _profile_and_match(df, dataset_id: str, config: Optional[dict] = None, resou
     If not, run full profiling + matching and save the config.
     Returns (profile, match_result).
     """
+    # Fix mistyped columns: many portals publish numbers as text.
+    # Coercion is in-place so downstream analytics also benefit.
+    coerced = coerce_numeric_text_columns(df)
+    if coerced:
+        logger.info(f"Coerced {len(coerced)} text→numeric columns: {coerced}")
+
     profile_source = resource_url or settings.ckan_portal_url
     profile = profile_dataset(df, dataset_id=dataset_id, source=profile_source)
 
@@ -734,10 +839,17 @@ async def ask_narrative(request: AskRequest):
             request.user_message
         )
 
+        # Step 1b: Detect spatial intent → require GeoJSON data
+        from llm.intent import AnalysisType
+        require_geojson = _is_spatial_query(request.user_message)
+        if intent and intent.analysis_type == AnalysisType.SPATIAL:
+            require_geojson = True
+
         # Step 2: Find dataset in catalog (reuses parsed queries)
         dataset_name, ckan_slug = await _find_dataset(
             request.user_message,
             intent_queries=(dataset_query, dataset_query_local),
+            require_geojson=require_geojson,
         )
 
         # Step 3: Check for existing template configuration

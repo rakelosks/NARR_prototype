@@ -251,12 +251,30 @@ def infer_semantic_type(series: pd.Series, col_name: str) -> str:
                     return "temporal"
         return "numerical"
 
-    # String columns — check if temporal
+    # String columns — check if temporal or actually numeric
     if pd.api.types.is_object_dtype(series) or pd.api.types.is_string_dtype(series):
         if _looks_temporal(series, col_lower):
             return "temporal"
+        if _looks_numeric(series):
+            return "numerical"
 
     return "categorical"
+
+
+def _looks_numeric(series: pd.Series, threshold: float = 0.8) -> bool:
+    """Check if a string/object column actually contains numeric values.
+
+    Many open-data portals store all columns as text even when the values
+    are numbers. This function samples up to 50 non-null values and
+    attempts ``pd.to_numeric`` coercion.  If at least *threshold* of the
+    sample converts successfully, the column is treated as numeric.
+    """
+    sample = series.dropna().head(50)
+    if len(sample) == 0:
+        return False
+    coerced = pd.to_numeric(sample, errors="coerce")
+    success_rate = coerced.notna().sum() / len(sample)
+    return success_rate >= threshold
 
 
 def _looks_temporal(series: pd.Series, col_name: str) -> bool:
@@ -439,6 +457,30 @@ def profile_column(series: pd.Series, col_name: str) -> ColumnProfile:
 # ---------------------------------------------------------------------------
 # Dataset profiling
 # ---------------------------------------------------------------------------
+
+def coerce_numeric_text_columns(df: pd.DataFrame) -> list[str]:
+    """Convert text columns that actually contain numbers to numeric dtype.
+
+    Many open-data portals publish all columns as text.  This function
+    inspects every object/string column and, if >=80 % of its non-null
+    values are parseable as numbers, converts the column in-place using
+    ``pd.to_numeric``.
+
+    Returns the list of column names that were coerced.
+    """
+    coerced: list[str] = []
+    for col in df.columns:
+        if not (
+            pd.api.types.is_object_dtype(df[col])
+            or pd.api.types.is_string_dtype(df[col])
+        ):
+            continue
+        if _looks_numeric(df[col]):
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+            coerced.append(col)
+            logger.info(f"Coerced text column '{col}' to numeric")
+    return coerced
+
 
 def profile_dataset(
     df: pd.DataFrame,
