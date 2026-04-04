@@ -147,9 +147,77 @@ def _finance_hint_terms(text: str) -> list[str]:
     ]
 
 
+def _population_demographic_boost_terms(*texts: str) -> list[str]:
+    """Strong CKAN Solr phrases for population-by-age/gender questions."""
+    folded = _ascii_fold(" ".join(t for t in texts if t))
+    if not (
+        "population" in folded
+        or "demographic" in folded
+        or ("age" in folded and "gender" in folded)
+        or ("aldur" in folded and "kyn" in folded)
+    ):
+        return []
+    return [
+        "mannfjöldi",
+        "mannfjöldi eftir aldri",
+        "íbúar eftir aldri",
+        "aldur kyn hverfi",
+    ]
+
+
+def _wants_population_demographics(scoring_keywords: list[str]) -> bool:
+    """True when the user is likely asking for population stats, not e.g. child welfare."""
+    blob = _ascii_fold(" ".join(scoring_keywords))
+    if "population" in blob or "demographic" in blob:
+        return True
+    if "mannfjoldi" in blob:
+        return True
+    if "ibuar" in blob:
+        return True
+    if "age" in blob and "gender" in blob:
+        return True
+    if "aldur" in blob and "kyn" in blob:
+        return True
+    return False
+
+
+def _adjust_population_demographic_score(
+    base_score: float,
+    title: str,
+    description: str,
+    tags: list[str],
+    scoring_keywords: list[str],
+) -> float:
+    """Boost mannfjöldi/hverfi-style packages; penalise barnavernd age/kyn noise."""
+    if not _wants_population_demographics(scoring_keywords):
+        return base_score
+    h = _ascii_fold(f"{title} {description} {' '.join(tags)}")
+    s = base_score
+    if "barnavernd" in h or "barnaverndarlag" in h:
+        s -= 3.5
+    if "tilkynnt" in h and "barna" in h:
+        s -= 2.5
+    if "mannfjoldi" in h:
+        s += 4.0
+    if "ibuar" in h:
+        s += 1.5
+    if "hverf" in h:
+        s += 0.5
+    return s
+
+
 # Deterministic English → Icelandic topic aliases for CKAN search.
 # Each entry: (english_triggers, icelandic_search_terms)
 _TOPIC_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
+    (
+        ("population", "populations", "demographic", "demographics", "census",
+         "by age", "age and gender", "gender breakdown", "age breakdown",
+         "mannfjoldi", "mannfjöldi", "ibuar", "íbúar", "residents",
+         "inhabitants", "compare population"),
+        ["mannfjöldi", "mannfjoldi", "íbúar", "ibuar", "íbúa", "ibua",
+         "aldur", "kyn", "hverfi", "hverfum", "hverfa", "fjöldi", "fjoldi",
+         "byggð", "byggd", "reykjavík", "reykjavik"],
+    ),
     (
         ("school service", "school-service", "schoolservice",
          "skolathjonusta", "skolathjonu"),
@@ -197,6 +265,14 @@ _TOPIC_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
          "NO2", "PM10", "PM2.5"],
     ),
     (
+        ("coastal water quality", "coastal water", "shoreline water",
+         "seawater quality", "strandsjavar", "vatnsgaedi strandsjavar",
+         "vatnsgæði strandsjávar", "strandvatn"),
+        ["vatnsgæði strandsjávar", "vatnsgaedi strandsjavar", "strandsjávar",
+         "strandsjavar", "vatnsgæði", "vatnsgaedi", "strandsjó",
+         "strandsjo", "strönd", "strendur"],
+    ),
+    (
         ("bicycle counter", "bicycle traffic", "bike counter",
          "bike traffic", "cycling traffic", "cycling counter",
          "hjolreid", "hjolatelj"),
@@ -209,6 +285,56 @@ _TOPIC_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
          "salt box house", "saltbox house"),
         ["saltkistur", "saltkistu", "saltkistuhús", "saltkistuhus",
          "saltkista"],
+    ),
+    (
+        ("cruise ship", "cruise ships", "cruiseship", "cruise liner",
+         "cruise terminal", "skemmtiferdaskip", "skemmtiferðaskip",
+         "skemmtiferdaskipa"),
+        ["skemmtiferðaskipa", "skemmtiferdaskipa", "skemmtiferðaskip",
+         "skemmtiferdaskip", "ferðaskip", "ferdaskip"],
+    ),
+    (
+        ("shipping", "cargo ship", "passenger ship", "container ship",
+         "merchant ship", "naval ship", "fishing vessel", "ship traffic",
+         "ship call", "port call", "ferry", "vessel", "maritime",
+         "seaport", "ship", "ships", "skip", "skipaumferd", "skipaumferð"),
+        ["skip", "skipa", "skipum", "skipaferðir", "skipaferdir",
+         "skipaumferð", "skipaumferd", "siglingar", "höfn", "hofn"],
+    ),
+    (
+        ("home care", "homecare", "home nursing", "heimahjukrun",
+         "heimahjúkrun"),
+        ["heimahjúkrun", "heimahjukrun", "heimahjúkrunar", "heimahjukrunar",
+         "heimahjúkrunarþjónusta", "heimahjukrunarthjonusta"],
+    ),
+    (
+        ("unemployment", "jobless", "joblessness", "out of work",
+         "atvinnuleysi", "atvinnulaus"),
+        ["atvinnuleysi", "atvinnuleysissjóður", "atvinnuleysissjodur",
+         "atvinnulaus", "atvinnuleit"],
+    ),
+    (
+        ("music education", "music ed", "tonlistarnam", "tónlistarnám"),
+        ["tónlistarnám", "tonlistarnam", "tónlistarnáms", "tonlistarnams",
+         "tónlist", "tonlist"],
+    ),
+    (
+        ("music school", "music academy", "conservatory", "tonlistarskoli",
+         "tónlistarskóli"),
+        ["tónlistarskóli", "tonlistarskoli", "tónlistarskóla", "tonlistarskola",
+         "tónlistarskólar", "tonlistarskolar"],
+    ),
+    (
+        ("school band", "school orchestra", "skolahljomsveit",
+         "skólahljómsveit"),
+        ["skólahljómsveit", "skolahljomsveit", "skólahljómsveitar",
+         "skolahljomsveitar", "hljómsveit", "hljomsveit"],
+    ),
+    (
+        ("swimming pool", "swimming pools", "pool guests", "pool visits",
+         "pool attendance", "sundlaugagestir", "sundlaug"),
+        ["sundlaugagestir", "sundlaugargestir", "sundlaug", "sundlaugar",
+         "gestir í sundlaug", "gestir i sundlaug"],
     ),
 ]
 
@@ -436,7 +562,7 @@ async def _search_ckan(
         try:
             results = await client.search_datasets(query=term, rows=5)
             for ds in results:
-                if ds.name in candidates or not ds.supported_resources:
+                if not ds.supported_resources:
                     continue
                 if require_geojson:
                     has_geo = any(
@@ -449,6 +575,13 @@ async def _search_ckan(
                 score = _score_candidate(
                     name, ds.notes or "", tags, scoring_keywords,
                 )
+                score = _adjust_population_demographic_score(
+                    score, name, ds.notes or "", tags, scoring_keywords,
+                )
+                if ds.name in candidates:
+                    _, _, prev = candidates[ds.name]
+                    if score <= prev:
+                        continue
                 candidates[ds.name] = (name, ds.name, score)
                 logger.debug(
                     f"CKAN candidate '{name}' (via '{term}') score={score}"
@@ -564,6 +697,12 @@ async def _find_dataset(
     search_terms.extend(_topic_hint_terms(dataset_query))
     search_terms.extend(_topic_hint_terms(dataset_query_local))
     search_terms.extend(_topic_hint_terms(user_message))
+    search_terms = (
+        _population_demographic_boost_terms(
+            user_message, dataset_query, dataset_query_local or "",
+        )
+        + _dedupe_terms(search_terms)
+    )
     search_terms = _dedupe_terms(search_terms)
 
     logger.info(f"Dataset search terms: {search_terms}")
@@ -588,8 +727,6 @@ async def _find_dataset(
             results = _catalog_index.search(query=kw, limit=5)
             for entry in results:
                 slug = entry["name"]
-                if slug in local_candidates:
-                    continue
                 if require_geojson:
                     formats = entry.get("resource_formats", [])
                     if not any(f.lower() == "geojson" for f in formats):
@@ -600,6 +737,14 @@ async def _find_dataset(
                     title, entry.get("description", ""), tags,
                     scoring_keywords,
                 )
+                score = _adjust_population_demographic_score(
+                    score, title, entry.get("description", ""), tags,
+                    scoring_keywords,
+                )
+                if slug in local_candidates:
+                    _, _, prev = local_candidates[slug]
+                    if score <= prev:
+                        continue
                 local_candidates[slug] = (title, slug, score)
         if local_candidates:
             best_name, best_slug, best_score = max(
