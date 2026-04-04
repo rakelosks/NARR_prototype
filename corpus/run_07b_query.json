@@ -1,0 +1,1479 @@
+{
+  "run_id": "run_07",
+  "query": "How many cruise ships have come to the city?",
+  "timestamp": "2026-04-04T21:05:03.107731+00:00",
+  "status_code": 200,
+  "response_time_seconds": 8.9,
+  "response": {
+    "package_id": "thjoderni_og_fjoldi_farthega_skemmtiferdaskipa_sem_fara_um_hafnir_faxafloahafna_20260404_210503",
+    "created_at": "2026-04-04T21:05:03.098927",
+    "headline": "German Cruise Passengers Quadruple at Faxaflói Ports",
+    "lede": "If you've noticed more tourists speaking German in Reykjavik, you're not imagining it. Cruise ship passengers hailing from Germany hit nearly 49,000 last year, a staggering fourfold increase since 2002.",
+    "story_blocks": [
+      {
+        "type": "callout",
+        "body": "Passengers from Germany have risen by nearly three times since 2002.",
+        "highlight_value": "283%",
+        "highlight_label": "increase in German passengers"
+      },
+      {
+        "type": "narrative",
+        "heading": "German Tourist Numbers Soar",
+        "body": "In the chart below, you can see how the number of German cruise passengers rises sharply over the years, especially after 2010. Starting from around 12,700 in 2002, it soars to almost 49,000 by 2019. This suggests a growing interest in Iceland among German tourists.",
+        "viz_index": 0
+      },
+      {
+        "type": "narrative",
+        "heading": "Dutch Visitors Dip After a Peak",
+        "body": "The number of Dutch cruise passengers shows a more varied story. In the chart below, you see an initial climb to a peak of about 1,415 in 2008. However, following this peak, the numbers decline to around 1,200 by 2019. This dip highlights fluctuations in interest over the years.",
+        "viz_index": 1
+      },
+      {
+        "type": "narrative",
+        "heading": "What This Means for Residents",
+        "body": "These trends reflect not only changing travel patterns but also opportunities. The surge in German tourists, for example, might mean more German-language services and businesses in the city. For city residents, this could lead to new economic benefits and cultural exchanges."
+      }
+    ],
+    "data_note": "This data covers the years 2002 to 2019, tracking cruise ship passenger numbers by nationality at Faxaflói ports. It's important to note that information about the number of ships is not included, and the data doesn't cover more recent trends. Also, the licensing information for this dataset is missing.",
+    "followup_question": "What do the city's school enrollment numbers look like?",
+    "visualizations": [
+      {
+        "chart_type": "line",
+        "title": "Dataset overview (2002–2019)",
+        "description": "Trend over time for Þýskaland.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Dataset overview (2002–2019)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "2002-01-01",
+                "Þýskaland": 12707,
+                "Holland": 576.0,
+                "Rússland": null,
+                "Sviss": 321.0,
+                "Austurríki": 253.0,
+                "Belgía": 476.0,
+                "Noregur": 12.0,
+                "Ítalía": 80.0,
+                "Spánn": 47.0,
+                "Svíþjóð": 90.0
+              },
+              {
+                "Ár": "2003-01-01",
+                "Þýskaland": 13022,
+                "Holland": 628.0,
+                "Rússland": 555.0,
+                "Sviss": 444.0,
+                "Austurríki": 317.0,
+                "Belgía": 133.0,
+                "Noregur": 44.0,
+                "Ítalía": 40.0,
+                "Spánn": 15.0,
+                "Svíþjóð": 8.0
+              },
+              {
+                "Ár": "2004-01-01",
+                "Þýskaland": 19275,
+                "Holland": 767.0,
+                "Rússland": 179.0,
+                "Sviss": 735.0,
+                "Austurríki": 396.0,
+                "Belgía": 583.0,
+                "Noregur": 19.0,
+                "Ítalía": 1018.0,
+                "Spánn": 241.0,
+                "Svíþjóð": 23.0
+              },
+              {
+                "Ár": "2005-01-01",
+                "Þýskaland": 21817,
+                "Holland": 452.0,
+                "Rússland": 660.0,
+                "Sviss": 777.0,
+                "Austurríki": 513.0,
+                "Belgía": 586.0,
+                "Noregur": 27.0,
+                "Ítalía": 1689.0,
+                "Spánn": 486.0,
+                "Svíþjóð": 35.0
+              },
+              {
+                "Ár": "2006-01-01",
+                "Þýskaland": 22119,
+                "Holland": 547.0,
+                "Rússland": 595.0,
+                "Sviss": 560.0,
+                "Austurríki": 805.0,
+                "Belgía": 170.0,
+                "Noregur": 24.0,
+                "Ítalía": 1215.0,
+                "Spánn": 492.0,
+                "Svíþjóð": 51.0
+              },
+              {
+                "Ár": "2007-01-01",
+                "Þýskaland": 20604,
+                "Holland": 404.0,
+                "Rússland": 238.0,
+                "Sviss": 607.0,
+                "Austurríki": 616.0,
+                "Belgía": 427.0,
+                "Noregur": 275.0,
+                "Ítalía": 1031.0,
+                "Spánn": 462.0,
+                "Svíþjóð": 371.0
+              },
+              {
+                "Ár": "2008-01-01",
+                "Þýskaland": 20841,
+                "Holland": 1415.0,
+                "Rússland": 531.0,
+                "Sviss": 1035.0,
+                "Austurríki": 743.0,
+                "Belgía": 581.0,
+                "Noregur": 50.0,
+                "Ítalía": 1296.0,
+                "Spánn": 693.0,
+                "Svíþjóð": 179.0
+              },
+              {
+                "Ár": "2009-01-01",
+                "Þýskaland": 21404,
+                "Holland": 977.0,
+                "Rússland": 243.0,
+                "Sviss": 947.0,
+                "Austurríki": 862.0,
+                "Belgía": 540.0,
+                "Noregur": 69.0,
+                "Ítalía": 1336.0,
+                "Spánn": 828.0,
+                "Svíþjóð": 415.0
+              },
+              {
+                "Ár": "2010-01-01",
+                "Þýskaland": 25564,
+                "Holland": 1383.0,
+                "Rússland": 264.0,
+                "Sviss": 931.0,
+                "Austurríki": 965.0,
+                "Belgía": 612.0,
+                "Noregur": 68.0,
+                "Ítalía": 2192.0,
+                "Spánn": 4682.0,
+                "Svíþjóð": 765.0
+              },
+              {
+                "Ár": "2011-01-01",
+                "Þýskaland": 22378,
+                "Holland": 819.0,
+                "Rússland": 257.0,
+                "Sviss": 1315.0,
+                "Austurríki": 1227.0,
+                "Belgía": 627.0,
+                "Noregur": 102.0,
+                "Ítalía": 1270.0,
+                "Spánn": 345.0,
+                "Svíþjóð": 391.0
+              },
+              {
+                "Ár": "2012-01-01",
+                "Þýskaland": 35039,
+                "Holland": 1196.0,
+                "Rússland": 330.0,
+                "Sviss": 1608.0,
+                "Austurríki": 1389.0,
+                "Belgía": 463.0,
+                "Noregur": 209.0,
+                "Ítalía": 1093.0,
+                "Spánn": 624.0,
+                "Svíþjóð": 117.0
+              },
+              {
+                "Ár": "2013-01-01",
+                "Þýskaland": 31140,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2014-01-01",
+                "Þýskaland": 36429,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2015-01-01",
+                "Þýskaland": 33968,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2016-01-01",
+                "Þýskaland": 30488,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2017-01-01",
+                "Þýskaland": 40496,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2018-01-01",
+                "Þýskaland": 43656,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2019-01-01",
+                "Þýskaland": 48774,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "mark": {
+            "type": "line",
+            "point": true,
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "Þýskaland",
+              "type": "quantitative",
+              "title": "Value"
+            }
+          }
+        },
+        "is_primary": true
+      },
+      {
+        "chart_type": "line",
+        "title": "Holland (2002–2019)",
+        "description": "Trend over time for Holland.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Holland (2002–2019)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "2002-01-01",
+                "Þýskaland": 12707,
+                "Holland": 576.0,
+                "Rússland": null,
+                "Sviss": 321.0,
+                "Austurríki": 253.0,
+                "Belgía": 476.0,
+                "Noregur": 12.0,
+                "Ítalía": 80.0,
+                "Spánn": 47.0,
+                "Svíþjóð": 90.0
+              },
+              {
+                "Ár": "2003-01-01",
+                "Þýskaland": 13022,
+                "Holland": 628.0,
+                "Rússland": 555.0,
+                "Sviss": 444.0,
+                "Austurríki": 317.0,
+                "Belgía": 133.0,
+                "Noregur": 44.0,
+                "Ítalía": 40.0,
+                "Spánn": 15.0,
+                "Svíþjóð": 8.0
+              },
+              {
+                "Ár": "2004-01-01",
+                "Þýskaland": 19275,
+                "Holland": 767.0,
+                "Rússland": 179.0,
+                "Sviss": 735.0,
+                "Austurríki": 396.0,
+                "Belgía": 583.0,
+                "Noregur": 19.0,
+                "Ítalía": 1018.0,
+                "Spánn": 241.0,
+                "Svíþjóð": 23.0
+              },
+              {
+                "Ár": "2005-01-01",
+                "Þýskaland": 21817,
+                "Holland": 452.0,
+                "Rússland": 660.0,
+                "Sviss": 777.0,
+                "Austurríki": 513.0,
+                "Belgía": 586.0,
+                "Noregur": 27.0,
+                "Ítalía": 1689.0,
+                "Spánn": 486.0,
+                "Svíþjóð": 35.0
+              },
+              {
+                "Ár": "2006-01-01",
+                "Þýskaland": 22119,
+                "Holland": 547.0,
+                "Rússland": 595.0,
+                "Sviss": 560.0,
+                "Austurríki": 805.0,
+                "Belgía": 170.0,
+                "Noregur": 24.0,
+                "Ítalía": 1215.0,
+                "Spánn": 492.0,
+                "Svíþjóð": 51.0
+              },
+              {
+                "Ár": "2007-01-01",
+                "Þýskaland": 20604,
+                "Holland": 404.0,
+                "Rússland": 238.0,
+                "Sviss": 607.0,
+                "Austurríki": 616.0,
+                "Belgía": 427.0,
+                "Noregur": 275.0,
+                "Ítalía": 1031.0,
+                "Spánn": 462.0,
+                "Svíþjóð": 371.0
+              },
+              {
+                "Ár": "2008-01-01",
+                "Þýskaland": 20841,
+                "Holland": 1415.0,
+                "Rússland": 531.0,
+                "Sviss": 1035.0,
+                "Austurríki": 743.0,
+                "Belgía": 581.0,
+                "Noregur": 50.0,
+                "Ítalía": 1296.0,
+                "Spánn": 693.0,
+                "Svíþjóð": 179.0
+              },
+              {
+                "Ár": "2009-01-01",
+                "Þýskaland": 21404,
+                "Holland": 977.0,
+                "Rússland": 243.0,
+                "Sviss": 947.0,
+                "Austurríki": 862.0,
+                "Belgía": 540.0,
+                "Noregur": 69.0,
+                "Ítalía": 1336.0,
+                "Spánn": 828.0,
+                "Svíþjóð": 415.0
+              },
+              {
+                "Ár": "2010-01-01",
+                "Þýskaland": 25564,
+                "Holland": 1383.0,
+                "Rússland": 264.0,
+                "Sviss": 931.0,
+                "Austurríki": 965.0,
+                "Belgía": 612.0,
+                "Noregur": 68.0,
+                "Ítalía": 2192.0,
+                "Spánn": 4682.0,
+                "Svíþjóð": 765.0
+              },
+              {
+                "Ár": "2011-01-01",
+                "Þýskaland": 22378,
+                "Holland": 819.0,
+                "Rússland": 257.0,
+                "Sviss": 1315.0,
+                "Austurríki": 1227.0,
+                "Belgía": 627.0,
+                "Noregur": 102.0,
+                "Ítalía": 1270.0,
+                "Spánn": 345.0,
+                "Svíþjóð": 391.0
+              },
+              {
+                "Ár": "2012-01-01",
+                "Þýskaland": 35039,
+                "Holland": 1196.0,
+                "Rússland": 330.0,
+                "Sviss": 1608.0,
+                "Austurríki": 1389.0,
+                "Belgía": 463.0,
+                "Noregur": 209.0,
+                "Ítalía": 1093.0,
+                "Spánn": 624.0,
+                "Svíþjóð": 117.0
+              },
+              {
+                "Ár": "2013-01-01",
+                "Þýskaland": 31140,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2014-01-01",
+                "Þýskaland": 36429,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2015-01-01",
+                "Þýskaland": 33968,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2016-01-01",
+                "Þýskaland": 30488,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2017-01-01",
+                "Þýskaland": 40496,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2018-01-01",
+                "Þýskaland": 43656,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2019-01-01",
+                "Þýskaland": 48774,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "mark": {
+            "type": "line",
+            "point": true,
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "Holland",
+              "type": "quantitative",
+              "title": "Value"
+            }
+          }
+        },
+        "is_primary": false
+      },
+      {
+        "chart_type": "line",
+        "title": "R Ssland (2002–2019)",
+        "description": "Trend over time for Rússland.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "R Ssland (2002–2019)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "2002-01-01",
+                "Þýskaland": 12707,
+                "Holland": 576.0,
+                "Rússland": null,
+                "Sviss": 321.0,
+                "Austurríki": 253.0,
+                "Belgía": 476.0,
+                "Noregur": 12.0,
+                "Ítalía": 80.0,
+                "Spánn": 47.0,
+                "Svíþjóð": 90.0
+              },
+              {
+                "Ár": "2003-01-01",
+                "Þýskaland": 13022,
+                "Holland": 628.0,
+                "Rússland": 555.0,
+                "Sviss": 444.0,
+                "Austurríki": 317.0,
+                "Belgía": 133.0,
+                "Noregur": 44.0,
+                "Ítalía": 40.0,
+                "Spánn": 15.0,
+                "Svíþjóð": 8.0
+              },
+              {
+                "Ár": "2004-01-01",
+                "Þýskaland": 19275,
+                "Holland": 767.0,
+                "Rússland": 179.0,
+                "Sviss": 735.0,
+                "Austurríki": 396.0,
+                "Belgía": 583.0,
+                "Noregur": 19.0,
+                "Ítalía": 1018.0,
+                "Spánn": 241.0,
+                "Svíþjóð": 23.0
+              },
+              {
+                "Ár": "2005-01-01",
+                "Þýskaland": 21817,
+                "Holland": 452.0,
+                "Rússland": 660.0,
+                "Sviss": 777.0,
+                "Austurríki": 513.0,
+                "Belgía": 586.0,
+                "Noregur": 27.0,
+                "Ítalía": 1689.0,
+                "Spánn": 486.0,
+                "Svíþjóð": 35.0
+              },
+              {
+                "Ár": "2006-01-01",
+                "Þýskaland": 22119,
+                "Holland": 547.0,
+                "Rússland": 595.0,
+                "Sviss": 560.0,
+                "Austurríki": 805.0,
+                "Belgía": 170.0,
+                "Noregur": 24.0,
+                "Ítalía": 1215.0,
+                "Spánn": 492.0,
+                "Svíþjóð": 51.0
+              },
+              {
+                "Ár": "2007-01-01",
+                "Þýskaland": 20604,
+                "Holland": 404.0,
+                "Rússland": 238.0,
+                "Sviss": 607.0,
+                "Austurríki": 616.0,
+                "Belgía": 427.0,
+                "Noregur": 275.0,
+                "Ítalía": 1031.0,
+                "Spánn": 462.0,
+                "Svíþjóð": 371.0
+              },
+              {
+                "Ár": "2008-01-01",
+                "Þýskaland": 20841,
+                "Holland": 1415.0,
+                "Rússland": 531.0,
+                "Sviss": 1035.0,
+                "Austurríki": 743.0,
+                "Belgía": 581.0,
+                "Noregur": 50.0,
+                "Ítalía": 1296.0,
+                "Spánn": 693.0,
+                "Svíþjóð": 179.0
+              },
+              {
+                "Ár": "2009-01-01",
+                "Þýskaland": 21404,
+                "Holland": 977.0,
+                "Rússland": 243.0,
+                "Sviss": 947.0,
+                "Austurríki": 862.0,
+                "Belgía": 540.0,
+                "Noregur": 69.0,
+                "Ítalía": 1336.0,
+                "Spánn": 828.0,
+                "Svíþjóð": 415.0
+              },
+              {
+                "Ár": "2010-01-01",
+                "Þýskaland": 25564,
+                "Holland": 1383.0,
+                "Rússland": 264.0,
+                "Sviss": 931.0,
+                "Austurríki": 965.0,
+                "Belgía": 612.0,
+                "Noregur": 68.0,
+                "Ítalía": 2192.0,
+                "Spánn": 4682.0,
+                "Svíþjóð": 765.0
+              },
+              {
+                "Ár": "2011-01-01",
+                "Þýskaland": 22378,
+                "Holland": 819.0,
+                "Rússland": 257.0,
+                "Sviss": 1315.0,
+                "Austurríki": 1227.0,
+                "Belgía": 627.0,
+                "Noregur": 102.0,
+                "Ítalía": 1270.0,
+                "Spánn": 345.0,
+                "Svíþjóð": 391.0
+              },
+              {
+                "Ár": "2012-01-01",
+                "Þýskaland": 35039,
+                "Holland": 1196.0,
+                "Rússland": 330.0,
+                "Sviss": 1608.0,
+                "Austurríki": 1389.0,
+                "Belgía": 463.0,
+                "Noregur": 209.0,
+                "Ítalía": 1093.0,
+                "Spánn": 624.0,
+                "Svíþjóð": 117.0
+              },
+              {
+                "Ár": "2013-01-01",
+                "Þýskaland": 31140,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2014-01-01",
+                "Þýskaland": 36429,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2015-01-01",
+                "Þýskaland": 33968,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2016-01-01",
+                "Þýskaland": 30488,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2017-01-01",
+                "Þýskaland": 40496,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2018-01-01",
+                "Þýskaland": 43656,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2019-01-01",
+                "Þýskaland": 48774,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "mark": {
+            "type": "line",
+            "point": true,
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "Rússland",
+              "type": "quantitative",
+              "title": "Value"
+            }
+          }
+        },
+        "is_primary": false
+      },
+      {
+        "chart_type": "line",
+        "title": "Sviss (2002–2019)",
+        "description": "Trend over time for Sviss.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Sviss (2002–2019)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "2002-01-01",
+                "Þýskaland": 12707,
+                "Holland": 576.0,
+                "Rússland": null,
+                "Sviss": 321.0,
+                "Austurríki": 253.0,
+                "Belgía": 476.0,
+                "Noregur": 12.0,
+                "Ítalía": 80.0,
+                "Spánn": 47.0,
+                "Svíþjóð": 90.0
+              },
+              {
+                "Ár": "2003-01-01",
+                "Þýskaland": 13022,
+                "Holland": 628.0,
+                "Rússland": 555.0,
+                "Sviss": 444.0,
+                "Austurríki": 317.0,
+                "Belgía": 133.0,
+                "Noregur": 44.0,
+                "Ítalía": 40.0,
+                "Spánn": 15.0,
+                "Svíþjóð": 8.0
+              },
+              {
+                "Ár": "2004-01-01",
+                "Þýskaland": 19275,
+                "Holland": 767.0,
+                "Rússland": 179.0,
+                "Sviss": 735.0,
+                "Austurríki": 396.0,
+                "Belgía": 583.0,
+                "Noregur": 19.0,
+                "Ítalía": 1018.0,
+                "Spánn": 241.0,
+                "Svíþjóð": 23.0
+              },
+              {
+                "Ár": "2005-01-01",
+                "Þýskaland": 21817,
+                "Holland": 452.0,
+                "Rússland": 660.0,
+                "Sviss": 777.0,
+                "Austurríki": 513.0,
+                "Belgía": 586.0,
+                "Noregur": 27.0,
+                "Ítalía": 1689.0,
+                "Spánn": 486.0,
+                "Svíþjóð": 35.0
+              },
+              {
+                "Ár": "2006-01-01",
+                "Þýskaland": 22119,
+                "Holland": 547.0,
+                "Rússland": 595.0,
+                "Sviss": 560.0,
+                "Austurríki": 805.0,
+                "Belgía": 170.0,
+                "Noregur": 24.0,
+                "Ítalía": 1215.0,
+                "Spánn": 492.0,
+                "Svíþjóð": 51.0
+              },
+              {
+                "Ár": "2007-01-01",
+                "Þýskaland": 20604,
+                "Holland": 404.0,
+                "Rússland": 238.0,
+                "Sviss": 607.0,
+                "Austurríki": 616.0,
+                "Belgía": 427.0,
+                "Noregur": 275.0,
+                "Ítalía": 1031.0,
+                "Spánn": 462.0,
+                "Svíþjóð": 371.0
+              },
+              {
+                "Ár": "2008-01-01",
+                "Þýskaland": 20841,
+                "Holland": 1415.0,
+                "Rússland": 531.0,
+                "Sviss": 1035.0,
+                "Austurríki": 743.0,
+                "Belgía": 581.0,
+                "Noregur": 50.0,
+                "Ítalía": 1296.0,
+                "Spánn": 693.0,
+                "Svíþjóð": 179.0
+              },
+              {
+                "Ár": "2009-01-01",
+                "Þýskaland": 21404,
+                "Holland": 977.0,
+                "Rússland": 243.0,
+                "Sviss": 947.0,
+                "Austurríki": 862.0,
+                "Belgía": 540.0,
+                "Noregur": 69.0,
+                "Ítalía": 1336.0,
+                "Spánn": 828.0,
+                "Svíþjóð": 415.0
+              },
+              {
+                "Ár": "2010-01-01",
+                "Þýskaland": 25564,
+                "Holland": 1383.0,
+                "Rússland": 264.0,
+                "Sviss": 931.0,
+                "Austurríki": 965.0,
+                "Belgía": 612.0,
+                "Noregur": 68.0,
+                "Ítalía": 2192.0,
+                "Spánn": 4682.0,
+                "Svíþjóð": 765.0
+              },
+              {
+                "Ár": "2011-01-01",
+                "Þýskaland": 22378,
+                "Holland": 819.0,
+                "Rússland": 257.0,
+                "Sviss": 1315.0,
+                "Austurríki": 1227.0,
+                "Belgía": 627.0,
+                "Noregur": 102.0,
+                "Ítalía": 1270.0,
+                "Spánn": 345.0,
+                "Svíþjóð": 391.0
+              },
+              {
+                "Ár": "2012-01-01",
+                "Þýskaland": 35039,
+                "Holland": 1196.0,
+                "Rússland": 330.0,
+                "Sviss": 1608.0,
+                "Austurríki": 1389.0,
+                "Belgía": 463.0,
+                "Noregur": 209.0,
+                "Ítalía": 1093.0,
+                "Spánn": 624.0,
+                "Svíþjóð": 117.0
+              },
+              {
+                "Ár": "2013-01-01",
+                "Þýskaland": 31140,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2014-01-01",
+                "Þýskaland": 36429,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2015-01-01",
+                "Þýskaland": 33968,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2016-01-01",
+                "Þýskaland": 30488,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2017-01-01",
+                "Þýskaland": 40496,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2018-01-01",
+                "Þýskaland": 43656,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2019-01-01",
+                "Þýskaland": 48774,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "mark": {
+            "type": "line",
+            "point": true,
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "Sviss",
+              "type": "quantitative",
+              "title": "Value"
+            }
+          }
+        },
+        "is_primary": false
+      },
+      {
+        "chart_type": "line",
+        "title": "Austurr Ki (2002–2019)",
+        "description": "Trend over time for Austurríki.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Austurr Ki (2002–2019)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "2002-01-01",
+                "Þýskaland": 12707,
+                "Holland": 576.0,
+                "Rússland": null,
+                "Sviss": 321.0,
+                "Austurríki": 253.0,
+                "Belgía": 476.0,
+                "Noregur": 12.0,
+                "Ítalía": 80.0,
+                "Spánn": 47.0,
+                "Svíþjóð": 90.0
+              },
+              {
+                "Ár": "2003-01-01",
+                "Þýskaland": 13022,
+                "Holland": 628.0,
+                "Rússland": 555.0,
+                "Sviss": 444.0,
+                "Austurríki": 317.0,
+                "Belgía": 133.0,
+                "Noregur": 44.0,
+                "Ítalía": 40.0,
+                "Spánn": 15.0,
+                "Svíþjóð": 8.0
+              },
+              {
+                "Ár": "2004-01-01",
+                "Þýskaland": 19275,
+                "Holland": 767.0,
+                "Rússland": 179.0,
+                "Sviss": 735.0,
+                "Austurríki": 396.0,
+                "Belgía": 583.0,
+                "Noregur": 19.0,
+                "Ítalía": 1018.0,
+                "Spánn": 241.0,
+                "Svíþjóð": 23.0
+              },
+              {
+                "Ár": "2005-01-01",
+                "Þýskaland": 21817,
+                "Holland": 452.0,
+                "Rússland": 660.0,
+                "Sviss": 777.0,
+                "Austurríki": 513.0,
+                "Belgía": 586.0,
+                "Noregur": 27.0,
+                "Ítalía": 1689.0,
+                "Spánn": 486.0,
+                "Svíþjóð": 35.0
+              },
+              {
+                "Ár": "2006-01-01",
+                "Þýskaland": 22119,
+                "Holland": 547.0,
+                "Rússland": 595.0,
+                "Sviss": 560.0,
+                "Austurríki": 805.0,
+                "Belgía": 170.0,
+                "Noregur": 24.0,
+                "Ítalía": 1215.0,
+                "Spánn": 492.0,
+                "Svíþjóð": 51.0
+              },
+              {
+                "Ár": "2007-01-01",
+                "Þýskaland": 20604,
+                "Holland": 404.0,
+                "Rússland": 238.0,
+                "Sviss": 607.0,
+                "Austurríki": 616.0,
+                "Belgía": 427.0,
+                "Noregur": 275.0,
+                "Ítalía": 1031.0,
+                "Spánn": 462.0,
+                "Svíþjóð": 371.0
+              },
+              {
+                "Ár": "2008-01-01",
+                "Þýskaland": 20841,
+                "Holland": 1415.0,
+                "Rússland": 531.0,
+                "Sviss": 1035.0,
+                "Austurríki": 743.0,
+                "Belgía": 581.0,
+                "Noregur": 50.0,
+                "Ítalía": 1296.0,
+                "Spánn": 693.0,
+                "Svíþjóð": 179.0
+              },
+              {
+                "Ár": "2009-01-01",
+                "Þýskaland": 21404,
+                "Holland": 977.0,
+                "Rússland": 243.0,
+                "Sviss": 947.0,
+                "Austurríki": 862.0,
+                "Belgía": 540.0,
+                "Noregur": 69.0,
+                "Ítalía": 1336.0,
+                "Spánn": 828.0,
+                "Svíþjóð": 415.0
+              },
+              {
+                "Ár": "2010-01-01",
+                "Þýskaland": 25564,
+                "Holland": 1383.0,
+                "Rússland": 264.0,
+                "Sviss": 931.0,
+                "Austurríki": 965.0,
+                "Belgía": 612.0,
+                "Noregur": 68.0,
+                "Ítalía": 2192.0,
+                "Spánn": 4682.0,
+                "Svíþjóð": 765.0
+              },
+              {
+                "Ár": "2011-01-01",
+                "Þýskaland": 22378,
+                "Holland": 819.0,
+                "Rússland": 257.0,
+                "Sviss": 1315.0,
+                "Austurríki": 1227.0,
+                "Belgía": 627.0,
+                "Noregur": 102.0,
+                "Ítalía": 1270.0,
+                "Spánn": 345.0,
+                "Svíþjóð": 391.0
+              },
+              {
+                "Ár": "2012-01-01",
+                "Þýskaland": 35039,
+                "Holland": 1196.0,
+                "Rússland": 330.0,
+                "Sviss": 1608.0,
+                "Austurríki": 1389.0,
+                "Belgía": 463.0,
+                "Noregur": 209.0,
+                "Ítalía": 1093.0,
+                "Spánn": 624.0,
+                "Svíþjóð": 117.0
+              },
+              {
+                "Ár": "2013-01-01",
+                "Þýskaland": 31140,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2014-01-01",
+                "Þýskaland": 36429,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2015-01-01",
+                "Þýskaland": 33968,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2016-01-01",
+                "Þýskaland": 30488,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2017-01-01",
+                "Þýskaland": 40496,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2018-01-01",
+                "Þýskaland": 43656,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              },
+              {
+                "Ár": "2019-01-01",
+                "Þýskaland": 48774,
+                "Holland": null,
+                "Rússland": null,
+                "Sviss": null,
+                "Austurríki": null,
+                "Belgía": null,
+                "Noregur": null,
+                "Ítalía": null,
+                "Spánn": null,
+                "Svíþjóð": null
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "mark": {
+            "type": "line",
+            "point": true,
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "Austurríki",
+              "type": "quantitative",
+              "title": "Value"
+            }
+          }
+        },
+        "is_primary": false
+      }
+    ],
+    "dataset": {
+      "dataset_id": "thjoderni_og_fjoldi_farthega_skemmtiferdaskipa_sem_fara_um_hafnir_faxafloahafna",
+      "source": "https://gagnagatt.reykjavik.is/en/dataset/c8795fe8-e2bd-42f1-a0df-8701c7f849ff/resource/cd21ebc4-f78f-4d01-96db-9e0b14b216ce/download/thjoderni_fjoldi_farthega_skemmtiferdaskipa_faxafloahofn_heild.csv",
+      "row_count": 18,
+      "column_count": 18,
+      "column_types": {
+        "temporal": 1,
+        "numerical": 17
+      },
+      "matched_columns": {
+        "time_axis": "Ár",
+        "measure": "Þýskaland"
+      },
+      "template_type": "time_series"
+    },
+    "provenance": {
+      "dataset_id": "thjoderni_og_fjoldi_farthega_skemmtiferdaskipa_sem_fara_um_hafnir_faxafloahafna",
+      "dataset_source": "https://gagnagatt.reykjavik.is/en/dataset/c8795fe8-e2bd-42f1-a0df-8701c7f849ff/resource/cd21ebc4-f78f-4d01-96db-9e0b14b216ce/download/thjoderni_fjoldi_farthega_skemmtiferdaskipa_faxafloahofn_heild.csv",
+      "template_type": "time_series",
+      "llm_provider": "openai",
+      "llm_model": "gpt-4o",
+      "generation_attempts": 1,
+      "generated_at": "2026-04-04T21:05:03.098827",
+      "pipeline_version": "0.1.0"
+    },
+    "dataset_name": "Þjóðerni og fjöldi farþega skemmtiferðaskipa sem fara um hafnir Faxaflóahafna",
+    "dataset_source": "https://gagnagatt.reykjavik.is/en/dataset/c8795fe8-e2bd-42f1-a0df-8701c7f849ff/resource/cd21ebc4-f78f-4d01-96db-9e0b14b216ce/download/thjoderni_fjoldi_farthega_skemmtiferdaskipa_faxafloahofn_heild.csv"
+  }
+}

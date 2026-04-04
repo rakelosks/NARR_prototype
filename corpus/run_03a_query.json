@@ -1,0 +1,4225 @@
+{
+  "run_id": "run_03",
+  "query": "What are the air quality trends in the city?",
+  "timestamp": "2026-04-04T20:57:37.213534+00:00",
+  "status_code": 200,
+  "response_time_seconds": 10.57,
+  "response": {
+    "package_id": "loftmengun_i_reykjavik_maelingar_fra_grensasvegi_20260404_205737",
+    "created_at": "2026-04-04T20:57:37.200887",
+    "headline": "Air Pollution Levels Drop by Nearly 75% in Reykjavík",
+    "lede": "Breathe easier! Reykjavík's air has become significantly cleaner over the past two decades. Since peaking in 1994, pollution levels have dropped by about 75%.",
+    "story_blocks": [
+      {
+        "type": "callout",
+        "body": "Pollution levels in Reykjavík have decreased dramatically since their peak in 1994.",
+        "highlight_value": "75%",
+        "highlight_label": "pollution reduction since 1994"
+      },
+      {
+        "type": "narrative",
+        "heading": "Pollution Levels Peaked in 1994, Then Dropped Sharply",
+        "body": "In the line chart below, you'll see how pollution levels, measured in micrograms per cubic meter (µg/m3), peaked in 1994 and then began a notable decline. From a high of 134 µg/m3, levels have fallen to 34 µg/m3 by 2016. This suggests significant improvements in air quality over the years.",
+        "viz_index": 0
+      },
+      {
+        "type": "narrative",
+        "heading": "Variations Across Different Air Components",
+        "body": "The bar chart shows the average readings of different air pollutants. Look for the differences between substances such as Nitrogen Dioxide and Ozone. While pollutants like Nitrogen Dioxide and Carbon Monoxide have decreased, Ozone levels have actually increased, showing that not all pollutants followed the same trend.",
+        "viz_index": 1
+      },
+      {
+        "type": "narrative",
+        "heading": "What This Improvement Means for Reykjavík Residents",
+        "body": "Cleaner air means better health outcomes for residents, fewer respiratory problems, and a more enjoyable environment to live in. The notable reduction in harmful pollutants like Nitrogen Dioxide and Carbon Monoxide suggests improvements in vehicle emissions and industrial pollutants."
+      }
+    ],
+    "data_note": "This data covers the years 1994 to 2016 and tracks different air pollutants measured in micrograms per cubic meter (µg/m3). The numbers represent averages across the entire city of Reykjavík, and more recent data would be needed to establish current trends.",
+    "followup_question": "What do the city's traffic and transportation patterns look like?",
+    "visualizations": [
+      {
+        "chart_type": "line",
+        "title": "Dataset overview (1994–2016)",
+        "description": "Environmental readings over time.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Dataset overview (1994–2016)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 75.0,
+                "Fjöldi gilda": 11.0,
+                "Fjöldi yfir": 3.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 147.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 27.0,
+                "Fjöldi gilda": 171.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 173.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 173.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 41.0,
+                "Fjöldi gilda": 192.0,
+                "Fjöldi yfir": 11.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 137.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 34.0,
+                "Fjöldi gilda": 197.0,
+                "Fjöldi yfir": 12.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 189.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 31.0,
+                "Fjöldi gilda": 197.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 36.0,
+                "Fjöldi gilda": 221.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 209.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 43.0,
+                "Fjöldi gilda": 228.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 190.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 133.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 137.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 99.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 43.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 38.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 30.0,
+                "Fjöldi gilda": 209.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 147.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 205.0,
+                "Fjöldi yfir": 38.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 213.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 213.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 32.0,
+                "Fjöldi gilda": 168.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 186.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 224.0,
+                "Fjöldi yfir": 30.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 226.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 225.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 37.0,
+                "Fjöldi gilda": 162.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 175.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 50.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 39.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 29.0,
+                "Fjöldi gilda": 204.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 204.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 245.0,
+                "Fjöldi yfir": 59.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 241.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 196.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 331.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 260.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 53.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 93.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 229.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 24.0,
+                "Fjöldi gilda": 362.0,
+                "Fjöldi yfir": 3.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 39.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 344.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 27.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 44.0,
+                "Fjöldi gilda": 272.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 349.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 37.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 21.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 40.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 319.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 20.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 181.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 40.0,
+                "Fjöldi gilda": 296.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 358.0,
+                "Fjöldi yfir": 17.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 324.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 44.0,
+                "Fjöldi gilda": 355.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 324.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 25.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 16.0,
+                "Fjöldi gilda": 351.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 41.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 355.0,
+                "Fjöldi yfir": 20.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 216.0,
+                "Fjöldi yfir": 4.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 351.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 362.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": 28.0,
+                "Fjöldi gilda": 358.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 345.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 62.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 180.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 15.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 8.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 366.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 15.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 9.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 24.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 13.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 20.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 8.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 359.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 18.0,
+                "Fjöldi gilda": 346.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 359.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 13.0,
+                "Fjöldi gilda": 292.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 341.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 334.0,
+                "Fjöldi yfir": 10.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 341.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "transform": [
+            {
+              "fold": [
+                "Styrkur í (µg/ m3)",
+                "Fjöldi gilda",
+                "Fjöldi yfir"
+              ],
+              "as": [
+                "measure",
+                "value"
+              ]
+            },
+            {
+              "calculate": "datum.measure == 'Styrkur í (µg/ m3)' ? 'Concentration' : datum.measure == 'Fjöldi gilda' ? 'Count' : datum.measure == 'Fjöldi yfir' ? 'Count Exceedance' : datum.measure",
+              "as": "measure_label"
+            }
+          ],
+          "mark": {
+            "type": "line",
+            "point": true,
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "value",
+              "type": "quantitative",
+              "title": "Value"
+            },
+            "color": {
+              "field": "measure_label",
+              "type": "nominal",
+              "title": "Measure"
+            }
+          }
+        },
+        "is_primary": true
+      },
+      {
+        "chart_type": "bar",
+        "title": "Dataset overview — comparison",
+        "description": "Bar chart comparing average readings across stations.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Dataset overview — comparison",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 75.0,
+                "Fjöldi gilda": 11.0,
+                "Fjöldi yfir": 3.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 147.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 27.0,
+                "Fjöldi gilda": 171.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 173.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 173.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 41.0,
+                "Fjöldi gilda": 192.0,
+                "Fjöldi yfir": 11.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 137.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 34.0,
+                "Fjöldi gilda": 197.0,
+                "Fjöldi yfir": 12.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 189.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 31.0,
+                "Fjöldi gilda": 197.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 36.0,
+                "Fjöldi gilda": 221.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 209.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 43.0,
+                "Fjöldi gilda": 228.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 190.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 133.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 137.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 99.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 43.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 38.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 30.0,
+                "Fjöldi gilda": 209.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 147.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 205.0,
+                "Fjöldi yfir": 38.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 213.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 213.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 32.0,
+                "Fjöldi gilda": 168.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 186.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 224.0,
+                "Fjöldi yfir": 30.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 226.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 225.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 37.0,
+                "Fjöldi gilda": 162.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 175.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 50.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 39.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 29.0,
+                "Fjöldi gilda": 204.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 204.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 245.0,
+                "Fjöldi yfir": 59.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 241.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 196.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 331.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 260.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 53.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 93.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 229.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 24.0,
+                "Fjöldi gilda": 362.0,
+                "Fjöldi yfir": 3.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 39.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 344.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 27.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 44.0,
+                "Fjöldi gilda": 272.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 349.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 37.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 21.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 40.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 319.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 20.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 181.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 40.0,
+                "Fjöldi gilda": 296.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 358.0,
+                "Fjöldi yfir": 17.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 324.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 44.0,
+                "Fjöldi gilda": 355.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 324.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 25.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 16.0,
+                "Fjöldi gilda": 351.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 41.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 355.0,
+                "Fjöldi yfir": 20.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 216.0,
+                "Fjöldi yfir": 4.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 351.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 362.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": 28.0,
+                "Fjöldi gilda": 358.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 345.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 62.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 180.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 15.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 8.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 366.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 15.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 9.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 24.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 13.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 20.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 8.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 359.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 18.0,
+                "Fjöldi gilda": 346.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 359.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 13.0,
+                "Fjöldi gilda": 292.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 341.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 334.0,
+                "Fjöldi yfir": 10.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 341.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "transform": [
+            {
+              "fold": [
+                "Styrkur í (µg/ m3)",
+                "Fjöldi gilda",
+                "Fjöldi yfir"
+              ],
+              "as": [
+                "measure",
+                "value"
+              ]
+            },
+            {
+              "calculate": "datum.measure == 'Styrkur í (µg/ m3)' ? 'Concentration' : datum.measure == 'Fjöldi gilda' ? 'Count' : datum.measure == 'Fjöldi yfir' ? 'Count Exceedance' : datum.measure",
+              "as": "measure_label"
+            },
+            {
+              "calculate": "timeFormat(toDate(datum['Ár']), '%Y')",
+              "as": "_period_nominal"
+            }
+          ],
+          "mark": {
+            "type": "bar",
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "_period_nominal",
+              "type": "ordinal",
+              "sort": "ascending",
+              "title": "Year"
+            },
+            "y": {
+              "field": "value",
+              "type": "quantitative",
+              "title": "Value"
+            },
+            "color": {
+              "field": "measure_label",
+              "type": "nominal",
+              "title": "Measure"
+            },
+            "xOffset": {
+              "field": "measure_label"
+            }
+          }
+        },
+        "is_primary": false
+      },
+      {
+        "chart_type": "heatmap",
+        "title": "Dataset overview — intensity",
+        "description": "Heatmap showing reading intensity by station and time.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Dataset overview — intensity",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": 1994,
+                "Styrkur í (µg/ m3)": 75.0,
+                "Fjöldi gilda": 11.0,
+                "Fjöldi yfir": 3.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 1994,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 147.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 1994,
+                "Styrkur í (µg/ m3)": 27.0,
+                "Fjöldi gilda": 171.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 1994,
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 173.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 1994,
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 173.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 1994,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 1995,
+                "Styrkur í (µg/ m3)": 41.0,
+                "Fjöldi gilda": 192.0,
+                "Fjöldi yfir": 11.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 1995,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 137.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 1995,
+                "Styrkur í (µg/ m3)": 34.0,
+                "Fjöldi gilda": 197.0,
+                "Fjöldi yfir": 12.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 1995,
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 189.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 1995,
+                "Styrkur í (µg/ m3)": 31.0,
+                "Fjöldi gilda": 197.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 1995,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 1996,
+                "Styrkur í (µg/ m3)": 36.0,
+                "Fjöldi gilda": 221.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 1996,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 209.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 1996,
+                "Styrkur í (µg/ m3)": 43.0,
+                "Fjöldi gilda": 228.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 1996,
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 190.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 1996,
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 133.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 1996,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 1997,
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 137.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 1997,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 99.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 1997,
+                "Styrkur í (µg/ m3)": 43.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 38.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 1997,
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 1997,
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 1997,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 1998,
+                "Styrkur í (µg/ m3)": 30.0,
+                "Fjöldi gilda": 209.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 1998,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 147.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 1998,
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 205.0,
+                "Fjöldi yfir": 38.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 1998,
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 213.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 1998,
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 213.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 1998,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 1999,
+                "Styrkur í (µg/ m3)": 32.0,
+                "Fjöldi gilda": 168.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 1999,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 186.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 1999,
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 224.0,
+                "Fjöldi yfir": 30.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 1999,
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 226.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 1999,
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 225.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 1999,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2000,
+                "Styrkur í (µg/ m3)": 37.0,
+                "Fjöldi gilda": 162.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2000,
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 175.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2000,
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 50.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2000,
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2000,
+                "Styrkur í (µg/ m3)": 39.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2000,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2001,
+                "Styrkur í (µg/ m3)": 29.0,
+                "Fjöldi gilda": 204.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2001,
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 204.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2001,
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 245.0,
+                "Fjöldi yfir": 59.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2001,
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 241.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2001,
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 196.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2001,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2002,
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 331.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2002,
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 260.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2002,
+                "Styrkur í (µg/ m3)": 53.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 93.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2002,
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 229.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2002,
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2002,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2003,
+                "Styrkur í (µg/ m3)": 24.0,
+                "Fjöldi gilda": 362.0,
+                "Fjöldi yfir": 3.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2003,
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2003,
+                "Styrkur í (µg/ m3)": 39.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2003,
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 344.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2003,
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2003,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2004,
+                "Styrkur í (µg/ m3)": 27.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2004,
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2004,
+                "Styrkur í (µg/ m3)": 44.0,
+                "Fjöldi gilda": 272.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2004,
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 349.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2004,
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2004,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2005,
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2005,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2005,
+                "Styrkur í (µg/ m3)": 37.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2005,
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2005,
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 21.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2005,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2006,
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2006,
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2006,
+                "Styrkur í (µg/ m3)": 40.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2006,
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 319.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2006,
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2006,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2007,
+                "Styrkur í (µg/ m3)": 20.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2007,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 181.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2007,
+                "Styrkur í (µg/ m3)": 40.0,
+                "Fjöldi gilda": 296.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2007,
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2007,
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 358.0,
+                "Fjöldi yfir": 17.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2007,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2008,
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 324.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2008,
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2008,
+                "Styrkur í (µg/ m3)": 44.0,
+                "Fjöldi gilda": 355.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2008,
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 324.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2008,
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 25.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2008,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2009,
+                "Styrkur í (µg/ m3)": 16.0,
+                "Fjöldi gilda": 351.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2009,
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2009,
+                "Styrkur í (µg/ m3)": 41.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2009,
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2009,
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 355.0,
+                "Fjöldi yfir": 20.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2009,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2010,
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 216.0,
+                "Fjöldi yfir": 4.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2010,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 351.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2010,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2010,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 362.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2010,
+                "Styrkur í (µg/ m3)": 28.0,
+                "Fjöldi gilda": 358.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2010,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2011,
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 345.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2011,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2011,
+                "Styrkur í (µg/ m3)": 62.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2011,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2011,
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2011,
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2012,
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2012,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 180.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2012,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2012,
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2012,
+                "Styrkur í (µg/ m3)": 15.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 8.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2012,
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 366.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2013,
+                "Styrkur í (µg/ m3)": 15.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2013,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2013,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2013,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2013,
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 9.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2013,
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2014,
+                "Styrkur í (µg/ m3)": 24.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2014,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2014,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2014,
+                "Styrkur í (µg/ m3)": 13.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2014,
+                "Styrkur í (µg/ m3)": 20.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 8.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2014,
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2015,
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2015,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2015,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2015,
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 359.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2015,
+                "Styrkur í (µg/ m3)": 18.0,
+                "Fjöldi gilda": 346.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2015,
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 359.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": 2016,
+                "Styrkur í (µg/ m3)": 13.0,
+                "Fjöldi gilda": 292.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": 2016,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": 2016,
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": 2016,
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 341.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": 2016,
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 334.0,
+                "Fjöldi yfir": 10.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": 2016,
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 341.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "transform": [
+            {
+              "fold": [
+                "Styrkur í (µg/ m3)",
+                "Fjöldi gilda",
+                "Fjöldi yfir"
+              ],
+              "as": [
+                "measure",
+                "value"
+              ]
+            },
+            {
+              "calculate": "datum.measure == 'Styrkur í (µg/ m3)' ? 'Concentration' : datum.measure == 'Fjöldi gilda' ? 'Count' : datum.measure == 'Fjöldi yfir' ? 'Count Exceedance' : datum.measure",
+              "as": "measure_label"
+            }
+          ],
+          "mark": {
+            "type": "rect",
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "measure_label",
+              "type": "nominal",
+              "title": "Measure"
+            },
+            "y": {
+              "field": "",
+              "type": "nominal",
+              "title": ""
+            },
+            "color": {
+              "field": "value",
+              "type": "quantitative",
+              "scale": {
+                "scheme": "blues"
+              },
+              "title": "Value"
+            }
+          }
+        },
+        "is_primary": false
+      },
+      {
+        "chart_type": "area",
+        "title": "Dataset overview — composition",
+        "description": "Area chart highlighting seasonal or cumulative patterns.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Dataset overview — composition",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 75.0,
+                "Fjöldi gilda": 11.0,
+                "Fjöldi yfir": 3.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 147.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 27.0,
+                "Fjöldi gilda": 171.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 173.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 173.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1994-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 41.0,
+                "Fjöldi gilda": 192.0,
+                "Fjöldi yfir": 11.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 137.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 34.0,
+                "Fjöldi gilda": 197.0,
+                "Fjöldi yfir": 12.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 189.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": 31.0,
+                "Fjöldi gilda": 197.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1995-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 36.0,
+                "Fjöldi gilda": 221.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 209.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 43.0,
+                "Fjöldi gilda": 228.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 190.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 133.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1996-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 137.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 99.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 43.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 38.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1997-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 30.0,
+                "Fjöldi gilda": 209.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 147.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 205.0,
+                "Fjöldi yfir": 38.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 213.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 213.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1998-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 32.0,
+                "Fjöldi gilda": 168.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 186.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 224.0,
+                "Fjöldi yfir": 30.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 226.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": 33.0,
+                "Fjöldi gilda": 225.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "1999-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 37.0,
+                "Fjöldi gilda": 162.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 175.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 50.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": 39.0,
+                "Fjöldi gilda": 207.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2000-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 29.0,
+                "Fjöldi gilda": 204.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 204.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 46.0,
+                "Fjöldi gilda": 245.0,
+                "Fjöldi yfir": 59.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 241.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 196.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2001-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 331.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 260.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 53.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 93.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 229.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2002-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 24.0,
+                "Fjöldi gilda": 362.0,
+                "Fjöldi yfir": 3.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 39.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 344.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2003-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 27.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 44.0,
+                "Fjöldi gilda": 272.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 349.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2004-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 37.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 21.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2005-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 26.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 40.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 319.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": 25.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2006-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 20.0,
+                "Fjöldi gilda": 350.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 181.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 40.0,
+                "Fjöldi gilda": 296.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 358.0,
+                "Fjöldi yfir": 17.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2007-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 324.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 44.0,
+                "Fjöldi gilda": 355.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 324.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 352.0,
+                "Fjöldi yfir": 25.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2008-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 16.0,
+                "Fjöldi gilda": 351.0,
+                "Fjöldi yfir": 2.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 0.0,
+                "Fjöldi gilda": 363.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 41.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 2.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 355.0,
+                "Fjöldi yfir": 20.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2009-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": 23.0,
+                "Fjöldi gilda": 216.0,
+                "Fjöldi yfir": 4.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 351.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 362.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": 28.0,
+                "Fjöldi gilda": 358.0,
+                "Fjöldi yfir": 29.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2010-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 345.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 62.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 22.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2011-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 347.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 19.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 180.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 15.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 8.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2012-01-01",
+                "Styrkur í (µg/ m3)": 5.0,
+                "Fjöldi gilda": 366.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 15.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 9.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2013-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 24.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 7.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 13.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 20.0,
+                "Fjöldi gilda": 357.0,
+                "Fjöldi yfir": 8.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2014-01-01",
+                "Styrkur í (µg/ m3)": 4.0,
+                "Fjöldi gilda": 364.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 21.0,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": 365.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 359.0,
+                "Fjöldi yfir": 1.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 18.0,
+                "Fjöldi gilda": 346.0,
+                "Fjöldi yfir": 16.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2015-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 359.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 13.0,
+                "Fjöldi gilda": 292.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Niturdíoxíð NO2"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Kolmónoxíð CO"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": null,
+                "Fjöldi gilda": null,
+                "Fjöldi yfir": null,
+                "Efni": "Óson O3"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 1.0,
+                "Fjöldi gilda": 341.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsdíoxíð SO2"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 17.0,
+                "Fjöldi gilda": 334.0,
+                "Fjöldi yfir": 10.0,
+                "Efni": "Svifryk PM10"
+              },
+              {
+                "Ár": "2016-01-01",
+                "Styrkur í (µg/ m3)": 3.0,
+                "Fjöldi gilda": 341.0,
+                "Fjöldi yfir": 0.0,
+                "Efni": "Brennisteinsvetni H2S"
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "transform": [
+            {
+              "fold": [
+                "Styrkur í (µg/ m3)",
+                "Fjöldi gilda",
+                "Fjöldi yfir"
+              ],
+              "as": [
+                "measure",
+                "value"
+              ]
+            },
+            {
+              "calculate": "datum.measure == 'Styrkur í (µg/ m3)' ? 'Concentration' : datum.measure == 'Fjöldi gilda' ? 'Count' : datum.measure == 'Fjöldi yfir' ? 'Count Exceedance' : datum.measure",
+              "as": "measure_label"
+            }
+          ],
+          "mark": {
+            "type": "area",
+            "point": true,
+            "tooltip": true,
+            "opacity": 0.6,
+            "line": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "value",
+              "type": "quantitative",
+              "title": "Value"
+            },
+            "color": {
+              "field": "measure_label",
+              "type": "nominal",
+              "title": "Measure"
+            }
+          }
+        },
+        "is_primary": false
+      }
+    ],
+    "dataset": {
+      "dataset_id": "loftmengun_i_reykjavik_maelingar_fra_grensasvegi",
+      "source": "https://gagnagatt.reykjavik.is/en/dataset/8ce38d3f-f668-446b-9a52-c26e8d04561f/resource/28bd1da6-a3b2-4d5b-842d-691ccc3de667/download/loftmengun_i_reykjavik_maelingar_fra_grensasvegi_heild.csv",
+      "row_count": 138,
+      "column_count": 5,
+      "column_types": {
+        "temporal": 1,
+        "categorical": 1,
+        "numerical": 3
+      },
+      "matched_columns": {
+        "time_axis": "Ár",
+        "env_measure": "Styrkur í (µg/ m3)",
+        "station": "Efni",
+        "secondary_measure": "Fjöldi gilda"
+      },
+      "template_type": "environmental"
+    },
+    "provenance": {
+      "dataset_id": "loftmengun_i_reykjavik_maelingar_fra_grensasvegi",
+      "dataset_source": "https://gagnagatt.reykjavik.is/en/dataset/8ce38d3f-f668-446b-9a52-c26e8d04561f/resource/28bd1da6-a3b2-4d5b-842d-691ccc3de667/download/loftmengun_i_reykjavik_maelingar_fra_grensasvegi_heild.csv",
+      "template_type": "environmental",
+      "llm_provider": "openai",
+      "llm_model": "gpt-4o",
+      "generation_attempts": 1,
+      "generated_at": "2026-04-04T20:57:37.200757",
+      "pipeline_version": "0.1.0"
+    },
+    "dataset_name": "Loftmengun í Reykjavík, mælingar frá Grensásvegi",
+    "dataset_source": "https://gagnagatt.reykjavik.is/en/dataset/8ce38d3f-f668-446b-9a52-c26e8d04561f/resource/28bd1da6-a3b2-4d5b-842d-691ccc3de667/download/loftmengun_i_reykjavik_maelingar_fra_grensasvegi_heild.csv"
+  }
+}

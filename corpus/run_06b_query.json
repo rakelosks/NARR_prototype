@@ -1,0 +1,825 @@
+{
+  "run_id": "run_06",
+  "query": "How many traffic accidents occurred these past years?",
+  "timestamp": "2026-04-04T21:04:54.205248+00:00",
+  "status_code": 200,
+  "response_time_seconds": 9.68,
+  "response": {
+    "package_id": "umferdarslys_og_arekstrar_i_reykjavik_20260404_210454",
+    "created_at": "2026-04-04T21:04:54.201751",
+    "headline": "Road Accidents in Reykjavík Halved Over Past 15 Years",
+    "lede": "In Reykjavík, road safety has seen commendable progress. The number of traffic accidents has dropped by nearly half since the early 2000s, showing a significant improvement in driver safety and awareness.",
+    "story_blocks": [
+      {
+        "type": "callout",
+        "body": "Traffic accidents per 1,000 vehicles have decreased by 47% from 2000 to 2019, marking a positive trend in road safety.",
+        "highlight_value": "47%",
+        "highlight_label": "fewer traffic accidents per vehicle"
+      },
+      {
+        "type": "narrative",
+        "heading": "Road Accidents Peaked Around 2001",
+        "body": "In the chart below, you see the number of accidents per 1,000 vehicles initially rising to a peak in 2001, where it hit 50.9. However, from that year, there has been a noticeable decline, dropping 48% to 26.3 by 2019. This reduction reflects enhanced road safety measures and more cautious driving behaviors.",
+        "viz_index": 0
+      },
+      {
+        "type": "narrative",
+        "heading": "Rise in Vehicle Numbers with Better Safety",
+        "body": "Interestingly, while the number of vehicles on the road increased by over 56% from 2000 to 2019, the rate of accidents per vehicle fell. This trend shows that even as more cars are introduced, road safety protocols and driver education are making a real difference.",
+        "viz_index": 1
+      },
+      {
+        "type": "narrative",
+        "heading": "Reduction in Road Casualties",
+        "body": "The decline in traffic accidents goes hand-in-hand with improved safety outcomes. The number of injuries per 1,000 vehicles dropped by 65%, and fatalities have completely diminished to zero by 2019 from a peak in the early 2000s. These indicators suggest an overall safer driving environment in Reykjavík.",
+        "viz_index": 3
+      },
+      {
+        "type": "narrative",
+        "heading": "A Positive Outlook for the Future",
+        "body": "For residents, this means safer journeys on the roads of Reykjavík. The reductions in accidents and injuries provide reassurance that ongoing safety measures are effective. These trends also highlight the importance of maintaining and improving these efforts to ensure continued progress."
+      }
+    ],
+    "data_note": "This data covers the period from 2000 to 2019, providing insights into changes in road safety over nearly two decades. It includes figures from police-reported accidents but excludes incidents directly reported to insurance companies. The absence of license information from the source is noted as well.",
+    "followup_question": "How is public transport ridership trending?",
+    "visualizations": [
+      {
+        "chart_type": "line",
+        "title": "Dataset overview (2000–2019)",
+        "description": "Trend over time for Count.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Dataset overview (2000–2019)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "2000-01-01",
+                "Fjöldi ökutækja 31· desember": 75842,
+                "Fjöldi árekstra á 1·000 ökutæki": 49.6,
+                "Fjöldi slasaðra á 1·000 ökutæki": 7.8,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2001-01-01",
+                "Fjöldi ökutækja 31· desember": 81379,
+                "Fjöldi árekstra á 1·000 ökutæki": 50.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.9,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2002-01-01",
+                "Fjöldi ökutækja 31· desember": 82231,
+                "Fjöldi árekstra á 1·000 ökutæki": 48.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 6.1,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2003-01-01",
+                "Fjöldi ökutækja 31· desember": 86789,
+                "Fjöldi árekstra á 1·000 ökutæki": 46.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.4,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2004-01-01",
+                "Fjöldi ökutækja 31· desember": 94766,
+                "Fjöldi árekstra á 1·000 ökutæki": 47.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.4,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2005-01-01",
+                "Fjöldi ökutækja 31· desember": 108671,
+                "Fjöldi árekstra á 1·000 ökutæki": 39.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2006-01-01",
+                "Fjöldi ökutækja 31· desember": 123351,
+                "Fjöldi árekstra á 1·000 ökutæki": 34.0,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.8,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2007-01-01",
+                "Fjöldi ökutækja 31· desember": 139986,
+                "Fjöldi árekstra á 1·000 ökutæki": 26.0,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.1,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2008-01-01",
+                "Fjöldi ökutækja 31· desember": 99252,
+                "Fjöldi árekstra á 1·000 ökutæki": 22.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2009-01-01",
+                "Fjöldi ökutækja 31· desember": 96428,
+                "Fjöldi árekstra á 1·000 ökutæki": 31.2,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.6,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2010-01-01",
+                "Fjöldi ökutækja 31· desember": 96107,
+                "Fjöldi árekstra á 1·000 ökutæki": 30.4,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2011-01-01",
+                "Fjöldi ökutækja 31· desember": 96272,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2012-01-01",
+                "Fjöldi ökutækja 31· desember": 96980,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2013-01-01",
+                "Fjöldi ökutækja 31· desember": 97763,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.5,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2014-01-01",
+                "Fjöldi ökutækja 31· desember": 98836,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.6,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2015-01-01",
+                "Fjöldi ökutækja 31· desember": 101567,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.4,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2016-01-01",
+                "Fjöldi ökutækja 31· desember": 108714,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.3,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2017-01-01",
+                "Fjöldi ökutækja 31· desember": 113387,
+                "Fjöldi árekstra á 1·000 ökutæki": 25.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.3,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2018-01-01",
+                "Fjöldi ökutækja 31· desember": 117407,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 2.8,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2019-01-01",
+                "Fjöldi ökutækja 31· desember": 118437,
+                "Fjöldi árekstra á 1·000 ökutæki": 26.3,
+                "Fjöldi slasaðra á 1·000 ökutæki": 2.7,
+                "Þar af banaslys": 0
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "mark": {
+            "type": "line",
+            "point": true,
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "Fjöldi ökutækja 31· desember",
+              "type": "quantitative",
+              "title": "Count"
+            }
+          }
+        },
+        "is_primary": true
+      },
+      {
+        "chart_type": "line",
+        "title": "Fj Ldi  Rekstra   1 000  Kut Ki (2000–2019)",
+        "description": "Trend over time for Count Vehicle.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Fj Ldi  Rekstra   1 000  Kut Ki (2000–2019)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "2000-01-01",
+                "Fjöldi ökutækja 31· desember": 75842,
+                "Fjöldi árekstra á 1·000 ökutæki": 49.6,
+                "Fjöldi slasaðra á 1·000 ökutæki": 7.8,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2001-01-01",
+                "Fjöldi ökutækja 31· desember": 81379,
+                "Fjöldi árekstra á 1·000 ökutæki": 50.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.9,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2002-01-01",
+                "Fjöldi ökutækja 31· desember": 82231,
+                "Fjöldi árekstra á 1·000 ökutæki": 48.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 6.1,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2003-01-01",
+                "Fjöldi ökutækja 31· desember": 86789,
+                "Fjöldi árekstra á 1·000 ökutæki": 46.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.4,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2004-01-01",
+                "Fjöldi ökutækja 31· desember": 94766,
+                "Fjöldi árekstra á 1·000 ökutæki": 47.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.4,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2005-01-01",
+                "Fjöldi ökutækja 31· desember": 108671,
+                "Fjöldi árekstra á 1·000 ökutæki": 39.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2006-01-01",
+                "Fjöldi ökutækja 31· desember": 123351,
+                "Fjöldi árekstra á 1·000 ökutæki": 34.0,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.8,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2007-01-01",
+                "Fjöldi ökutækja 31· desember": 139986,
+                "Fjöldi árekstra á 1·000 ökutæki": 26.0,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.1,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2008-01-01",
+                "Fjöldi ökutækja 31· desember": 99252,
+                "Fjöldi árekstra á 1·000 ökutæki": 22.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2009-01-01",
+                "Fjöldi ökutækja 31· desember": 96428,
+                "Fjöldi árekstra á 1·000 ökutæki": 31.2,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.6,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2010-01-01",
+                "Fjöldi ökutækja 31· desember": 96107,
+                "Fjöldi árekstra á 1·000 ökutæki": 30.4,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2011-01-01",
+                "Fjöldi ökutækja 31· desember": 96272,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2012-01-01",
+                "Fjöldi ökutækja 31· desember": 96980,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2013-01-01",
+                "Fjöldi ökutækja 31· desember": 97763,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.5,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2014-01-01",
+                "Fjöldi ökutækja 31· desember": 98836,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.6,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2015-01-01",
+                "Fjöldi ökutækja 31· desember": 101567,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.4,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2016-01-01",
+                "Fjöldi ökutækja 31· desember": 108714,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.3,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2017-01-01",
+                "Fjöldi ökutækja 31· desember": 113387,
+                "Fjöldi árekstra á 1·000 ökutæki": 25.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.3,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2018-01-01",
+                "Fjöldi ökutækja 31· desember": 117407,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 2.8,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2019-01-01",
+                "Fjöldi ökutækja 31· desember": 118437,
+                "Fjöldi árekstra á 1·000 ökutæki": 26.3,
+                "Fjöldi slasaðra á 1·000 ökutæki": 2.7,
+                "Þar af banaslys": 0
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "mark": {
+            "type": "line",
+            "point": true,
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "Fjöldi árekstra á 1·000 ökutæki",
+              "type": "quantitative",
+              "title": "Count Vehicle"
+            }
+          }
+        },
+        "is_primary": false
+      },
+      {
+        "chart_type": "bar",
+        "title": "Fj Ldi Slasa Ra   1 000  Kut Ki (2000–2019)",
+        "description": "Counts over time for Count Vehicle.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Fj Ldi Slasa Ra   1 000  Kut Ki (2000–2019)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "2000-01-01",
+                "Fjöldi ökutækja 31· desember": 75842,
+                "Fjöldi árekstra á 1·000 ökutæki": 49.6,
+                "Fjöldi slasaðra á 1·000 ökutæki": 7.8,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2001-01-01",
+                "Fjöldi ökutækja 31· desember": 81379,
+                "Fjöldi árekstra á 1·000 ökutæki": 50.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.9,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2002-01-01",
+                "Fjöldi ökutækja 31· desember": 82231,
+                "Fjöldi árekstra á 1·000 ökutæki": 48.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 6.1,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2003-01-01",
+                "Fjöldi ökutækja 31· desember": 86789,
+                "Fjöldi árekstra á 1·000 ökutæki": 46.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.4,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2004-01-01",
+                "Fjöldi ökutækja 31· desember": 94766,
+                "Fjöldi árekstra á 1·000 ökutæki": 47.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.4,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2005-01-01",
+                "Fjöldi ökutækja 31· desember": 108671,
+                "Fjöldi árekstra á 1·000 ökutæki": 39.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2006-01-01",
+                "Fjöldi ökutækja 31· desember": 123351,
+                "Fjöldi árekstra á 1·000 ökutæki": 34.0,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.8,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2007-01-01",
+                "Fjöldi ökutækja 31· desember": 139986,
+                "Fjöldi árekstra á 1·000 ökutæki": 26.0,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.1,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2008-01-01",
+                "Fjöldi ökutækja 31· desember": 99252,
+                "Fjöldi árekstra á 1·000 ökutæki": 22.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2009-01-01",
+                "Fjöldi ökutækja 31· desember": 96428,
+                "Fjöldi árekstra á 1·000 ökutæki": 31.2,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.6,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2010-01-01",
+                "Fjöldi ökutækja 31· desember": 96107,
+                "Fjöldi árekstra á 1·000 ökutæki": 30.4,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2011-01-01",
+                "Fjöldi ökutækja 31· desember": 96272,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2012-01-01",
+                "Fjöldi ökutækja 31· desember": 96980,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2013-01-01",
+                "Fjöldi ökutækja 31· desember": 97763,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.5,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2014-01-01",
+                "Fjöldi ökutækja 31· desember": 98836,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.6,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2015-01-01",
+                "Fjöldi ökutækja 31· desember": 101567,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.4,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2016-01-01",
+                "Fjöldi ökutækja 31· desember": 108714,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.3,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2017-01-01",
+                "Fjöldi ökutækja 31· desember": 113387,
+                "Fjöldi árekstra á 1·000 ökutæki": 25.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.3,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2018-01-01",
+                "Fjöldi ökutækja 31· desember": 117407,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 2.8,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2019-01-01",
+                "Fjöldi ökutækja 31· desember": 118437,
+                "Fjöldi árekstra á 1·000 ökutæki": 26.3,
+                "Fjöldi slasaðra á 1·000 ökutæki": 2.7,
+                "Þar af banaslys": 0
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "mark": {
+            "type": "bar",
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "Fjöldi slasaðra á 1·000 ökutæki",
+              "type": "quantitative",
+              "title": "Count Vehicle"
+            }
+          }
+        },
+        "is_primary": false
+      },
+      {
+        "chart_type": "bar",
+        "title": "Ar Af Banaslys (2000–2019)",
+        "description": "Counts over time for Casualty.",
+        "vega_lite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+          "title": "Ar Af Banaslys (2000–2019)",
+          "width": "container",
+          "height": 400,
+          "data": {
+            "values": [
+              {
+                "Ár": "2000-01-01",
+                "Fjöldi ökutækja 31· desember": 75842,
+                "Fjöldi árekstra á 1·000 ökutæki": 49.6,
+                "Fjöldi slasaðra á 1·000 ökutæki": 7.8,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2001-01-01",
+                "Fjöldi ökutækja 31· desember": 81379,
+                "Fjöldi árekstra á 1·000 ökutæki": 50.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.9,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2002-01-01",
+                "Fjöldi ökutækja 31· desember": 82231,
+                "Fjöldi árekstra á 1·000 ökutæki": 48.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 6.1,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2003-01-01",
+                "Fjöldi ökutækja 31· desember": 86789,
+                "Fjöldi árekstra á 1·000 ökutæki": 46.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.4,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2004-01-01",
+                "Fjöldi ökutækja 31· desember": 94766,
+                "Fjöldi árekstra á 1·000 ökutæki": 47.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.4,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2005-01-01",
+                "Fjöldi ökutækja 31· desember": 108671,
+                "Fjöldi árekstra á 1·000 ökutæki": 39.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2006-01-01",
+                "Fjöldi ökutækja 31· desember": 123351,
+                "Fjöldi árekstra á 1·000 ökutæki": 34.0,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.8,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2007-01-01",
+                "Fjöldi ökutækja 31· desember": 139986,
+                "Fjöldi árekstra á 1·000 ökutæki": 26.0,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.1,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2008-01-01",
+                "Fjöldi ökutækja 31· desember": 99252,
+                "Fjöldi árekstra á 1·000 ökutæki": 22.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 5.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2009-01-01",
+                "Fjöldi ökutækja 31· desember": 96428,
+                "Fjöldi árekstra á 1·000 ökutæki": 31.2,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.6,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2010-01-01",
+                "Fjöldi ökutækja 31· desember": 96107,
+                "Fjöldi árekstra á 1·000 ökutæki": 30.4,
+                "Fjöldi slasaðra á 1·000 ökutæki": 4.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2011-01-01",
+                "Fjöldi ökutækja 31· desember": 96272,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.9,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2012-01-01",
+                "Fjöldi ökutækja 31· desember": 96980,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.0,
+                "Þar af banaslys": 1
+              },
+              {
+                "Ár": "2013-01-01",
+                "Fjöldi ökutækja 31· desember": 97763,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.5,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.2,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2014-01-01",
+                "Fjöldi ökutækja 31· desember": 98836,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.8,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.6,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2015-01-01",
+                "Fjöldi ökutækja 31· desember": 101567,
+                "Fjöldi árekstra á 1·000 ökutæki": 28.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.4,
+                "Þar af banaslys": 3
+              },
+              {
+                "Ár": "2016-01-01",
+                "Fjöldi ökutækja 31· desember": 108714,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.3,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2017-01-01",
+                "Fjöldi ökutækja 31· desember": 113387,
+                "Fjöldi árekstra á 1·000 ökutæki": 25.7,
+                "Fjöldi slasaðra á 1·000 ökutæki": 3.3,
+                "Þar af banaslys": 2
+              },
+              {
+                "Ár": "2018-01-01",
+                "Fjöldi ökutækja 31· desember": 117407,
+                "Fjöldi árekstra á 1·000 ökutæki": 27.1,
+                "Fjöldi slasaðra á 1·000 ökutæki": 2.8,
+                "Þar af banaslys": 0
+              },
+              {
+                "Ár": "2019-01-01",
+                "Fjöldi ökutækja 31· desember": 118437,
+                "Fjöldi árekstra á 1·000 ökutæki": 26.3,
+                "Fjöldi slasaðra á 1·000 ökutæki": 2.7,
+                "Þar af banaslys": 0
+              }
+            ]
+          },
+          "config": {
+            "view": {
+              "stroke": "transparent"
+            },
+            "axis": {
+              "labelFontSize": 12,
+              "titleFontSize": 13
+            },
+            "title": {
+              "fontSize": 16,
+              "anchor": "start",
+              "orient": "top"
+            }
+          },
+          "mark": {
+            "type": "bar",
+            "tooltip": true
+          },
+          "encoding": {
+            "x": {
+              "field": "Ár",
+              "type": "temporal",
+              "title": "Year",
+              "timeUnit": "year"
+            },
+            "y": {
+              "field": "Þar af banaslys",
+              "type": "quantitative",
+              "title": "Casualty"
+            }
+          }
+        },
+        "is_primary": false
+      }
+    ],
+    "dataset": {
+      "dataset_id": "umferdarslys_og_arekstrar_i_reykjavik",
+      "source": "https://gagnagatt.reykjavik.is/en/dataset/2682d63c-e1ee-49ef-812e-418828dc01c2/resource/2c8e003d-f5aa-49e8-b15f-04f26ac5d778/download/umferdarslys_og_arekstrar_i_reykjavik_heild.csv",
+      "row_count": 20,
+      "column_count": 7,
+      "column_types": {
+        "temporal": 1,
+        "numerical": 6
+      },
+      "matched_columns": {
+        "time_axis": "Ár",
+        "measure": "Fjöldi ökutækja 31. desember"
+      },
+      "template_type": "time_series"
+    },
+    "provenance": {
+      "dataset_id": "umferdarslys_og_arekstrar_i_reykjavik",
+      "dataset_source": "https://gagnagatt.reykjavik.is/en/dataset/2682d63c-e1ee-49ef-812e-418828dc01c2/resource/2c8e003d-f5aa-49e8-b15f-04f26ac5d778/download/umferdarslys_og_arekstrar_i_reykjavik_heild.csv",
+      "template_type": "time_series",
+      "llm_provider": "openai",
+      "llm_model": "gpt-4o",
+      "generation_attempts": 1,
+      "generated_at": "2026-04-04T21:04:54.201714",
+      "pipeline_version": "0.1.0"
+    },
+    "dataset_name": "Umferðarslys og árekstrar í Reykjavík",
+    "dataset_source": "https://gagnagatt.reykjavik.is/en/dataset/2682d63c-e1ee-49ef-812e-418828dc01c2/resource/2c8e003d-f5aa-49e8-b15f-04f26ac5d778/download/umferdarslys_og_arekstrar_i_reykjavik_heild.csv"
+  }
+}
