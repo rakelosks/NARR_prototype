@@ -179,10 +179,11 @@ ENVIRONMENTAL_TEMPLATE = DatasetTemplate(
 
 TRANSPORT_TEMPLATE = DatasetTemplate(
     id=TemplateType.TRANSPORT,
-    name="Transport / mobility",
+    name="Transport / mobility & road safety",
     description=(
-        "Datasets tracking traffic counts, transit ridership, bike counters, "
-        "and parking data over time. Extends time-series with peak-hour analysis."
+        "Datasets tracking traffic volumes, transit ridership, bike counters, "
+        "parking, and road safety over time (collisions, injuries, rates per "
+        "vehicle, fatalities). Extends time-series with optional peak-hour analysis."
     ),
     parent_archetype=TemplateType.TIME_SERIES,
     column_requirements=[
@@ -227,6 +228,8 @@ TRANSPORT_TEMPLATE = DatasetTemplate(
         "traffic", "vehicle", "transit", "passenger", "ridership",
         "bike", "bicycle", "parking", "speed", "flow", "counter",
         "bus", "train",
+        "accident", "collision", "casualty", "fatal", "injury",
+        "safety", "road safety", "crash",
     ],
     chart_recommendations=[
         ChartRecommendation(
@@ -236,7 +239,10 @@ TRANSPORT_TEMPLATE = DatasetTemplate(
         ),
         ChartRecommendation(
             chart_type="bar",
-            description="Grouped bar chart by route, direction, or mode.",
+            description=(
+                "Bar chart by route/direction/mode, period comparison, or "
+                "year-by-year counts (e.g. injuries, fatalities)."
+            ),
             priority=2,
         ),
         ChartRecommendation(
@@ -246,11 +252,16 @@ TRANSPORT_TEMPLATE = DatasetTemplate(
         ),
     ],
     narrative_hints=NarrativeHint(
-        focus="Movement patterns, peak usage, and capacity across the city's transport network.",
+        focus=(
+            "How people and vehicles move through the network, and how safe roads are: "
+            "traffic volumes, transit use, and road safety (collisions, injuries, "
+            "rates per vehicle, serious and fatal outcomes when present)."
+        ),
         example_questions=[
-            "When are peak hours?",
-            "How does weekday differ from weekend?",
-            "Which routes or locations see the most traffic?",
+            "When are peak hours or busiest periods?",
+            "How do collisions, injuries, or fatalities trend over time?",
+            "How do rates per vehicle or per distance compare to raw counts?",
+            "Which routes or areas show the highest flow or risk?",
         ],
     ),
     min_rows=3,

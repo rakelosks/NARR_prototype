@@ -184,6 +184,14 @@ _TOPIC_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
          "almenningssamgongur", "farþegafjöldi"],
     ),
     (
+        ("traffic accident", "traffic accidents", "road accident", "road accidents",
+         "car accident", "car accidents", "vehicle accident", "vehicle accidents",
+         "car crash", "traffic crash", "traffic collision", "motor vehicle crash",
+         "umferdarslys", "arekstrar", "arekstur"),
+        ["umferðarslys", "umferdarslys", "árekstrar", "arekstrar",
+         "árekstur", "arekstur"],
+    ),
+    (
         ("air quality", "air pollution", "loftgaedi", "loftmengun"),
         ["loftgæði", "loftgaedi", "loftmengun", "svifryk",
          "NO2", "PM10", "PM2.5"],
@@ -818,7 +826,10 @@ def _profile_and_match(
     Returns (profile, match_result).
     """
     # Fix mistyped columns: many portals publish numbers as text.
-    # Coercion is in-place so downstream analytics also benefit.
+    # European decimal commas must run before pd.to_numeric coercion.
+    from data.ingestion.loader import _fix_european_decimals
+
+    _fix_european_decimals(df)
     coerced = coerce_numeric_text_columns(df)
     if coerced:
         logger.info(f"Coerced {len(coerced)} text→numeric columns: {coerced}")

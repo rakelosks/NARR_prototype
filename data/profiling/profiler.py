@@ -162,7 +162,7 @@ _MEASURE_KEYWORDS = {
 }
 
 # Keywords for year-like column names
-_YEAR_KEYWORDS = {"year", "yr", "anno", "aar"}
+_YEAR_KEYWORDS = {"year", "yr", "anno", "aar", "ar"}  # "ár" (year) → ar when accent-stripped
 
 
 def is_viable_measure(series: pd.Series, col_name: str, total_rows: int) -> bool:

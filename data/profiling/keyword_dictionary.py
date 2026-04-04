@@ -1355,6 +1355,42 @@ KEYWORD_DICTIONARY: list[KeywordEntry] = [
         roles=["event_type"],
     ),
     KeywordEntry(
+        canonical="collision",
+        translations={
+            "is": [
+                "árekstur", "arekstur", "árekstrar", "arekstrar",
+                "árekst", "arekst",
+            ],
+            "en": ["collision", "collisions", "crash", "crashes"],
+        },
+        match_mode="stem",
+        domains=["incident"],
+        roles=["measure", "severity"],
+    ),
+    KeywordEntry(
+        canonical="traffic_accident",
+        translations={
+            "is": ["umferðarslys", "umferdarslys"],
+            "en": ["traffic accident", "traffic accidents"],
+        },
+        match_mode="stem",
+        domains=["incident"],
+        roles=["measure", "severity"],
+    ),
+    KeywordEntry(
+        canonical="casualty",
+        translations={
+            "is": [
+                "banaslys", "slasadi", "slasaðir", "slasadir",
+                "slasað", "slasad", "meiðsl", "meidsl",
+            ],
+            "en": ["casualt", "fatalit", "injur", "death toll"],
+        },
+        match_mode="stem",
+        domains=["incident"],
+        roles=["measure", "severity"],
+    ),
+    KeywordEntry(
         canonical="crime",
         translations={
             "is": ["glæpur", "glaepur", "afbrot"],

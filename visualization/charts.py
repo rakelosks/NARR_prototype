@@ -229,25 +229,32 @@ def _measures_have_different_scales(
     """
     Check whether multiple measures have vastly different magnitudes.
 
-    Returns True when the largest measure's mean is more than `threshold`
-    times the smallest measure's mean. In that case, plotting them on
-    the same y-axis makes the small measures invisible.
+    Uses each column's max (fallback: mean) so totals (e.g. vehicle stock)
+    vs rates or fatalities (single digits) split into separate charts.
+    Means alone miss this when some stats are null or means round oddly.
     """
     if len(measures) < 2:
         return False
 
-    means = []
+    magnitudes: list[float] = []
     for m in measures:
-        m_stats = stats.get(m, {})
-        mean_val = m_stats.get("mean")
-        if mean_val is not None and mean_val != 0:
-            means.append(abs(float(mean_val)))
+        m_stats = stats.get(m, {}) or {}
+        raw = m_stats.get("max")
+        if raw is None:
+            raw = m_stats.get("mean")
+        if raw is None:
+            continue
+        try:
+            v = abs(float(raw))
+        except (TypeError, ValueError):
+            continue
+        if v > 0:
+            magnitudes.append(v)
 
-    if len(means) < 2:
+    if len(magnitudes) < 2:
         return False
 
-    ratio = max(means) / min(means)
-    return ratio > threshold
+    return max(magnitudes) / min(magnitudes) > threshold
 
 
 # ---------------------------------------------------------------------------
@@ -405,10 +412,18 @@ def _select_time_series_chart(metrics: dict) -> ChartSelection:
 
             for m in measures[:5]:  # cap at 5 charts
                 english_name = _resolve(m)
+                mmax = (stats.get(m) or {}).get("max")
+                try:
+                    # Small annual counts (fatalities, etc.) read well as period bars.
+                    prefer_bar = mmax is not None and float(mmax) <= 30.0
+                except (TypeError, ValueError):
+                    prefer_bar = False
                 charts.append(ChartEntry(
-                    chart_type="line",
+                    chart_type="bar" if prefer_bar else "line",
                     title_suffix=f"— {english_name}",
-                    description=f"Trend over time for {english_name}.",
+                    description=(
+                        f"{'Counts' if prefer_bar else 'Trend'} over time for {english_name}."
+                    ),
                     spec_overrides={"single_measure": m},
                 ))
             # Add a latest-year bar chart for the primary measure if grouped
@@ -693,9 +708,33 @@ def _select_environmental_chart(metrics: dict) -> ChartSelection:
 
 
 def _select_transport_chart(metrics: dict) -> ChartSelection:
-    """Select chart type for transport/mobility data."""
+    """Select chart type for transport / mobility / road-safety time series."""
     extensions = metrics.get("domain_extensions", {})
     route_col = metrics.get("group_column")
+
+    # Without a route/line grouping column, use the same line/bar/area mix as
+    # generic time series (multi-measure scale split, temporal bars, etc.).
+    if not route_col:
+        ts_sel = _select_time_series_chart(metrics)
+        charts = list(ts_sel.charts)
+        if extensions.get("peak_hour_pattern"):
+            charts.append(ChartEntry(
+                chart_type="heatmap",
+                title_suffix="(hourly pattern)",
+                description="Heatmap showing traffic intensity by hour and day.",
+            ))
+        while len(charts) < 3:
+            charts.append(ChartEntry(
+                chart_type="area",
+                title_suffix="(volume)",
+                description="Area chart emphasizing volume over time.",
+                spec_overrides={"stacked": False},
+            ))
+        return ChartSelection(
+            charts=charts[:8],
+            reason="Transport — time-series views plus optional hourly heatmap.",
+        )
+
     charts: list[ChartEntry] = []
 
     # 1. Line — traffic volume over time
@@ -720,13 +759,12 @@ def _select_transport_chart(metrics: dict) -> ChartSelection:
         ))
 
     # 3. Area — stacked by route/mode if available
-    if route_col:
-        charts.append(ChartEntry(
-            chart_type="area",
-            title_suffix="(composition by route)",
-            description="Stacked area showing volume contribution by route.",
-            spec_overrides={"stacked": True},
-        ))
+    charts.append(ChartEntry(
+        chart_type="area",
+        title_suffix="(composition by route)",
+        description="Stacked area showing volume contribution by route.",
+        spec_overrides={"stacked": True},
+    ))
 
     # 4. Heatmap — peak hour pattern if available
     if extensions.get("peak_hour_pattern"):
@@ -736,7 +774,6 @@ def _select_transport_chart(metrics: dict) -> ChartSelection:
             description="Heatmap showing traffic intensity by hour and day.",
         ))
 
-    # Ensure at least 3
     if len(charts) < 3:
         charts.append(ChartEntry(
             chart_type="area",
@@ -744,7 +781,7 @@ def _select_transport_chart(metrics: dict) -> ChartSelection:
             description="Area chart emphasizing total traffic volume.",
         ))
 
-    return ChartSelection(charts=charts, reason="Transport multi-view.")
+    return ChartSelection(charts=charts, reason="Transport multi-view (routed).")
 
 
 def _select_demographic_chart(metrics: dict) -> ChartSelection:
@@ -991,6 +1028,88 @@ def _select_housing_chart(metrics: dict) -> ChartSelection:
 # Vega-Lite spec generation
 # ---------------------------------------------------------------------------
 
+# Vega-Lite → Vega compilation treats "." in `field` as nested property access.
+# Icelandic CSV headers like "Fjöldi ökutækja 31. desember" or
+# "Fjöldi slasaðra á 1.000 ökutæki" break into bogus sub-expressions; replace
+# literal ASCII periods in chart field names only (display titles unchanged).
+_VEGA_SAFE_DOT_SUBSTITUTE = "\u00b7"  # MIDDLE DOT
+
+
+def vega_safe_field_name(name: str) -> str:
+    if not name or "." not in name:
+        return name
+    return name.replace(".", _VEGA_SAFE_DOT_SUBSTITUTE)
+
+
+def _dot_field_renames_from_rows(data: list[dict]) -> dict[str, str]:
+    """Map original column names → Vega-safe names when they contain '.'."""
+    if not data:
+        return {}
+    out: dict[str, str] = {}
+    for k in data[0].keys():
+        if k and "." in k:
+            out[k] = vega_safe_field_name(k)
+    return out
+
+
+def _apply_vega_field_renames(
+    data: list[dict],
+    columns: dict[str, str],
+    metrics: dict,
+    rename: dict[str, str],
+) -> tuple[list[dict], dict[str, str], dict]:
+    if not rename:
+        return data, columns, metrics
+
+    def r(name: str) -> str:
+        return rename.get(name, name)
+
+    new_rows = [
+        {r(k): v for k, v in row.items()}
+        for row in data
+    ]
+    new_columns = {role: r(col) for role, col in columns.items()}
+    new_metrics = dict(metrics)
+
+    mc = new_metrics.get("measure_columns")
+    if isinstance(mc, list):
+        new_metrics["measure_columns"] = [r(m) for m in mc]
+
+    for mk in (
+        "time_column",
+        "group_column",
+        "category_column",
+        "lat_column",
+        "lon_column",
+        "geometry_column",
+        "measure_column",
+    ):
+        if mk in new_metrics and isinstance(new_metrics[mk], str):
+            new_metrics[mk] = r(new_metrics[mk])
+
+    cl = new_metrics.get("column_labels")
+    if isinstance(cl, dict):
+        new_metrics["column_labels"] = {r(k): v for k, v in cl.items()}
+
+    ss = new_metrics.get("summary_stats")
+    if isinstance(ss, dict):
+        new_metrics["summary_stats"] = {r(k): v for k, v in ss.items()}
+
+    tr = new_metrics.get("trend")
+    if isinstance(tr, dict):
+        new_metrics["trend"] = {r(k): v for k, v in tr.items()}
+
+    so = new_metrics.get("_spec_overrides")
+    if isinstance(so, dict):
+        new_so = dict(so)
+        sm = new_so.get("single_measure")
+        if isinstance(sm, str):
+            new_so["single_measure"] = r(sm)
+        new_metrics["_spec_overrides"] = new_so
+
+    return new_rows, new_columns, new_metrics
+
+
 def generate_spec(
     chart_type: str,
     data: list[dict],
@@ -1025,9 +1144,14 @@ def generate_spec(
     # Resolve domain-specific column roles to archetype roles
     columns = _resolve_columns(columns)
 
-    # Inject column_labels into metrics so generators can use _label()
+    metrics = {**metrics}
+    # Inject column_labels so generators can use _label() (keys = raw column names)
     if "column_labels" not in metrics:
-        metrics = {**metrics, "column_labels": _build_column_labels(columns, metrics)}
+        metrics["column_labels"] = _build_column_labels(columns, metrics)
+
+    rename = _dot_field_renames_from_rows(data)
+    if rename:
+        data, columns, metrics = _apply_vega_field_renames(data, columns, metrics, rename)
 
     generator = generators.get(chart_type, _gen_bar_spec)
     spec = generator(data, columns, metrics, title)
@@ -1301,20 +1425,36 @@ def _gen_bar_spec(data: list[dict], columns: dict, metrics: dict, title: str) ->
         label_map = _build_measure_label_map(measure_cols, metrics)
         translate_transforms = _translate_measure_transforms(label_map)
         color_field = "measure_label" if translate_transforms else "measure"
-        spec["transform"] = [
+        transforms: list[dict] = [
             {"fold": measure_cols, "as": ["measure", "value"]},
             *translate_transforms,
         ]
+        x_enc_bar: dict
+        if is_temporal:
+            # Temporal x + fold without xOffset stacks every measure on the same
+            # tick (looks broken). Use a nominal period label + xOffset instead.
+            esc = cat_col.replace("\\", "\\\\").replace("'", "\\'")
+            transforms.append({
+                "calculate": f"timeFormat(toDate(datum['{esc}']), '%Y')",
+                "as": "_period_nominal",
+            })
+            x_enc_bar = {
+                "field": "_period_nominal",
+                "type": "ordinal",
+                "sort": "ascending",
+                "title": _english_label(cat_col, metrics, "Time"),
+            }
+        else:
+            x_enc_bar = _x_enc()
+
+        spec["transform"] = transforms
         spec["mark"] = {"type": "bar", "tooltip": True}
-        enc = {
-            "x": _x_enc(),
+        spec["encoding"] = {
+            "x": x_enc_bar,
             "y": {"field": "value", "type": "quantitative", "title": "Value"},
             "color": {"field": color_field, "type": "nominal", "title": "Measure"},
+            "xOffset": {"field": color_field},
         }
-        # xOffset only works with nominal/ordinal x-axis, not temporal
-        if not is_temporal:
-            enc["xOffset"] = {"field": "measure"}
-        spec["encoding"] = enc
     else:
         y_field = measure_cols[0] if measure_cols else ""
         spec["mark"] = {"type": "bar", "tooltip": True}
