@@ -2,9 +2,10 @@
 """
 Build a self-contained HTML viewer for narrative corpus JSON files.
 
-Reads every *.json under corpus/, groups runs by query, and writes
-corpus/corpus_viewer.html with inline CSS, Vega / Vega-Lite / Vega-Embed
-from jsDelivr, and collapsible evidence sections.
+Reads every *.json under corpus/, groups runs by query, and writes one
+self-contained HTML per query (corpus/corpus_query_01.html, …) plus
+corpus/corpus_index.html linking to them. Keeps each page small enough
+to open in a browser; Vega / Vega-Lite / Vega-Embed load from jsDelivr.
 
 Field alignment with backend models:
 - GeneratedNarrative / NarrativePackage: headline, lede, story_blocks,
@@ -29,7 +30,9 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CORPUS_DIR = REPO_ROOT / "corpus"
-OUTPUT_HTML = CORPUS_DIR / "corpus_viewer.html"
+INDEX_HTML = CORPUS_DIR / "corpus_index.html"
+LEGACY_MONOLITH = CORPUS_DIR / "corpus_viewer.html"
+QUERY_HTML_PATTERN = "corpus_query_{idx:02d}.html"
 
 
 def run_sort_key(run_id: str) -> tuple[int, str]:
@@ -50,8 +53,6 @@ def load_records(corpus_dir: Path) -> list[dict[str, Any]]:
     if not corpus_dir.is_dir():
         return records
     for path in sorted(corpus_dir.glob("*.json")):
-        if path.name == OUTPUT_HTML.name:
-            continue
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
@@ -361,38 +362,8 @@ def render_run_card(rec: dict[str, Any], embed_specs: list[dict[str, Any]]) -> s
     return f'<article class="card" data-run-id="{esc(rid)}">{"".join(inner)}</article>'
 
 
-def build_html(groups: list[tuple[str, list[dict[str, Any]]]], embed_specs: list[dict[str, Any]]) -> str:
-    toc_parts: list[str] = ['<nav id="toc"><h2>Table of contents</h2><ul class="toc-queries">']
-    for query, runs in groups:
-        toc_parts.append(f'<li class="toc-query"><span class="toc-query-text">{esc(query)}</span><ul>')
-        for rec in runs:
-            run_id = str(rec.get("run_id") or "run")
-            rid = slug_id(run_id)
-            toc_parts.append(
-                f'<li><a href="#run-{esc(rid)}">{esc(run_id)}</a></li>'
-            )
-        toc_parts.append("</ul></li>")
-    toc_parts.append("</ul></nav>")
-
-    main_parts: list[str] = ['<main id="main">']
-    for query, runs in groups:
-        main_parts.append('<section class="query-group">')
-        main_parts.append(f'<h2 class="query-heading">{esc(query)}</h2>')
-        for rec in runs:
-            main_parts.append(render_run_card(rec, embed_specs))
-        main_parts.append("</section>")
-    main_parts.append("</main>")
-
-    embed_json = json_for_script(embed_specs)
-
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NARR corpus viewer</title>
-  <style>
-    :root {{
+PAGE_CSS = """
+    :root {
       --bg: #f6f7f9;
       --card: #fff;
       --text: #1a1d24;
@@ -402,76 +373,75 @@ def build_html(groups: list[tuple[str, list[dict[str, Any]]]], embed_specs: list
       --callout-bg: #eff6ff;
       --callout-border: #3b82f6;
       --timeline: #94a3b8;
-    }}
-    * {{ box-sizing: border-box; }}
-    body {{
+    }
+    * { box-sizing: border-box; }
+    body {
       margin: 0;
       font-family: "Segoe UI", system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.55;
-    }}
-    .wrap {{ max-width: 920px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }}
-    h1 {{ font-size: 1.75rem; margin: 0 0 1rem; }}
-    #toc {{
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    h1 { font-size: 1.75rem; margin: 0 0 1rem; }
+    .nav-top { margin-bottom: 1rem; font-size: 0.95rem; }
+    .nav-top a { color: var(--accent); }
+    #toc {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 1rem 1.25rem;
       margin-bottom: 2rem;
-    }}
-    #toc h2 {{ margin-top: 0; font-size: 1.1rem; }}
-    .toc-queries {{ list-style: none; padding-left: 0; margin: 0; }}
-    .toc-query {{ margin-bottom: 0.75rem; }}
-    .toc-query-text {{ font-weight: 600; display: block; margin-bottom: 0.25rem; }}
-    .toc-query ul {{ margin: 0; padding-left: 1.25rem; }}
-    .query-group {{ margin-bottom: 3rem; }}
-    .query-heading {{
+    }
+    #toc h2 { margin-top: 0; font-size: 1.1rem; }
+    .toc-runs { margin: 0; padding-left: 1.25rem; }
+    .query-group { margin-bottom: 3rem; }
+    .query-heading {
       font-size: 1.2rem;
       border-bottom: 2px solid var(--border);
       padding-bottom: 0.35rem;
       margin-bottom: 1.25rem;
-    }}
-    .card {{
+    }
+    .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
       margin-bottom: 1.5rem;
       overflow: hidden;
       scroll-margin-top: 1rem;
-    }}
-    .card-head {{
+    }
+    .card-head {
       padding: 1rem 1.25rem;
       border-bottom: 1px solid var(--border);
       background: linear-gradient(180deg, #fafbfc 0%, var(--card) 100%);
-    }}
-    .card-head h3 {{ margin: 0; font-size: 1.05rem; color: var(--accent); }}
-    .query-line {{ margin: 0.35rem 0 0; font-size: 0.95rem; }}
-    .meta {{ margin: 0.25rem 0 0; font-size: 0.8rem; }}
-    .card-body {{ padding: 1.25rem; }}
-    .headline {{ font-size: 1.45rem; margin: 0 0 0.5rem; line-height: 1.25; }}
-    .lede {{ font-size: 1.05rem; color: var(--muted); margin: 0 0 1.25rem; }}
-    .story .story-block {{ margin-bottom: 1.15rem; }}
-    .story-block--callout .callout {{
+    }
+    .card-head h3 { margin: 0; font-size: 1.05rem; color: var(--accent); }
+    .query-line { margin: 0.35rem 0 0; font-size: 0.95rem; }
+    .meta { margin: 0.25rem 0 0; font-size: 0.8rem; }
+    .card-body { padding: 1.25rem; }
+    .headline { font-size: 1.45rem; margin: 0 0 0.5rem; line-height: 1.25; }
+    .lede { font-size: 1.05rem; color: var(--muted); margin: 0 0 1.25rem; }
+    .story .story-block { margin-bottom: 1.15rem; }
+    .story-block--callout .callout {
       border-left: 4px solid var(--callout-border);
       background: var(--callout-bg);
       padding: 1rem 1.1rem;
       border-radius: 0 8px 8px 0;
-    }}
-    .callout-highlight {{ display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: baseline; margin-bottom: 0.5rem; }}
-    .callout-value {{ font-size: 1.75rem; font-weight: 700; color: #1d4ed8; }}
-    .callout-label {{ font-size: 0.95rem; color: var(--muted); }}
-    .callout-body {{ margin: 0; }}
-    .story-block--narrative h4 {{ margin: 0 0 0.35rem; font-size: 1.05rem; }}
-    .story-block--timeline ul.timeline {{
+    }
+    .callout-highlight { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: baseline; margin-bottom: 0.5rem; }
+    .callout-value { font-size: 1.75rem; font-weight: 700; color: #1d4ed8; }
+    .callout-label { font-size: 0.95rem; color: var(--muted); }
+    .callout-body { margin: 0; }
+    .story-block--narrative h4 { margin: 0 0 0.35rem; font-size: 1.05rem; }
+    .story-block--timeline ul.timeline {
       list-style: none;
       padding-left: 0;
       margin: 0;
       border-left: 2px solid var(--timeline);
       padding-left: 1rem;
-    }}
-    .story-block--timeline li {{ margin-bottom: 0.75rem; position: relative; }}
-    .story-block--timeline li::before {{
+    }
+    .story-block--timeline li { margin-bottom: 0.75rem; position: relative; }
+    .story-block--timeline li::before {
       content: "";
       position: absolute;
       left: -1.2rem;
@@ -480,43 +450,43 @@ def build_html(groups: list[tuple[str, list[dict[str, Any]]]], embed_specs: list
       height: 8px;
       background: var(--accent);
       border-radius: 50%;
-    }}
-    .footnotes h3 {{ font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 1.25rem 0 0.35rem; }}
-    .footnotes p {{ margin: 0 0 0.5rem; }}
-    .charts h3 {{ margin-top: 1.5rem; }}
-    .viz-wrap {{ margin: 1.25rem 0; }}
-    .viz-wrap figcaption {{ font-size: 0.9rem; margin-bottom: 0.5rem; }}
-    .vega-embed-host {{ width: 100%; min-height: 120px; }}
-    .muted {{ color: var(--muted); font-size: 0.92rem; }}
-    .error-box {{
+    }
+    .footnotes h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 1.25rem 0 0.35rem; }
+    .footnotes p { margin: 0 0 0.5rem; }
+    .charts h3 { margin-top: 1.5rem; }
+    .viz-wrap { margin: 1.25rem 0; }
+    .viz-wrap figcaption { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .vega-embed-host { width: 100%; min-height: 120px; }
+    .muted { color: var(--muted); font-size: 0.92rem; }
+    .error-box {
       margin: 1rem;
       padding: 1rem;
       background: #fef2f2;
       border: 1px solid #fecaca;
       border-radius: 8px;
-    }}
-    .evidence-details {{
+    }
+    .evidence-details {
       margin-top: 1.5rem;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 0.5rem 1rem;
       background: #fafbfc;
-    }}
-    .evidence-details summary {{
+    }
+    .evidence-details summary {
       cursor: pointer;
       font-weight: 600;
       padding: 0.35rem 0;
-    }}
-    .evidence-body {{ padding: 0.5rem 0 1rem; }}
-    .evidence-body h4, .evidence-body h5 {{ margin: 0.75rem 0 0.35rem; font-size: 0.95rem; }}
-    .kv {{ width: 100%; border-collapse: collapse; font-size: 0.9rem; }}
-    .kv th, .kv td {{ border: 1px solid var(--border); padding: 0.35rem 0.5rem; text-align: left; }}
-    .kv thead {{ background: #eef1f5; }}
-    .metrics-dl dt {{ font-weight: 600; margin-top: 0.5rem; }}
-    .metrics-dl dd {{ margin: 0.15rem 0 0 1rem; }}
-    .metrics-dl pre {{ margin: 0; font-size: 0.78rem; overflow: auto; max-height: 320px; }}
-    pre {{ background: #0f172a0a; padding: 0.6rem 0.75rem; border-radius: 6px; overflow: auto; font-size: 0.82rem; }}
-    .sr-only {{
+    }
+    .evidence-body { padding: 0.5rem 0 1rem; }
+    .evidence-body h4, .evidence-body h5 { margin: 0.75rem 0 0.35rem; font-size: 0.95rem; }
+    .kv { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .kv th, .kv td { border: 1px solid var(--border); padding: 0.35rem 0.5rem; text-align: left; }
+    .kv thead { background: #eef1f5; }
+    .metrics-dl dt { font-weight: 600; margin-top: 0.5rem; }
+    .metrics-dl dd { margin: 0.15rem 0 0 1rem; }
+    .metrics-dl pre { margin: 0; font-size: 0.78rem; overflow: auto; max-height: 320px; }
+    pre { background: #0f172a0a; padding: 0.6rem 0.75rem; border-radius: 6px; overflow: auto; font-size: 0.82rem; }
+    .sr-only {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -525,13 +495,67 @@ def build_html(groups: list[tuple[str, list[dict[str, Any]]]], embed_specs: list
       overflow: hidden;
       clip: rect(0,0,0,0);
       border: 0;
-    }}
+    }
+    .index-list { list-style: none; padding: 0; margin: 0; }
+    .index-list li {
+      margin-bottom: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .index-list a { font-weight: 600; color: var(--accent); text-decoration: none; }
+    .index-list a:hover { text-decoration: underline; }
+    .index-query { display: block; font-size: 0.88rem; font-weight: 400; color: var(--muted); margin-top: 0.35rem; }
+    .index-meta { font-size: 0.82rem; margin-top: 0.25rem; }
+"""
+
+
+def build_query_page_html(
+    *,
+    query: str,
+    runs: list[dict[str, Any]],
+    embed_specs: list[dict[str, Any]],
+    page_title: str,
+    query_index: int,
+    query_total: int,
+) -> str:
+    toc_items = []
+    for rec in runs:
+        run_id = str(rec.get("run_id") or "run")
+        rid = slug_id(run_id)
+        toc_items.append(f'<li><a href="#run-{esc(rid)}">{esc(run_id)}</a></li>')
+    toc_html = (
+        '<nav id="toc"><h2>Runs (this query)</h2><ul class="toc-runs">'
+        + "".join(toc_items)
+        + "</ul></nav>"
+    )
+
+    main_parts = ['<main id="main"><section class="query-group">']
+    main_parts.append(f'<h2 class="query-heading">{esc(query)}</h2>')
+    for rec in runs:
+        main_parts.append(render_run_card(rec, embed_specs))
+    main_parts.append("</section></main>")
+
+    embed_json = json_for_script(embed_specs)
+    index_name = INDEX_HTML.name
+    subtitle = f"Query {query_index} of {query_total}"
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{esc(page_title)}</title>
+  <style>
+{PAGE_CSS}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>NARR corpus viewer</h1>
-    {"".join(toc_parts)}
+    <p class="nav-top"><a href="{esc(index_name)}">← All queries (index)</a></p>
+    <h1>NARR corpus — {esc(subtitle)}</h1>
+    {toc_html}
     {"".join(main_parts)}
   </div>
   <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
@@ -556,13 +580,77 @@ document.addEventListener("DOMContentLoaded", function () {{
 """
 
 
+def build_index_html(entries: list[tuple[str, str, int, int]]) -> str:
+    """entries: (filename, query, run_count, chart_count)"""
+    lis = []
+    for fname, query, n_runs, n_charts in entries:
+        meta = f"{n_runs} run(s), {n_charts} chart(s)"
+        lis.append(
+            f'<li><a href="{esc(fname)}">Open</a>'
+            f'<span class="index-query">{esc(query)}</span>'
+            f'<div class="index-meta muted">{esc(meta)}</div></li>'
+        )
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NARR corpus — index</title>
+  <style>
+{PAGE_CSS}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>NARR corpus viewer</h1>
+    <p class="muted">One page per query (e.g. run A and B side by side). Open a query below.</p>
+    <ul class="index-list">
+{"".join(lis)}
+    </ul>
+  </div>
+</body>
+</html>
+"""
+
+
 def main() -> None:
     records = load_records(CORPUS_DIR)
     groups = group_by_query(records)
-    embed_specs: list[dict[str, Any]] = []
-    html_doc = build_html(groups, embed_specs)
-    OUTPUT_HTML.write_text(html_doc, encoding="utf-8")
-    print(f"Wrote {OUTPUT_HTML} ({len(records)} files, {len(embed_specs)} Vega-Lite embeds).")
+    total = len(groups)
+    index_entries: list[tuple[str, str, int, int]] = []
+    total_embeds = 0
+
+    for i, (query, runs) in enumerate(groups, start=1):
+        fname = QUERY_HTML_PATTERN.format(idx=i)
+        out_path = CORPUS_DIR / fname
+        embed_specs: list[dict[str, Any]] = []
+        page_title = f"NARR corpus — query {i:02d}"
+        html_doc = build_query_page_html(
+            query=query,
+            runs=runs,
+            embed_specs=embed_specs,
+            page_title=page_title,
+            query_index=i,
+            query_total=total,
+        )
+        out_path.write_text(html_doc, encoding="utf-8")
+        n_emb = len(embed_specs)
+        total_embeds += n_emb
+        index_entries.append((fname, query, len(runs), n_emb))
+
+    INDEX_HTML.write_text(build_index_html(index_entries), encoding="utf-8")
+
+    if LEGACY_MONOLITH.exists():
+        try:
+            LEGACY_MONOLITH.unlink()
+        except OSError:
+            pass
+
+    print(
+        f"Wrote {INDEX_HTML.name} and {total} query page(s) "
+        f"({len(records)} JSON runs, {total_embeds} Vega-Lite embeds total)."
+    )
+    print(f"Open: {INDEX_HTML}")
 
 
 if __name__ == "__main__":

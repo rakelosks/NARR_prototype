@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NARR corpus — query 01</title>
+  <style>
+
+    :root {
+      --bg: #f6f7f9;
+      --card: #fff;
+      --text: #1a1d24;
+      --muted: #5c6570;
+      --border: #dde2e8;
+      --accent: #2563eb;
+      --callout-bg: #eff6ff;
+      --callout-border: #3b82f6;
+      --timeline: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    h1 { font-size: 1.75rem; margin: 0 0 1rem; }
+    .nav-top { margin-bottom: 1rem; font-size: 0.95rem; }
+    .nav-top a { color: var(--accent); }
+    #toc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+    }
+    #toc h2 { margin-top: 0; font-size: 1.1rem; }
+    .toc-runs { margin: 0; padding-left: 1.25rem; }
+    .query-group { margin-bottom: 3rem; }
+    .query-heading {
+      font-size: 1.2rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.35rem;
+      margin-bottom: 1.25rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      scroll-margin-top: 1rem;
+    }
+    .card-head {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #fafbfc 0%, var(--card) 100%);
+    }
+    .card-head h3 { margin: 0; font-size: 1.05rem; color: var(--accent); }
+    .query-line { margin: 0.35rem 0 0; font-size: 0.95rem; }
+    .meta { margin: 0.25rem 0 0; font-size: 0.8rem; }
+    .card-body { padding: 1.25rem; }
+    .headline { font-size: 1.45rem; margin: 0 0 0.5rem; line-height: 1.25; }
+    .lede { font-size: 1.05rem; color: var(--muted); margin: 0 0 1.25rem; }
+    .story .story-block { margin-bottom: 1.15rem; }
+    .story-block--callout .callout {
+      border-left: 4px solid var(--callout-border);
+      background: var(--callout-bg);
+      padding: 1rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+    }
+    .callout-highlight { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: baseline; margin-bottom: 0.5rem; }
+    .callout-value { font-size: 1.75rem; font-weight: 700; color: #1d4ed8; }
+    .callout-label { font-size: 0.95rem; color: var(--muted); }
+    .callout-body { margin: 0; }
+    .story-block--narrative h4 { margin: 0 0 0.35rem; font-size: 1.05rem; }
+    .story-block--timeline ul.timeline {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      border-left: 2px solid var(--timeline);
+      padding-left: 1rem;
+    }
+    .story-block--timeline li { margin-bottom: 0.75rem; position: relative; }
+    .story-block--timeline li::before {
+      content: "";
+      position: absolute;
+      left: -1.2rem;
+      top: 0.35rem;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    .footnotes h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 1.25rem 0 0.35rem; }
+    .footnotes p { margin: 0 0 0.5rem; }
+    .charts h3 { margin-top: 1.5rem; }
+    .viz-wrap { margin: 1.25rem 0; }
+    .viz-wrap figcaption { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .vega-embed-host { width: 100%; min-height: 120px; }
+    .muted { color: var(--muted); font-size: 0.92rem; }
+    .error-box {
+      margin: 1rem;
+      padding: 1rem;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+    }
+    .evidence-details {
+      margin-top: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      background: #fafbfc;
+    }
+    .evidence-details summary {
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0.35rem 0;
+    }
+    .evidence-body { padding: 0.5rem 0 1rem; }
+    .evidence-body h4, .evidence-body h5 { margin: 0.75rem 0 0.35rem; font-size: 0.95rem; }
+    .kv { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .kv th, .kv td { border: 1px solid var(--border); padding: 0.35rem 0.5rem; text-align: left; }
+    .kv thead { background: #eef1f5; }
+    .metrics-dl dt { font-weight: 600; margin-top: 0.5rem; }
+    .metrics-dl dd { margin: 0.15rem 0 0 1rem; }
+    .metrics-dl pre { margin: 0; font-size: 0.78rem; overflow: auto; max-height: 320px; }
+    pre { background: #0f172a0a; padding: 0.6rem 0.75rem; border-radius: 6px; overflow: auto; font-size: 0.82rem; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      border: 0;
+    }
+    .index-list { list-style: none; padding: 0; margin: 0; }
+    .index-list li {
+      margin-bottom: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .index-list a { font-weight: 600; color: var(--accent); text-decoration: none; }
+    .index-list a:hover { text-decoration: underline; }
+    .index-query { display: block; font-size: 0.88rem; font-weight: 400; color: var(--muted); margin-top: 0.35rem; }
+    .index-meta { font-size: 0.82rem; margin-top: 0.25rem; }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="nav-top"><a href="corpus_index.html">← All queries (index)</a></p>
+    <h1>NARR corpus — Query 1 of 10</h1>
+    <nav id="toc"><h2>Runs (this query)</h2><ul class="toc-runs"><li><a href="#run-run_01">run_01</a></li><li><a href="#run-run_01">run_01</a></li></ul></nav>
+    <main id="main"><section class="query-group"><h2 class="query-heading">What are the trends in waste collection?</h2><article class="card" data-run-id="run_01"><header class="card-head"><h3 id="run-run_01">run_01</h3><p class="query-line">What are the trends in waste collection?</p><p class="meta muted">Source: <code>run_01a_query.json</code></p><p class="meta muted">HTTP 200 · 11.54s</p></header><div class="card-body"><h2 class="headline">Residents&#x27; Waste Per Person Drops by a Third in 14 Years</h2><p class="lede">How much trash do we toss out every year? For residents of Reykjavík, this number has been shrinking. The amount of waste produced per person has fallen by about a third, from 266 kg in 1998 to 173 kg in 2012.</p><section class="story"><h3 class="sr-only">Story</h3><div class="story-block story-block--callout" data-block-index="0"><div class="callout"><div class="callout-highlight"><span class="callout-value">37%</span><span class="callout-label">less waste per person since 2000</span></div><p class="callout-body">This significant drop shows a major shift in waste habits over the years.</p></div></div><div class="story-block story-block--narrative" data-block-index="1"><h4>Waste Per Person Peaked in 2000</h4><p>In the chart below, you&#x27;ll see that the amount of waste each person produced hit a high in 2000 at 273 kg. From there, it steadily declined. By 2012, each person generated just 173 kg annually. This suggests more mindful disposal and potentially more effective recycling over the years.</p><p class="viz-ref muted">Refers to chart index <code>1</code></p></div><div class="story-block story-block--narrative" data-block-index="2"><h4>Fewer Waste Containers Seen Across the City</h4><p>In the other chart, notice how the count of waste containers decreased over time. From its peak in 2004 at 47,900, the number dropped significantly, finishing at 37,311 by 2012. This 22% reduction mirrors the efforts to minimize waste production.</p><p class="viz-ref muted">Refers to chart index <code>0</code></p></div><div class="story-block story-block--narrative" data-block-index="3"><h4>What This Means for Residents</h4><p>This change demonstrates a shift towards more sustainable living. The drop in waste means less strain on disposal systems and possibly, a cleaner environment. For residents, it aligns with a broader movement of reducing environmental footprints.</p></div></section><section class="footnotes"><h3>Data note</h3><p>This data covers the period from 1998 to 2012, showing trends over these years. Note that more recent data isn&#x27;t included, and the numbers represent averages across Reykjavik. The figures are based on records from the city&#x27;s Environmental and Planning Department, but the exact data license information isn&#x27;t available.</p><h3>Follow-up question</h3><p>How is public transport ridership trending?</p></section><section class="charts"><h3>Charts</h3><figure class="viz-wrap"><figcaption>Dataset overview (1998–2012) <span class="muted">· line (primary)</span></figcaption><div id="viz-run_01-0" class="vega-embed-host"></div></figure><figure class="viz-wrap"><figcaption>K L     B A (1998–2012) <span class="muted">· line</span></figcaption><div id="viz-run_01-1" class="vega-embed-host"></div></figure></section><details class="evidence-details"><summary>Evidence bundle — metrics, mappings &amp; key findings</summary><div class="evidence-body"><p><strong>Data URL:</strong> <a href="https://gagnagatt.reykjavik.is/en/dataset/f91a7a21-73a2-4faf-87cc-950dcd640911/resource/f09d006b-2660-4756-b85a-06d04402d71b/download/sorphirda_heimila_i_reykjavik_heild.csv" target="_blank" rel="noopener noreferrer">https://gagnagatt.reykjavik.is/en/dataset/f91a7a21-73a2-4faf-87cc-950dcd640911/resource/f09d006b-2660-4756-b85a-06d04402d71b/download/sorphirda_heimila_i_reykjavik_heild.csv</a></p><p><strong>dataset_id:</strong> <code>sorphirda_heimila_i_reykjavik</code></p><p class="muted">This export has no top-level <code>evidence_bundle</code> (the current <code>/narratives/ask</code> payload is a narrative package). Showing <code>dataset</code> summary fields that overlap with the bundle.</p><h4>Dataset summary (matched columns &amp; shape)</h4><h5>matched_columns</h5><table class="kv"><thead><tr><th>Role</th><th>Column</th></tr></thead><tbody><tr><td>measure</td><td><code>Fjöldi sorpíláta</code></td></tr><tr><td>time_axis</td><td><code>Ár</code></td></tr></tbody></table><p><strong>Rows × columns:</strong> 15 × 11</p><p><strong>Template:</strong> time_series</p><h5>column_types</h5><pre>{
+  &quot;temporal&quot;: 1,
+  &quot;numerical&quot;: 10
+}</pre></div></details></div></article><article class="card" data-run-id="run_01"><header class="card-head"><h3 id="run-run_01">run_01</h3><p class="query-line">What are the trends in waste collection?</p><p class="meta muted">Source: <code>run_01b_query.json</code></p><p class="meta muted">HTTP 200 · 7.87s</p></header><div class="card-body"><h2 class="headline">Residents Produce About a Third Less Waste Than 15 Years Ago</h2><p class="lede">How much waste do we really create each year? For residents of Reykjavík, there&#x27;s good news: each person is producing about a third less rubbish than they did in the late 1990s. The numbers reveal a significant change from 266 kg per person in 1998 to just 173 kg in 2012.</p><section class="story"><h3 class="sr-only">Story</h3><div class="story-block story-block--callout" data-block-index="0"><div class="callout"><div class="callout-highlight"><span class="callout-value">35%</span><span class="callout-label">less waste per person since 1998</span></div><p class="callout-body">Residents have significantly reduced their waste output over the years — a positive development for the city.</p></div></div><div class="story-block story-block--narrative" data-block-index="1"><h4>Waste Per Person Dropped Sharply from 2000</h4><p>In the chart below, you&#x27;ll see the amount of waste per person peaked at 273 kg in 2000. After that, there was a steady decline, dropping 37% to 173 kg by 2012. This suggests that residents have become more conscientious about waste, making efforts to reduce their output.</p><p class="viz-ref muted">Refers to chart index <code>1</code></p></div><div class="story-block story-block--narrative" data-block-index="2"><h4>Waste Bin Count Also Decreased</h4><p>In addition to individual waste reduction, the overall number of waste bins in Reykjavík decreased by 21% from 47,200 in 1998 to 37,311 in 2012. The chart below highlights this trend, showing a peak in 2004 before numbers began to fall. The decline indicates a shift in the city&#x27;s waste management strategies.</p><p class="viz-ref muted">Refers to chart index <code>0</code></p></div><div class="story-block story-block--narrative" data-block-index="3"><h4>Significance for Daily Life in Reykjavík</h4><p>For residents, these changes mean cleaner streets, more efficient waste management, and potentially lower communal cost burdens. As waste levels decrease, the city can allocate resources more effectively, benefiting everyone through improved environmental quality and municipal services.</p></div></section><section class="footnotes"><h3>Data note</h3><p>This data covers the years 1998 to 2012, showing trends in both waste per person and total waste bin count. The detailed numbers reflect averages across the city. Information on licensing is not available, limiting full context.</p><h3>Follow-up question</h3><p>How is public transport ridership trending?</p></section><section class="charts"><h3>Charts</h3><figure class="viz-wrap"><figcaption>Dataset overview (1998–2012) <span class="muted">· line (primary)</span></figcaption><div id="viz-run_01-0" class="vega-embed-host"></div></figure><figure class="viz-wrap"><figcaption>K L     B A (1998–2012) <span class="muted">· line</span></figcaption><div id="viz-run_01-1" class="vega-embed-host"></div></figure></section><details class="evidence-details"><summary>Evidence bundle — metrics, mappings &amp; key findings</summary><div class="evidence-body"><p><strong>Data URL:</strong> <a href="https://gagnagatt.reykjavik.is/en/dataset/f91a7a21-73a2-4faf-87cc-950dcd640911/resource/f09d006b-2660-4756-b85a-06d04402d71b/download/sorphirda_heimila_i_reykjavik_heild.csv" target="_blank" rel="noopener noreferrer">https://gagnagatt.reykjavik.is/en/dataset/f91a7a21-73a2-4faf-87cc-950dcd640911/resource/f09d006b-2660-4756-b85a-06d04402d71b/download/sorphirda_heimila_i_reykjavik_heild.csv</a></p><p><strong>dataset_id:</strong> <code>sorphirda_heimila_i_reykjavik</code></p><p class="muted">This export has no top-level <code>evidence_bundle</code> (the current <code>/narratives/ask</code> payload is a narrative package). Showing <code>dataset</code> summary fields that overlap with the bundle.</p><h4>Dataset summary (matched columns &amp; shape)</h4><h5>matched_columns</h5><table class="kv"><thead><tr><th>Role</th><th>Column</th></tr></thead><tbody><tr><td>measure</td><td><code>Fjöldi sorpíláta</code></td></tr><tr><td>time_axis</td><td><code>Ár</code></td></tr></tbody></table><p><strong>Rows × columns:</strong> 15 × 11</p><p><strong>Template:</strong> time_series</p><h5>column_types</h5><pre>{
+  &quot;temporal&quot;: 1,
+  &quot;numerical&quot;: 10
+}</pre></div></details></div></article></section></main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <script>
+window.__CORPUS_EMBED_SPECS__ = [{"id":"viz-run_01-0","spec":{"$schema":"https://vega.github.io/schema/vega-lite/v5.json","title":"Dataset overview (1998–2012)","width":"container","height":400,"data":{"values":[{"Ár":"1998-01-01","Fjöldi sorpíláta":47200,"Kíló á íbúa":266},{"Ár":"1999-01-01","Fjöldi sorpíláta":46500,"Kíló á íbúa":269},{"Ár":"2000-01-01","Fjöldi sorpíláta":47000,"Kíló á íbúa":273},{"Ár":"2001-01-01","Fjöldi sorpíláta":47500,"Kíló á íbúa":270},{"Ár":"2002-01-01","Fjöldi sorpíláta":47345,"Kíló á íbúa":265},{"Ár":"2003-01-01","Fjöldi sorpíláta":47700,"Kíló á íbúa":259},{"Ár":"2004-01-01","Fjöldi sorpíláta":47900,"Kíló á íbúa":266},{"Ár":"2005-01-01","Fjöldi sorpíláta":39000,"Kíló á íbúa":229},{"Ár":"2006-01-01","Fjöldi sorpíláta":39400,"Kíló á íbúa":233},{"Ár":"2007-01-01","Fjöldi sorpíláta":39366,"Kíló á íbúa":231},{"Ár":"2008-01-01","Fjöldi sorpíláta":39338,"Kíló á íbúa":209},{"Ár":"2009-01-01","Fjöldi sorpíláta":37868,"Kíló á íbúa":185},{"Ár":"2010-01-01","Fjöldi sorpíláta":37288,"Kíló á íbúa":181},{"Ár":"2011-01-01","Fjöldi sorpíláta":37761,"Kíló á íbúa":173},{"Ár":"2012-01-01","Fjöldi sorpíláta":37311,"Kíló á íbúa":173}]},"config":{"view":{"stroke":"transparent"},"axis":{"labelFontSize":12,"titleFontSize":13},"title":{"fontSize":16,"anchor":"start","orient":"top"}},"mark":{"type":"line","point":true,"tooltip":true},"encoding":{"x":{"field":"Ár","type":"temporal","title":"Year","timeUnit":"year"},"y":{"field":"Fjöldi sorpíláta","type":"quantitative","title":"Count"}}}},{"id":"viz-run_01-1","spec":{"$schema":"https://vega.github.io/schema/vega-lite/v5.json","title":"K L     B A (1998–2012)","width":"container","height":400,"data":{"values":[{"Ár":"1998-01-01","Fjöldi sorpíláta":47200,"Kíló á íbúa":266},{"Ár":"1999-01-01","Fjöldi sorpíláta":46500,"Kíló á íbúa":269},{"Ár":"2000-01-01","Fjöldi sorpíláta":47000,"Kíló á íbúa":273},{"Ár":"2001-01-01","Fjöldi sorpíláta":47500,"Kíló á íbúa":270},{"Ár":"2002-01-01","Fjöldi sorpíláta":47345,"Kíló á íbúa":265},{"Ár":"2003-01-01","Fjöldi sorpíláta":47700,"Kíló á íbúa":259},{"Ár":"2004-01-01","Fjöldi sorpíláta":47900,"Kíló á íbúa":266},{"Ár":"2005-01-01","Fjöldi sorpíláta":39000,"Kíló á íbúa":229},{"Ár":"2006-01-01","Fjöldi sorpíláta":39400,"Kíló á íbúa":233},{"Ár":"2007-01-01","Fjöldi sorpíláta":39366,"Kíló á íbúa":231},{"Ár":"2008-01-01","Fjöldi sorpíláta":39338,"Kíló á íbúa":209},{"Ár":"2009-01-01","Fjöldi sorpíláta":37868,"Kíló á íbúa":185},{"Ár":"2010-01-01","Fjöldi sorpíláta":37288,"Kíló á íbúa":181},{"Ár":"2011-01-01","Fjöldi sorpíláta":37761,"Kíló á íbúa":173},{"Ár":"2012-01-01","Fjöldi sorpíláta":37311,"Kíló á íbúa":173}]},"config":{"view":{"stroke":"transparent"},"axis":{"labelFontSize":12,"titleFontSize":13},"title":{"fontSize":16,"anchor":"start","orient":"top"}},"mark":{"type":"line","point":true,"tooltip":true},"encoding":{"x":{"field":"Ár","type":"temporal","title":"Year","timeUnit":"year"},"y":{"field":"Kíló á íbúa","type":"quantitative","title":"Value"}}}},{"id":"viz-run_01-0","spec":{"$schema":"https://vega.github.io/schema/vega-lite/v5.json","title":"Dataset overview (1998–2012)","width":"container","height":400,"data":{"values":[{"Ár":"1998-01-01","Fjöldi sorpíláta":47200,"Kíló á íbúa":266},{"Ár":"1999-01-01","Fjöldi sorpíláta":46500,"Kíló á íbúa":269},{"Ár":"2000-01-01","Fjöldi sorpíláta":47000,"Kíló á íbúa":273},{"Ár":"2001-01-01","Fjöldi sorpíláta":47500,"Kíló á íbúa":270},{"Ár":"2002-01-01","Fjöldi sorpíláta":47345,"Kíló á íbúa":265},{"Ár":"2003-01-01","Fjöldi sorpíláta":47700,"Kíló á íbúa":259},{"Ár":"2004-01-01","Fjöldi sorpíláta":47900,"Kíló á íbúa":266},{"Ár":"2005-01-01","Fjöldi sorpíláta":39000,"Kíló á íbúa":229},{"Ár":"2006-01-01","Fjöldi sorpíláta":39400,"Kíló á íbúa":233},{"Ár":"2007-01-01","Fjöldi sorpíláta":39366,"Kíló á íbúa":231},{"Ár":"2008-01-01","Fjöldi sorpíláta":39338,"Kíló á íbúa":209},{"Ár":"2009-01-01","Fjöldi sorpíláta":37868,"Kíló á íbúa":185},{"Ár":"2010-01-01","Fjöldi sorpíláta":37288,"Kíló á íbúa":181},{"Ár":"2011-01-01","Fjöldi sorpíláta":37761,"Kíló á íbúa":173},{"Ár":"2012-01-01","Fjöldi sorpíláta":37311,"Kíló á íbúa":173}]},"config":{"view":{"stroke":"transparent"},"axis":{"labelFontSize":12,"titleFontSize":13},"title":{"fontSize":16,"anchor":"start","orient":"top"}},"mark":{"type":"line","point":true,"tooltip":true},"encoding":{"x":{"field":"Ár","type":"temporal","title":"Year","timeUnit":"year"},"y":{"field":"Fjöldi sorpíláta","type":"quantitative","title":"Count"}}}},{"id":"viz-run_01-1","spec":{"$schema":"https://vega.github.io/schema/vega-lite/v5.json","title":"K L     B A (1998–2012)","width":"container","height":400,"data":{"values":[{"Ár":"1998-01-01","Fjöldi sorpíláta":47200,"Kíló á íbúa":266},{"Ár":"1999-01-01","Fjöldi sorpíláta":46500,"Kíló á íbúa":269},{"Ár":"2000-01-01","Fjöldi sorpíláta":47000,"Kíló á íbúa":273},{"Ár":"2001-01-01","Fjöldi sorpíláta":47500,"Kíló á íbúa":270},{"Ár":"2002-01-01","Fjöldi sorpíláta":47345,"Kíló á íbúa":265},{"Ár":"2003-01-01","Fjöldi sorpíláta":47700,"Kíló á íbúa":259},{"Ár":"2004-01-01","Fjöldi sorpíláta":47900,"Kíló á íbúa":266},{"Ár":"2005-01-01","Fjöldi sorpíláta":39000,"Kíló á íbúa":229},{"Ár":"2006-01-01","Fjöldi sorpíláta":39400,"Kíló á íbúa":233},{"Ár":"2007-01-01","Fjöldi sorpíláta":39366,"Kíló á íbúa":231},{"Ár":"2008-01-01","Fjöldi sorpíláta":39338,"Kíló á íbúa":209},{"Ár":"2009-01-01","Fjöldi sorpíláta":37868,"Kíló á íbúa":185},{"Ár":"2010-01-01","Fjöldi sorpíláta":37288,"Kíló á íbúa":181},{"Ár":"2011-01-01","Fjöldi sorpíláta":37761,"Kíló á íbúa":173},{"Ár":"2012-01-01","Fjöldi sorpíláta":37311,"Kíló á íbúa":173}]},"config":{"view":{"stroke":"transparent"},"axis":{"labelFontSize":12,"titleFontSize":13},"title":{"fontSize":16,"anchor":"start","orient":"top"}},"mark":{"type":"line","point":true,"tooltip":true},"encoding":{"x":{"field":"Ár","type":"temporal","title":"Year","timeUnit":"year"},"y":{"field":"Kíló á íbúa","type":"quantitative","title":"Value"}}}}];
+document.addEventListener("DOMContentLoaded", function () {
+  var list = window.__CORPUS_EMBED_SPECS__ || [];
+  var opts = { actions: true, renderer: "svg" };
+  list.forEach(function (entry) {
+    var el = document.getElementById(entry.id);
+    if (!el || !entry.spec) return;
+    vegaEmbed(el, entry.spec, opts).catch(function (e) {
+      el.innerHTML = "<pre class=\"muted\">Chart error: " + String(e) + "</pre>";
+    });
+  });
+});
+  </script>
+</body>
+</html>
