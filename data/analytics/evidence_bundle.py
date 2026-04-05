@@ -13,7 +13,7 @@ inferred (profiler), or missing (disclaimer needed).
 
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 import unicodedata
 
 from pydantic import BaseModel, Field
@@ -26,6 +26,106 @@ from data.metadata_normalize import NormalizedMetadata, MetadataTier
 from visualization.charts import select_chart_type, generate_spec, ChartSelection, ChartEntry
 
 logger = logging.getLogger(__name__)
+
+# Substrings (ASCII or common local spellings) that suggest a total / population series
+_AGGREGATE_NAME_TOKENS = (
+    "total",
+    "samtals",
+    "alls",
+    "population",
+    "aggregate",
+    "mannfjöldi",
+    "mannfjoldi",
+    "heild",
+    "heildar",
+    "allt",
+    "samanlagt",
+)
+
+
+def _pct_change_abs(trend: dict[str, Any]) -> float:
+    v = trend.get("pct_change")
+    try:
+        return abs(float(v)) if v is not None else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _column_name_looks_aggregate(col: str) -> bool:
+    low = col.lower()
+    folded = unicodedata.normalize("NFKD", low)
+    ascii_guess = "".join(ch for ch in folded if ord(ch) < 128)
+    for tok in _AGGREGATE_NAME_TOKENS:
+        if tok in low or tok in ascii_guess:
+            return True
+    return False
+
+
+def _select_time_series_trend_columns(
+    trend: dict[str, dict[str, Any]],
+    max_trend_entries: int,
+) -> tuple[list[str], list[str]]:
+    """
+    Pick which trend keys to show in LLM context.
+
+    All ``is_total`` series are always included (even if that exceeds the cap).
+    Remaining slots (up to ``max_trend_entries`` after totals) are filled from
+    columns whose names look aggregate/population, then from others, both
+    ranked by |pct_change|.
+
+    Returns (selected_columns, omitted_columns).
+    """
+    cols = list(trend.keys())
+    if len(cols) <= max_trend_entries:
+        return cols, []
+
+    total_cols = [c for c in cols if trend[c].get("is_total")]
+    name_agg = [c for c in cols if c not in total_cols and _column_name_looks_aggregate(c)]
+    rest = [c for c in cols if c not in total_cols and c not in name_agg]
+
+    selected: list[str] = []
+    in_sel = set()
+    for c in sorted(total_cols, key=lambda x: _pct_change_abs(trend[x]), reverse=True):
+        selected.append(c)
+        in_sel.add(c)
+
+    budget = max(0, max_trend_entries - len(selected))
+    for c in sorted(name_agg, key=lambda x: _pct_change_abs(trend[x]), reverse=True):
+        if budget <= 0:
+            break
+        if c not in in_sel:
+            selected.append(c)
+            in_sel.add(c)
+            budget -= 1
+
+    budget = max(0, max_trend_entries - len(selected))
+    for c in sorted(rest, key=lambda x: _pct_change_abs(trend[x]), reverse=True):
+        if budget <= 0:
+            break
+        if c not in in_sel:
+            selected.append(c)
+            in_sel.add(c)
+            budget -= 1
+
+    omitted = [c for c in cols if c not in in_sel]
+    return selected, omitted
+
+
+def _omitted_trend_pct_range(
+    trend: dict[str, dict[str, Any]],
+    omitted: list[str],
+) -> tuple[Optional[float], Optional[float]]:
+    pcts: list[float] = []
+    for c in omitted:
+        v = trend[c].get("pct_change")
+        try:
+            if v is not None:
+                pcts.append(float(v))
+        except (TypeError, ValueError):
+            continue
+    if not pcts:
+        return None, None
+    return min(pcts), max(pcts)
 
 
 # ---------------------------------------------------------------------------
@@ -99,13 +199,25 @@ class EvidenceBundle(BaseModel):
     # Fallback transparency note (when archetype matched instead of domain)
     fallback_note: Optional[str] = None
 
-    def to_llm_context(self) -> str:
+    def to_llm_context(
+        self,
+        max_trend_entries: int = 8,
+        max_key_findings: int = 8,
+    ) -> str:
         """
         Format the bundle as a text context string for the LLM prompt.
         This is the structured summary the LLM receives to generate narratives.
 
         Includes metadata provenance so the LLM knows which facts are
         authoritative (portal), inferred, or missing (needs disclaimer).
+
+        Wide time-series tables (many measure columns) are summarized for the LLM:
+        every ``is_total`` trend is always expanded; then aggregate-named columns
+        and the rest fill remaining slots up to ``max_trend_entries`` (by
+        |pct_change|), so the row count can exceed ``max_trend_entries`` when
+        many totals exist. Omitted columns get one summary line with the % range.
+        ``max_key_findings`` caps narrative guidance bullets in this string only.
+        The bundle's ``metrics`` and ``narrative_context`` objects are not modified.
         """
         meta = self.normalized_metadata
         lines = []
@@ -193,7 +305,7 @@ class EvidenceBundle(BaseModel):
 
         # Format base metrics
         if base_type == "time_series":
-            lines.extend(self._format_time_series_metrics())
+            lines.extend(self._format_time_series_metrics(max_trend_entries=max_trend_entries))
         elif base_type == "categorical":
             lines.extend(self._format_categorical_metrics())
         elif base_type == "geospatial":
@@ -209,9 +321,16 @@ class EvidenceBundle(BaseModel):
             lines.append("--- Narrative guidance ---")
             lines.append(f"Focus: {self.narrative_context.focus}")
             if self.narrative_context.key_findings:
+                kf = self.narrative_context.key_findings
                 lines.append("Key findings:")
-                for f in self.narrative_context.key_findings:
+                shown = kf[:max_key_findings]
+                for f in shown:
                     lines.append(f"  - {f}")
+                n_more = len(kf) - len(shown)
+                if n_more > 0:
+                    lines.append(
+                        f"  … {n_more} more findings omitted here (full metrics summary above)."
+                    )
             if self.narrative_context.suggested_questions:
                 lines.append("Questions to address:")
                 for q in self.narrative_context.suggested_questions:
@@ -219,108 +338,138 @@ class EvidenceBundle(BaseModel):
 
         return "\n".join(lines)
 
-    def _format_time_series_metrics(self) -> list[str]:
-        lines = []
+    def _lines_for_single_trend_column(self, col: str, trend: dict[str, Any]) -> list[str]:
+        """Format one time-series trend (and related sub-lines) for LLM context."""
+        lines: list[str] = []
+        total_label = ""
+        if trend.get("is_total"):
+            src = trend.get("total_source", "")
+            if src == "aggregate_row":
+                total_label = " [TOTAL from aggregate row]"
+            else:
+                total_label = " [TOTAL summed across groups]"
+
+        lines.append(
+            f"Overall trend ({col}){total_label}: {trend['direction']}, "
+            f"from {trend['first']} to {trend['last']} "
+            f"({trend['pct_change']:+.1f}%)"
+        )
+        if trend.get("peak") is not None:
+            lines.append(
+                f"  Peak: {trend['peak']} (at {trend.get('peak_period', '?')})"
+            )
+        if trend.get("shape") == "rise_then_fall":
+            lines.append(
+                f"  ⚠ IMPORTANT: Values rose to a peak of {trend['peak']} "
+                f"at {trend.get('peak_period', '?')}, then DROPPED {trend.get('drop_from_peak_pct', 0):.0f}% "
+                f"to {trend['last']}. The overall trend is NOT a steady increase — "
+                f"describe both the rise AND the subsequent decline."
+            )
+        if trend.get("recovery_from_trough_pct"):
+            lines.append(
+                f"  Trough: {trend['trough']} at {trend.get('trough_period', '?')}, "
+                f"then recovered {trend['recovery_from_trough_pct']:.0f}%"
+            )
+
+        if trend.get("incomplete_period"):
+            year_label = trend.get("incomplete_period_label", "this year")
+            lines.append(
+                f"  ⚠ YEAR-TO-DATE: The {year_label} figure ({trend['last']}) "
+                f"covers only the first months of the year, NOT the full year. "
+                f"Any apparent drop from the previous year to {year_label} is "
+                f"partly (or largely) because the year is still in progress. "
+                f"You MUST mention this caveat when discussing recent changes. "
+                f"Do NOT present the {year_label} number as a completed annual total."
+            )
+
+        per_group = trend.get("groups", {})
+        if per_group:
+            lines.append(f"  Per-group trends ({col}):")
+            for grp_name, grp_trend in per_group.items():
+                direction = grp_trend.get("direction", "?")
+                first = grp_trend.get("first", "?")
+                last = grp_trend.get("last", "?")
+                pct = grp_trend.get("pct_change", 0)
+                lines.append(
+                    f"    {grp_name}: {direction}, "
+                    f"from {first} to {last} ({pct:+.1f}%)"
+                )
+                if grp_trend.get("incomplete_period"):
+                    year_label = grp_trend.get("incomplete_period_label", "this year")
+                    lines.append(
+                        f"      ⚠ YEAR-TO-DATE: {year_label} figure "
+                        f"({last}) is year-to-date only."
+                    )
+
+        comparison = trend.get("latest_period_comparison")
+        if comparison and len(comparison.get("values", {})) >= 2:
+            period = comparison["period"]
+            lines.append(f"  Latest period group comparison ({period}):")
+            for grp, val in comparison["values"].items():
+                lines.append(f"    {grp}: {val:,.0f}")
+            highest = comparison["highest"]
+            lowest = comparison["lowest"]
+            gap = comparison["gap"]
+            gap_pct = comparison.get("gap_pct")
+            gap_str = f" ({gap_pct:.1f}% higher)" if gap_pct else ""
+            lines.append(
+                f"    → {highest['group']} is {gap:,.0f} higher than "
+                f"{lowest['group']}{gap_str}"
+            )
+            lines.append(
+                f"  ⚠ CHART INSIGHT: The bar chart for this period compares "
+                f"these categories side by side. Describe what the GAP between "
+                f"them means — e.g. if requests exceed the number of people "
+                f"served, it may indicate unmet demand."
+            )
+        return lines
+
+    def _format_time_series_metrics(self, max_trend_entries: int = 8) -> list[str]:
+        lines: list[str] = []
         m = self.metrics
         lines.append(f"Time range: {m.get('date_range', {}).get('min')} to {m.get('date_range', {}).get('max')}")
         lines.append(f"Total periods: {m.get('total_periods')}")
 
-        for col, trend in m.get("trend", {}).items():
-            # Label the trend clearly as "total" when it comes from an
-            # aggregate row or computed sum, so the LLM doesn't confuse
-            # it with a single group's numbers.
-            total_label = ""
-            if trend.get("is_total"):
-                src = trend.get("total_source", "")
-                if src == "aggregate_row":
-                    total_label = " [TOTAL from aggregate row]"
-                else:
-                    total_label = " [TOTAL summed across groups]"
+        raw_trend = m.get("trend") or {}
+        trend: dict[str, dict[str, Any]] = {
+            k: v for k, v in raw_trend.items() if isinstance(v, dict)
+        }
 
-            lines.append(
-                f"Overall trend ({col}){total_label}: {trend['direction']}, "
-                f"from {trend['first']} to {trend['last']} "
-                f"({trend['pct_change']:+.1f}%)"
+        selected, omitted = _select_time_series_trend_columns(trend, max_trend_entries)
+        if omitted:
+            logger.info(
+                "LLM context: showing %s/%s time-series trend columns (cap=%s)",
+                len(selected),
+                len(trend),
+                max_trend_entries,
             )
-            # Peak and shape information — critical for accurate narrative
-            if trend.get("peak") is not None:
+
+        for col in selected:
+            lines.extend(self._lines_for_single_trend_column(col, trend[col]))
+
+        if omitted:
+            lo, hi = _omitted_trend_pct_range(trend, omitted)
+            n = len(omitted)
+            if lo is not None and hi is not None:
                 lines.append(
-                    f"  Peak: {trend['peak']} (at {trend.get('peak_period', '?')})"
+                    f"… {n} additional columns omitted "
+                    f"(trends ranged from {lo:+.1f}% to {hi:+.1f}%)."
                 )
-            if trend.get("shape") == "rise_then_fall":
+            else:
                 lines.append(
-                    f"  ⚠ IMPORTANT: Values rose to a peak of {trend['peak']} "
-                    f"at {trend.get('peak_period', '?')}, then DROPPED {trend.get('drop_from_peak_pct', 0):.0f}% "
-                    f"to {trend['last']}. The overall trend is NOT a steady increase — "
-                    f"describe both the rise AND the subsequent decline."
-                )
-            if trend.get("recovery_from_trough_pct"):
-                lines.append(
-                    f"  Trough: {trend['trough']} at {trend.get('trough_period', '?')}, "
-                    f"then recovered {trend['recovery_from_trough_pct']:.0f}%"
+                    f"… {n} additional columns omitted (no pct_change on omitted series)."
                 )
 
-            # Incomplete current-year warning
-            if trend.get("incomplete_period"):
-                year_label = trend.get("incomplete_period_label", "this year")
-                lines.append(
-                    f"  ⚠ YEAR-TO-DATE: The {year_label} figure ({trend['last']}) "
-                    f"covers only the first months of the year, NOT the full year. "
-                    f"Any apparent drop from the previous year to {year_label} is "
-                    f"partly (or largely) because the year is still in progress. "
-                    f"You MUST mention this caveat when discussing recent changes. "
-                    f"Do NOT present the {year_label} number as a completed annual total."
-                )
-
-            # Per-group trend summaries so the LLM can discuss individual
-            # groups (districts, categories, etc.) accurately.
-            per_group = trend.get("groups", {})
-            if per_group:
-                lines.append(f"  Per-group trends ({col}):")
-                for grp_name, grp_trend in per_group.items():
-                    direction = grp_trend.get("direction", "?")
-                    first = grp_trend.get("first", "?")
-                    last = grp_trend.get("last", "?")
-                    pct = grp_trend.get("pct_change", 0)
+        summary_stats = m.get("summary_stats") or {}
+        if isinstance(summary_stats, dict):
+            for col in selected:
+                stats = summary_stats.get(col)
+                if isinstance(stats, dict):
                     lines.append(
-                        f"    {grp_name}: {direction}, "
-                        f"from {first} to {last} ({pct:+.1f}%)"
+                        f"Stats ({col}): mean={stats['mean']}, "
+                        f"min={stats['min']}, max={stats['max']}, total={stats['total']}"
                     )
-                    if grp_trend.get("incomplete_period"):
-                        year_label = grp_trend.get("incomplete_period_label", "this year")
-                        lines.append(
-                            f"      ⚠ YEAR-TO-DATE: {year_label} figure "
-                            f"({last}) is year-to-date only."
-                        )
 
-            # Latest-period group comparison for categorical bar chart context
-            comparison = trend.get("latest_period_comparison")
-            if comparison and len(comparison.get("values", {})) >= 2:
-                period = comparison["period"]
-                lines.append(f"  Latest period group comparison ({period}):")
-                for grp, val in comparison["values"].items():
-                    lines.append(f"    {grp}: {val:,.0f}")
-                highest = comparison["highest"]
-                lowest = comparison["lowest"]
-                gap = comparison["gap"]
-                gap_pct = comparison.get("gap_pct")
-                gap_str = f" ({gap_pct:.1f}% higher)" if gap_pct else ""
-                lines.append(
-                    f"    → {highest['group']} is {gap:,.0f} higher than "
-                    f"{lowest['group']}{gap_str}"
-                )
-                lines.append(
-                    f"  ⚠ CHART INSIGHT: The bar chart for this period compares "
-                    f"these categories side by side. Describe what the GAP between "
-                    f"them means — e.g. if requests exceed the number of people "
-                    f"served, it may indicate unmet demand."
-                )
-
-        for col, stats in m.get("summary_stats", {}).items():
-            lines.append(
-                f"Stats ({col}): mean={stats['mean']}, "
-                f"min={stats['min']}, max={stats['max']}, total={stats['total']}"
-            )
         return lines
 
     def _format_categorical_metrics(self) -> list[str]:
