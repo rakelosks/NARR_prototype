@@ -8,7 +8,7 @@ A package is the complete output that gets served to the frontend.
 
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -63,6 +63,9 @@ class NarrativePackage(BaseModel):
     # Visualizations
     visualizations: list[dict] = Field(default_factory=list)
 
+    # Full analytics + context used for generation (for audit / provenance; may duplicate viz specs)
+    evidence_bundle: dict[str, Any] = Field(default_factory=dict)
+
     # Metadata
     dataset: DatasetSummary
     provenance: ProvenanceInfo
@@ -80,6 +83,11 @@ class PackageBuilder:
     """
     Builds NarrativePackage objects from generation results and evidence bundles.
     """
+
+    @staticmethod
+    def _evidence_bundle_dict(bundle: EvidenceBundle) -> dict[str, Any]:
+        """JSON-serializable dict for API responses and corpus dumps."""
+        return bundle.model_dump(mode="json")
 
     def build(
         self,
@@ -151,6 +159,7 @@ class PackageBuilder:
             data_note=narrative.data_note if narrative else "",
             followup_question=narrative.followup_question if narrative else "",
             visualizations=viz_dicts,
+            evidence_bundle=self._evidence_bundle_dict(bundle),
             dataset=dataset_summary,
             provenance=provenance,
         )
@@ -245,6 +254,7 @@ class PackageBuilder:
             lede=f"Automated analysis of {bundle.row_count} rows across {bundle.column_count} columns.",
             story_blocks=story_blocks,
             visualizations=viz_dicts,
+            evidence_bundle=self._evidence_bundle_dict(bundle),
             dataset=dataset_summary,
             provenance=provenance,
         )

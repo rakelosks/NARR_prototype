@@ -1,40 +1,41 @@
 {
-  "run_id": "run_01",
+  "run_id": "run_01a",
   "query": "What are the trends in waste collection?",
-  "timestamp": "2026-04-04T20:57:16.302193+00:00",
+  "replicate": "a",
+  "timestamp": "2026-04-05T01:00:19.119798+00:00",
   "status_code": 200,
-  "response_time_seconds": 11.54,
+  "response_time_seconds": 10.06,
   "response": {
-    "package_id": "sorphirda_heimila_i_reykjavik_20260404_205716",
-    "created_at": "2026-04-04T20:57:16.297428",
-    "headline": "Residents' Waste Per Person Drops by a Third in 14 Years",
-    "lede": "How much trash do we toss out every year? For residents of Reykjavík, this number has been shrinking. The amount of waste produced per person has fallen by about a third, from 266 kg in 1998 to 173 kg in 2012.",
+    "package_id": "sorphirda_heimila_i_reykjavik_20260405_010019",
+    "created_at": "2026-04-05T01:00:19.113557",
+    "headline": "Residents Throw Away a Third Less Waste Than 15 Years Ago",
+    "lede": "Most households set out their bins every week, but the numbers reveal something surprising: we’re now tossing out much less than before. In Reykjavík, the amount of household waste per person has dropped by about a third since 1998—falling from 266 kilos a year to just 173 kilos by 2012.",
     "story_blocks": [
       {
         "type": "callout",
-        "body": "This significant drop shows a major shift in waste habits over the years.",
-        "highlight_value": "37%",
-        "highlight_label": "less waste per person since 2000"
+        "body": "Each person in Reykjavík is now throwing away about a third less than they did 15 years ago.",
+        "highlight_value": "35% less",
+        "highlight_label": "waste per person since 1998"
       },
       {
         "type": "narrative",
-        "heading": "Waste Per Person Peaked in 2000",
-        "body": "In the chart below, you'll see that the amount of waste each person produced hit a high in 2000 at 273 kg. From there, it steadily declined. By 2012, each person generated just 173 kg annually. This suggests more mindful disposal and potentially more effective recycling over the years.",
+        "heading": "Waste Per Person Drops After Peaking in 2000",
+        "body": "In the chart below, you'll see how waste collected per person crept up to a high of 273 kilos around the year 2000. After that, there’s a steady and sharp decline right through to 2012. By the end of this period, the average resident is producing 37% less waste than at the peak. This is the most dramatic shift in the numbers.",
         "viz_index": 1
       },
       {
         "type": "narrative",
-        "heading": "Fewer Waste Containers Seen Across the City",
-        "body": "In the other chart, notice how the count of waste containers decreased over time. From its peak in 2004 at 47,900, the number dropped significantly, finishing at 37,311 by 2012. This 22% reduction mirrors the efforts to minimize waste production.",
+        "heading": "Number of Collection Bins Also Decreases",
+        "body": "Look next at the chart showing how many waste bins the city had to empty each year. The number of bins went up until 2004, reaching a high point, but then fell by about a fifth over the next eight years. By 2012, crews were collecting from nearly 11,000 fewer bins than at the peak. This fall matches the drop in waste per person and shows a real change in how much is being thrown away.",
         "viz_index": 0
       },
       {
         "type": "narrative",
         "heading": "What This Means for Residents",
-        "body": "This change demonstrates a shift towards more sustainable living. The drop in waste means less strain on disposal systems and possibly, a cleaner environment. For residents, it aligns with a broader movement of reducing environmental footprints."
+        "body": "Filling your bin less means less waste picked up, fewer trips for city trucks, and likely lower costs for everyone. Seeing our habits shift so much in just over a decade hints at big changes in what—and how much—we use and throw away. For households, it means we’re all playing a part in making Reykjavík a bit cleaner and less wasteful."
       }
     ],
-    "data_note": "This data covers the period from 1998 to 2012, showing trends over these years. Note that more recent data isn't included, and the numbers represent averages across Reykjavik. The figures are based on records from the city's Environmental and Planning Department, but the exact data license information isn't available.",
+    "data_note": "This story covers waste collection in Reykjavík households from 1998 to 2012. All numbers are citywide averages—your home's habits may differ. The figures come from the city's Environment and Planning division, but licence details are not specified, and costs after 2012 aren't included. Finally, big changes in 2004 and 2005 may be due to policy shifts, so keep in mind that the trends shown reflect both resident behavior and city practices.",
     "followup_question": "How is public transport ridership trending?",
     "visualizations": [
       {
@@ -284,6 +285,430 @@
         "is_primary": false
       }
     ],
+    "evidence_bundle": {
+      "dataset_id": "sorphirda_heimila_i_reykjavik",
+      "source": "https://gagnagatt.reykjavik.is/en/dataset/f91a7a21-73a2-4faf-87cc-950dcd640911/resource/f09d006b-2660-4756-b85a-06d04402d71b/download/sorphirda_heimila_i_reykjavik_heild.csv",
+      "template_type": "time_series",
+      "created_at": "2026-04-05T01:00:13.583634",
+      "row_count": 15,
+      "column_count": 11,
+      "column_summary": {
+        "temporal": 1,
+        "numerical": 10
+      },
+      "matched_columns": {
+        "time_axis": "Ár",
+        "measure": "Fjöldi sorpíláta"
+      },
+      "all_columns": {
+        "Ár": "temporal",
+        "Fjöldi sorpíláta": "numerical",
+        "Heildarsorpmagn, tonn": "numerical",
+        "Sorphirðukostnaður, þús.kr.": "numerical",
+        "Sorpeyðingarkostnaður, þús.kr.": "numerical",
+        "Heildarkostnaður v. sorps, þús. kr.": "numerical",
+        "Heildarkostnaður á ílát, kr.": "numerical",
+        "Heildarkostnaður á tonn, kr.": "numerical",
+        "Heildarkostnaður á íbúa, kr.": "numerical",
+        "Mannfjöldi": "numerical",
+        "Kíló á íbúa": "numerical"
+      },
+      "normalized_metadata": {
+        "dataset_id": "f91a7a21-73a2-4faf-87cc-950dcd640911",
+        "title": {
+          "value": "Sorphirða heimila í Reykjavík",
+          "tier": "portal"
+        },
+        "description": {
+          "value": "Gagnapakkinn inniheldur fjöldatölur um sorphirðu heimila í Reykjavík. Gögnin eru frá Umhverfis- og skipulagssviði Reykjavíkurborgar. Hér er að finna eina heildarskrá fyrir öll árin, auk sér skráa fyrir hvert ár, frá 1998-2012.\r\n&NewLine;  \r\n&NewLine;  \r\nHver lína táknar fjölda sorpíláta, heildarsorpmagn (tonn), sorphirðukostnað (þús. kr.), sorpeyðingarkostnað (þús. kr.), heildarkostnað vegna sorps (þús. kr.), heildarkostnað á ílát (kr.), heildarkostnað á tonn (kr.), heildarkostnað á íbúa (kr.), mannfjölda og kíló á íbúa á ákveðnu ári.\r\n&NewLine;  \r\n&NewLine;  \r\nSkýringar: \r\n&NewLine;  \r\n_Kjalarnesið með í tölum frá árinu 2004._\r\n&NewLine; \r\n\r\n_Fjöldi sorpíláta: Tunnuígidi m.v. 240 lítra tunnur um áramót í lok árs. Skilgreiningu tunnuígilda í kerjum var breytt úr 3,5 í 2,75 árið 2009._\r\n&NewLine; \r\n\r\n_Heildarkostnaður v. sorps, þús. kr.: Án stofnkostnaðar vegna nýs sorphirðukerfis._\r\n&NewLine; \r\n\r\n_Árið 2005: Reykjavíkurborg hætti sorphirðu hjá fyrirtækjum og stofnunum um áramót 2004/2005._ \r\n&NewLine; \r\n\r\n_Árið 2012: Kostnaður við kynningamál og endurnýjun og viðhald sorpíláta er ekki hafður með til að gefa rétta sýn á hirðukostnað._\r\n&NewLine;",
+          "tier": "portal"
+        },
+        "organization": {
+          "value": "Umhverfis- og skipulagssvið",
+          "tier": "portal"
+        },
+        "licence": {
+          "value": null,
+          "tier": "missing"
+        },
+        "tags": [
+          "úrgangur"
+        ],
+        "tags_tier": "portal",
+        "source_url": {
+          "value": "https://gagnagatt.reykjavik.is/en/dataset/f91a7a21-73a2-4faf-87cc-950dcd640911/resource/f09d006b-2660-4756-b85a-06d04402d71b/download/sorphirda_heimila_i_reykjavik_heild.csv",
+          "tier": "portal"
+        },
+        "last_modified": {
+          "value": "2026-03-03T13:34:01.048378",
+          "tier": "portal"
+        },
+        "portal_language": {
+          "value": "is",
+          "tier": "portal"
+        },
+        "row_count": null,
+        "column_count": null,
+        "column_types": {},
+        "inferred_frequency": {
+          "value": null,
+          "tier": "missing"
+        },
+        "total_null_rate": null
+      },
+      "metrics": {
+        "time_column": "Ár",
+        "measure_columns": [
+          "Fjöldi sorpíláta",
+          "Kíló á íbúa"
+        ],
+        "group_column": null,
+        "total_periods": 15,
+        "date_range": {
+          "min": "1998",
+          "max": "2012"
+        },
+        "trend": {
+          "Fjöldi sorpíláta": {
+            "first": 47200.0,
+            "last": 37311.0,
+            "pct_change": -20.95,
+            "direction": "decreasing",
+            "peak": 47900.0,
+            "peak_period": "2004",
+            "trough": 37288.0,
+            "trough_period": "2010",
+            "shape": "rise_then_fall",
+            "drop_from_peak_pct": 22.1,
+            "drop_from_peak": 10589.0
+          },
+          "Kíló á íbúa": {
+            "first": 266.0,
+            "last": 173.0,
+            "pct_change": -34.96,
+            "direction": "decreasing",
+            "peak": 273.0,
+            "peak_period": "2000",
+            "trough": 173.0,
+            "trough_period": "2011",
+            "shape": "rise_then_fall",
+            "drop_from_peak_pct": 36.6,
+            "drop_from_peak": 100.0
+          }
+        },
+        "period_aggregations": [],
+        "summary_stats": {
+          "Fjöldi sorpíláta": {
+            "mean": 42565.13,
+            "min": 37288.0,
+            "max": 47900.0,
+            "total": 638477.0,
+            "std": 4649.38
+          },
+          "Kíló á íbúa": {
+            "mean": 232.13,
+            "min": 173.0,
+            "max": 273.0,
+            "total": 3482.0,
+            "std": 38.67
+          }
+        }
+      },
+      "visualizations": [
+        {
+          "chart_type": "line",
+          "title": "Dataset overview (1998–2012)",
+          "description": "Trend over time for Count.",
+          "vega_lite_spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "Dataset overview (1998–2012)",
+            "width": "container",
+            "height": 400,
+            "data": {
+              "values": [
+                {
+                  "Ár": "1998-01-01",
+                  "Fjöldi sorpíláta": 47200,
+                  "Kíló á íbúa": 266
+                },
+                {
+                  "Ár": "1999-01-01",
+                  "Fjöldi sorpíláta": 46500,
+                  "Kíló á íbúa": 269
+                },
+                {
+                  "Ár": "2000-01-01",
+                  "Fjöldi sorpíláta": 47000,
+                  "Kíló á íbúa": 273
+                },
+                {
+                  "Ár": "2001-01-01",
+                  "Fjöldi sorpíláta": 47500,
+                  "Kíló á íbúa": 270
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Fjöldi sorpíláta": 47345,
+                  "Kíló á íbúa": 265
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Fjöldi sorpíláta": 47700,
+                  "Kíló á íbúa": 259
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Fjöldi sorpíláta": 47900,
+                  "Kíló á íbúa": 266
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Fjöldi sorpíláta": 39000,
+                  "Kíló á íbúa": 229
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Fjöldi sorpíláta": 39400,
+                  "Kíló á íbúa": 233
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Fjöldi sorpíláta": 39366,
+                  "Kíló á íbúa": 231
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Fjöldi sorpíláta": 39338,
+                  "Kíló á íbúa": 209
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Fjöldi sorpíláta": 37868,
+                  "Kíló á íbúa": 185
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Fjöldi sorpíláta": 37288,
+                  "Kíló á íbúa": 181
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Fjöldi sorpíláta": 37761,
+                  "Kíló á íbúa": 173
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Fjöldi sorpíláta": 37311,
+                  "Kíló á íbúa": 173
+                }
+              ]
+            },
+            "config": {
+              "view": {
+                "stroke": "transparent"
+              },
+              "axis": {
+                "labelFontSize": 12,
+                "titleFontSize": 13
+              },
+              "title": {
+                "fontSize": 16,
+                "anchor": "start",
+                "orient": "top"
+              }
+            },
+            "mark": {
+              "type": "line",
+              "point": true,
+              "tooltip": true
+            },
+            "encoding": {
+              "x": {
+                "field": "Ár",
+                "type": "temporal",
+                "title": "Year",
+                "timeUnit": "year"
+              },
+              "y": {
+                "field": "Fjöldi sorpíláta",
+                "type": "quantitative",
+                "title": "Count"
+              }
+            }
+          },
+          "is_primary": true
+        },
+        {
+          "chart_type": "line",
+          "title": "K L     B A (1998–2012)",
+          "description": "Trend over time for Kíló á íbúa.",
+          "vega_lite_spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "K L     B A (1998–2012)",
+            "width": "container",
+            "height": 400,
+            "data": {
+              "values": [
+                {
+                  "Ár": "1998-01-01",
+                  "Fjöldi sorpíláta": 47200,
+                  "Kíló á íbúa": 266
+                },
+                {
+                  "Ár": "1999-01-01",
+                  "Fjöldi sorpíláta": 46500,
+                  "Kíló á íbúa": 269
+                },
+                {
+                  "Ár": "2000-01-01",
+                  "Fjöldi sorpíláta": 47000,
+                  "Kíló á íbúa": 273
+                },
+                {
+                  "Ár": "2001-01-01",
+                  "Fjöldi sorpíláta": 47500,
+                  "Kíló á íbúa": 270
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Fjöldi sorpíláta": 47345,
+                  "Kíló á íbúa": 265
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Fjöldi sorpíláta": 47700,
+                  "Kíló á íbúa": 259
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Fjöldi sorpíláta": 47900,
+                  "Kíló á íbúa": 266
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Fjöldi sorpíláta": 39000,
+                  "Kíló á íbúa": 229
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Fjöldi sorpíláta": 39400,
+                  "Kíló á íbúa": 233
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Fjöldi sorpíláta": 39366,
+                  "Kíló á íbúa": 231
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Fjöldi sorpíláta": 39338,
+                  "Kíló á íbúa": 209
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Fjöldi sorpíláta": 37868,
+                  "Kíló á íbúa": 185
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Fjöldi sorpíláta": 37288,
+                  "Kíló á íbúa": 181
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Fjöldi sorpíláta": 37761,
+                  "Kíló á íbúa": 173
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Fjöldi sorpíláta": 37311,
+                  "Kíló á íbúa": 173
+                }
+              ]
+            },
+            "config": {
+              "view": {
+                "stroke": "transparent"
+              },
+              "axis": {
+                "labelFontSize": 12,
+                "titleFontSize": 13
+              },
+              "title": {
+                "fontSize": 16,
+                "anchor": "start",
+                "orient": "top"
+              }
+            },
+            "mark": {
+              "type": "line",
+              "point": true,
+              "tooltip": true
+            },
+            "encoding": {
+              "x": {
+                "field": "Ár",
+                "type": "temporal",
+                "title": "Year",
+                "timeUnit": "year"
+              },
+              "y": {
+                "field": "Kíló á íbúa",
+                "type": "quantitative",
+                "title": "Value"
+              }
+            }
+          },
+          "is_primary": false
+        }
+      ],
+      "narrative_context": {
+        "template_name": "Time series",
+        "focus": "Trends, patterns, and significant changes over time.",
+        "suggested_questions": [
+          "What is the overall trend?",
+          "Are there seasonal patterns?",
+          "When did significant changes occur?",
+          "What is the most recent value compared to historical average?"
+        ],
+        "key_findings": [
+          "Fjöldi sorpíláta is decreasing (-20.9% change from 47200.0 to 37311.0)",
+          "Fjöldi sorpíláta peaked at 47900.0 (2004) then dropped 22% to 37311.0",
+          "Kíló á íbúa is decreasing (-35.0% change from 266.0 to 173.0)",
+          "Kíló á íbúa peaked at 273.0 (2000) then dropped 37% to 173.0",
+          "Data covers 1998 to 2012 (15 periods)"
+        ]
+      },
+      "data_sample": [
+        {
+          "Ár": 1998,
+          "Fjöldi sorpíláta": 47200,
+          "Kíló á íbúa": 266
+        },
+        {
+          "Ár": 1999,
+          "Fjöldi sorpíláta": 46500,
+          "Kíló á íbúa": 269
+        },
+        {
+          "Ár": 2000,
+          "Fjöldi sorpíláta": 47000,
+          "Kíló á íbúa": 273
+        },
+        {
+          "Ár": 2001,
+          "Fjöldi sorpíláta": 47500,
+          "Kíló á íbúa": 270
+        },
+        {
+          "Ár": 2002,
+          "Fjöldi sorpíláta": 47345,
+          "Kíló á íbúa": 265
+        }
+      ],
+      "categorical_values": {},
+      "fallback_note": null
+    },
     "dataset": {
       "dataset_id": "sorphirda_heimila_i_reykjavik",
       "source": "https://gagnagatt.reykjavik.is/en/dataset/f91a7a21-73a2-4faf-87cc-950dcd640911/resource/f09d006b-2660-4756-b85a-06d04402d71b/download/sorphirda_heimila_i_reykjavik_heild.csv",
@@ -304,9 +729,9 @@
       "dataset_source": "https://gagnagatt.reykjavik.is/en/dataset/f91a7a21-73a2-4faf-87cc-950dcd640911/resource/f09d006b-2660-4756-b85a-06d04402d71b/download/sorphirda_heimila_i_reykjavik_heild.csv",
       "template_type": "time_series",
       "llm_provider": "openai",
-      "llm_model": "gpt-4o",
+      "llm_model": "gpt-4.1",
       "generation_attempts": 1,
-      "generated_at": "2026-04-04T20:57:16.297332",
+      "generated_at": "2026-04-05T01:00:19.113246",
       "pipeline_version": "0.1.0"
     },
     "dataset_name": "Sorphirða heimila í Reykjavík",

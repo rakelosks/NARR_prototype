@@ -203,6 +203,10 @@ class EvidenceBundle(BaseModel):
         self,
         max_trend_entries: int = 8,
         max_key_findings: int = 8,
+        max_column_list_entries: int = 45,
+        max_sample_row_fields: int = 24,
+        max_per_group_trend_entries: int = 15,
+        max_latest_comparison_entries: int = 15,
     ) -> str:
         """
         Format the bundle as a text context string for the LLM prompt.
@@ -217,6 +221,13 @@ class EvidenceBundle(BaseModel):
         |pct_change|), so the row count can exceed ``max_trend_entries`` when
         many totals exist. Omitted columns get one summary line with the % range.
         ``max_key_findings`` caps narrative guidance bullets in this string only.
+
+        Very wide tables (many columns) also bloat the prompt via the column
+        catalog and sample rows. ``max_column_list_entries`` limits how many
+        columns are listed individually; ``max_sample_row_fields`` limits how
+        many fields appear per sample row. Per-series ``groups`` and latest
+        comparison value lists are capped for the LLM only.
+
         The bundle's ``metrics`` and ``narrative_context`` objects are not modified.
         """
         meta = self.normalized_metadata
@@ -274,24 +285,8 @@ class EvidenceBundle(BaseModel):
                     "acknowledging the missing information."
                 )
 
-        # List all columns with their unique values for categorical ones
-        if self.all_columns:
-            lines.append("All columns:")
-            for col_name, col_type in self.all_columns.items():
-                vals = self.categorical_values.get(col_name)
-                if vals:
-                    vals_str = ", ".join(f'"{v}"' for v in vals[:15])
-                    lines.append(f"  - {col_name} ({col_type}) — values: {vals_str}")
-                else:
-                    lines.append(f"  - {col_name} ({col_type})")
-
-        # Sample data rows so the LLM sees actual values
-        if self.data_sample:
-            lines.append("")
-            lines.append("Sample data (first rows):")
-            for row in self.data_sample[:5]:
-                row_str = ", ".join(f"{k}={v}" for k, v in row.items())
-                lines.append(f"  {row_str}")
+        self._append_column_catalog_for_llm(lines, max_column_list_entries)
+        self._append_data_sample_for_llm(lines, max_rows=5, max_fields=max_sample_row_fields)
 
         # Fallback transparency
         if self.fallback_note:
@@ -305,7 +300,13 @@ class EvidenceBundle(BaseModel):
 
         # Format base metrics
         if base_type == "time_series":
-            lines.extend(self._format_time_series_metrics(max_trend_entries=max_trend_entries))
+            lines.extend(
+                self._format_time_series_metrics(
+                    max_trend_entries=max_trend_entries,
+                    max_per_group_trend_entries=max_per_group_trend_entries,
+                    max_latest_comparison_entries=max_latest_comparison_entries,
+                )
+            )
         elif base_type == "categorical":
             lines.extend(self._format_categorical_metrics())
         elif base_type == "geospatial":
@@ -338,7 +339,82 @@ class EvidenceBundle(BaseModel):
 
         return "\n".join(lines)
 
-    def _lines_for_single_trend_column(self, col: str, trend: dict[str, Any]) -> list[str]:
+    def _matched_column_preference_order(self) -> list[str]:
+        """Dataset column names implied by template roles (listed first in samples)."""
+        order: list[str] = []
+        mc = self.matched_columns or {}
+        for v in mc.values():
+            if isinstance(v, str) and v and v not in order:
+                order.append(v)
+        for k in mc.keys():
+            if isinstance(k, str) and k and k not in order:
+                order.append(k)
+        return order
+
+    def _append_column_catalog_for_llm(self, lines: list[str], max_entries: int) -> None:
+        if not self.all_columns:
+            return
+        lines.append("All columns:")
+        items = list(self.all_columns.items())
+        preferred = set(self._matched_column_preference_order())
+        items.sort(key=lambda kv: (0 if kv[0] in preferred else 1, kv[0]))
+        total = len(items)
+        shown = items[:max_entries] if total > max_entries else items
+        for col_name, col_type in shown:
+            vals = self.categorical_values.get(col_name)
+            if vals:
+                vals_str = ", ".join(f'"{v}"' for v in vals[:15])
+                lines.append(f"  - {col_name} ({col_type}) — values: {vals_str}")
+            else:
+                lines.append(f"  - {col_name} ({col_type})")
+        if total > max_entries:
+            logger.info(
+                "LLM context: listing %s/%s columns individually (cap=%s)",
+                max_entries,
+                total,
+                max_entries,
+            )
+            lines.append(
+                f"  … {total - max_entries} more columns omitted "
+                f"(dataset has {total} columns; mapped roles above are prioritized)."
+            )
+
+    def _append_data_sample_for_llm(self, lines: list[str], max_rows: int, max_fields: int) -> None:
+        if not self.data_sample:
+            return
+        pref = self._matched_column_preference_order()
+        n_fields = len(self.data_sample[0]) if self.data_sample else 0
+        if n_fields > max_fields:
+            logger.info(
+                "LLM context: sample rows truncated to %s fields/row (%s in data)",
+                max_fields,
+                n_fields,
+            )
+        lines.append("")
+        lines.append("Sample data (first rows; wide rows are truncated):")
+        for row in self.data_sample[:max_rows]:
+            if not isinstance(row, dict):
+                continue
+            keys = list(row.keys())
+            ordered = [k for k in pref if k in row]
+            for k in keys:
+                if k not in ordered:
+                    ordered.append(k)
+            take = ordered[:max_fields]
+            parts = [f"{k}={row[k]}" for k in take]
+            omitted = len(keys) - len(take)
+            if omitted > 0:
+                parts.append(f"… +{omitted} fields")
+            lines.append("  " + ", ".join(parts))
+
+    def _lines_for_single_trend_column(
+        self,
+        col: str,
+        trend: dict[str, Any],
+        *,
+        max_per_group_trend_entries: int = 15,
+        max_latest_comparison_entries: int = 15,
+    ) -> list[str]:
         """Format one time-series trend (and related sub-lines) for LLM context."""
         lines: list[str] = []
         total_label = ""
@@ -385,7 +461,8 @@ class EvidenceBundle(BaseModel):
         per_group = trend.get("groups", {})
         if per_group:
             lines.append(f"  Per-group trends ({col}):")
-            for grp_name, grp_trend in per_group.items():
+            pg_items = list(per_group.items())
+            for grp_name, grp_trend in pg_items[:max_per_group_trend_entries]:
                 direction = grp_trend.get("direction", "?")
                 first = grp_trend.get("first", "?")
                 last = grp_trend.get("last", "?")
@@ -400,13 +477,21 @@ class EvidenceBundle(BaseModel):
                         f"      ⚠ YEAR-TO-DATE: {year_label} figure "
                         f"({last}) is year-to-date only."
                     )
+            n_more_pg = len(pg_items) - min(len(pg_items), max_per_group_trend_entries)
+            if n_more_pg:
+                lines.append(f"    … {n_more_pg} more groups omitted for this series.")
 
         comparison = trend.get("latest_period_comparison")
         if comparison and len(comparison.get("values", {})) >= 2:
             period = comparison["period"]
             lines.append(f"  Latest period group comparison ({period}):")
-            for grp, val in comparison["values"].items():
+            val_items = list(comparison["values"].items())
+            shown_vals = val_items[:max_latest_comparison_entries]
+            for grp, val in shown_vals:
                 lines.append(f"    {grp}: {val:,.0f}")
+            n_skip = len(val_items) - len(shown_vals)
+            if n_skip:
+                lines.append(f"    … {n_skip} more categories omitted in this comparison.")
             highest = comparison["highest"]
             lowest = comparison["lowest"]
             gap = comparison["gap"]
@@ -424,7 +509,12 @@ class EvidenceBundle(BaseModel):
             )
         return lines
 
-    def _format_time_series_metrics(self, max_trend_entries: int = 8) -> list[str]:
+    def _format_time_series_metrics(
+        self,
+        max_trend_entries: int = 8,
+        max_per_group_trend_entries: int = 15,
+        max_latest_comparison_entries: int = 15,
+    ) -> list[str]:
         lines: list[str] = []
         m = self.metrics
         lines.append(f"Time range: {m.get('date_range', {}).get('min')} to {m.get('date_range', {}).get('max')}")
@@ -445,7 +535,14 @@ class EvidenceBundle(BaseModel):
             )
 
         for col in selected:
-            lines.extend(self._lines_for_single_trend_column(col, trend[col]))
+            lines.extend(
+                self._lines_for_single_trend_column(
+                    col,
+                    trend[col],
+                    max_per_group_trend_entries=max_per_group_trend_entries,
+                    max_latest_comparison_entries=max_latest_comparison_entries,
+                )
+            )
 
         if omitted:
             lo, hi = _omitted_trend_pct_range(trend, omitted)

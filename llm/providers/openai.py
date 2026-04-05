@@ -61,10 +61,19 @@ class OpenAIProvider(LLMProvider):
                 last_exc = e
                 if attempt == self.max_retries:
                     break
-                delay = 2 ** attempt
+                delay = float(2 ** min(attempt, 5))
+                resp = getattr(e, "response", None)
+                if resp is not None:
+                    ra = resp.headers.get("retry-after")
+                    if ra is not None:
+                        try:
+                            delay = max(delay, float(ra))
+                        except ValueError:
+                            pass
+                delay = min(delay, 120.0)
                 logger.warning(
                     f"OpenAI rate limited, retry {attempt}/{self.max_retries} "
-                    f"in {delay}s"
+                    f"in {delay:.1f}s"
                 )
                 await asyncio.sleep(delay)
             except openai.APIConnectionError as e:

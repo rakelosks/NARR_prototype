@@ -1,41 +1,48 @@
 {
-  "run_id": "run_05",
+  "run_id": "run_05b",
   "query": "How has the city budget changed?",
-  "timestamp": "2026-04-04T21:04:44.507402+00:00",
+  "replicate": "b",
+  "timestamp": "2026-04-05T01:02:47.004273+00:00",
   "status_code": 200,
-  "response_time_seconds": 9.05,
+  "response_time_seconds": 8.44,
   "response": {
-    "package_id": "sjodstreymi_20260404_210444",
-    "created_at": "2026-04-04T21:04:44.495219",
-    "headline": "City Finances Peaked in 2007 Before Plummeting",
-    "lede": "Reykjavík's financial journey over the years has seen some dramatic shifts. While the city’s funds witnessed a tremendous growth to more than 42 million króna by 2007, they sharply declined by an astounding 84% in the years that followed.",
+    "package_id": "sjodstreymi_20260405_010246",
+    "created_at": "2026-04-05T01:02:46.986700",
+    "headline": "City Finances Hit Record High Before Sharp Drop",
+    "lede": "Many people wonder how the city's finances have shifted over time, especially when making decisions at home can feel tight. The numbers reveal that city funds soared to record heights in 2007, before dropping sharply—falling by more than 80% over the next decade.",
     "story_blocks": [
       {
         "type": "callout",
-        "body": "After reaching a high point in 2007, the city's finances saw a significant decrease.",
+        "body": "The city's available funds dropped by more than four-fifths from their highest point in 2007.",
         "highlight_value": "84%",
-        "highlight_label": "drop after peak"
+        "highlight_label": "decline after 2007 peak"
       },
       {
         "type": "narrative",
-        "heading": "Financial Growth to Crisis",
-        "body": "In the chart below, you'll see how Reykjavík’s finances surged from 2002 up to a peak in 2007, marked by the highest point at over 42 million króna. However, following 2007, the steady incline took a nosedive, dropping sharply to just over 6 million króna by 2017.",
+        "heading": "A Dramatic Rise and Fall in City Funds",
+        "body": "In the chart below, you can see how the city's total funds grew quickly from 2002, peaking in 2007. After that, the line drops steeply, showing that by 2017, funds had fallen to just a fraction of their earlier high. This swing is rare—funds rose nearly fivefold and then dropped by more than 80% after the peak.",
         "viz_index": 0
       },
       {
         "type": "narrative",
-        "heading": "Comparing Financial Components in 2017",
-        "body": "In the bar chart, notice how 'Veltufé frá rekstri, samtals' or total working capital from operations stands much higher at around 9.2 million króna, contrasted starkly with 'Fjárfesting í varanlegum rekstrarfjármunum', or investment in fixed assets, which is significantly lower.",
+        "heading": "How 2017 Compares Across Spending Categories",
+        "body": "Looking at the bar chart below for the latest year, you'll see how different budget categories stack up. The biggest gap is between money from operations—over 24 billion higher than what was spent on long-term investments. Other categories, like new long-term loans and pension commitments, also stand out. This makes it clear where the city's priorities and challenges lie today.",
         "viz_index": 1
       },
       {
         "type": "narrative",
-        "heading": "What this means for residents",
-        "body": "The financial data shows that while Reykjavík experienced significant economic growth leading up to 2007, the subsequent fall highlights challenges the city faced in maintaining its financial health. Understanding these shifts is crucial for residents as it impacts city services and local development."
+        "heading": "Where All The Money Went Over Time",
+        "body": "The final area chart shows not only the total size of the city's finances, but also which categories grew or shrank the most. For example, spending on permanent assets and long-term loans have both changed a lot since 2002, shifting the balance of the city’s overall cash flow.",
+        "viz_index": 2
+      },
+      {
+        "type": "narrative",
+        "heading": "What This Means for Residents",
+        "body": "These highs and lows in city finances shape what the city can offer—from services to new investments. For residents, big swings in funding can mean more uncertainty about future projects or services. Understanding this helps everyone see how the city must plan for both growth and sudden changes."
       }
     ],
-    "data_note": "This data covers the years from 2002 to 2017, highlighting significant financial changes during this period. Since this data is up to 2017, it does not reflect more recent economic conditions. The numbers represent thousands of króna from various financial activities. Note that licensing information for this data could not be determined.",
-    "followup_question": "What do the city's school enrollment numbers look like?",
+    "data_note": "This story is based on city finance numbers from 2002 to 2017, measured in thousands of króna. It covers the rise, peak, and sharp decline during this period, but doesn't include anything after 2017. The numbers show totals for all of Reykjavík—not broken down by neighborhood or service. Note: The licence for this data could not be confirmed, so always use it with care.",
+    "followup_question": "How has public transport ridership changed in the city?",
     "visualizations": [
       {
         "chart_type": "line",
@@ -3334,6 +3341,3743 @@
         "is_primary": false
       }
     ],
+    "evidence_bundle": {
+      "dataset_id": "sjodstreymi",
+      "source": "https://gagnagatt.reykjavik.is/en/dataset/f82b7469-bf52-44fb-90a7-6ff48f19ef57/resource/a8ffb3e0-484e-4c14-b028-77c152924cae/download/sjodstreymi_heild.csv",
+      "template_type": "time_series",
+      "created_at": "2026-04-05T01:02:41.789073",
+      "row_count": 304,
+      "column_count": 4,
+      "column_summary": {
+        "temporal": 1,
+        "categorical": 1,
+        "numerical": 2
+      },
+      "matched_columns": {
+        "time_axis": "Ár",
+        "measure": "Sveitarsjóður",
+        "series_group": "Tegund"
+      },
+      "all_columns": {
+        "Ár": "temporal",
+        "Tegund": "categorical",
+        "Sveitarsjóður": "numerical",
+        "Samantekin reikningsskil": "numerical"
+      },
+      "normalized_metadata": {
+        "dataset_id": "f82b7469-bf52-44fb-90a7-6ff48f19ef57",
+        "title": {
+          "value": "Sjóðstreymi",
+          "tier": "portal"
+        },
+        "description": {
+          "value": "Gagnapakkinn inniheldur sjóðstreymi (í þús. kr.) Reykjavíkurborgar. Hér er að finna eina heildarskrá fyrir öll árin, auk sér skráa fyrir hvert ár, frá 2002-2017.\r\n&NewLine;  \r\n&NewLine;  \r\nHver lína táknar sveitarsjóð (í þús. kr.) og samantekin reikningsskil (í þús. kr.) fyrir hverja tegund (t.d. rekstrarniðurstaða, reiknaðar afskriftir og afborganir langtímalána) úr sjóðstreymi Reykjavíkurborgar á ákveðnu ári. \r\n&NewLine;",
+          "tier": "portal"
+        },
+        "organization": {
+          "value": "Fjármála- og áhættustýringasvið",
+          "tier": "portal"
+        },
+        "licence": {
+          "value": null,
+          "tier": "missing"
+        },
+        "tags": [
+          "fjármál"
+        ],
+        "tags_tier": "portal",
+        "source_url": {
+          "value": "https://gagnagatt.reykjavik.is/en/dataset/f82b7469-bf52-44fb-90a7-6ff48f19ef57/resource/a8ffb3e0-484e-4c14-b028-77c152924cae/download/sjodstreymi_heild.csv",
+          "tier": "portal"
+        },
+        "last_modified": {
+          "value": "2026-03-03T13:35:29.106778",
+          "tier": "portal"
+        },
+        "portal_language": {
+          "value": "is",
+          "tier": "portal"
+        },
+        "row_count": null,
+        "column_count": null,
+        "column_types": {},
+        "inferred_frequency": {
+          "value": null,
+          "tier": "missing"
+        },
+        "total_null_rate": null
+      },
+      "metrics": {
+        "time_column": "Ár",
+        "measure_columns": [
+          "Sveitarsjóður"
+        ],
+        "group_column": "Tegund",
+        "total_periods": 16,
+        "date_range": {
+          "min": "2002",
+          "max": "2017"
+        },
+        "trend": {
+          "Sveitarsjóður": {
+            "first": 4010762.0,
+            "last": 6725818.0,
+            "pct_change": 67.69,
+            "direction": "increasing",
+            "peak": 42761525.0,
+            "peak_period": "2007",
+            "trough": -4826573.0,
+            "trough_period": "2008",
+            "shape": "rise_then_fall",
+            "drop_from_peak_pct": 84.3,
+            "drop_from_peak": 36035707.0,
+            "total_source": "computed_sum",
+            "is_total": true,
+            "groups": {
+              " (Hagnaður), tap af sölu rekstrarfjármuna": {
+                "first": 2776.0,
+                "last": -8067099.0,
+                "pct_change": -290701.55,
+                "direction": "decreasing",
+                "peak": 743736.0,
+                "peak_period": "2008",
+                "trough": -17514991.0,
+                "trough_period": "2007",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 1184.7,
+                "drop_from_peak": 8810835.0
+              },
+              " Afborganir langtímalána": {
+                "first": -540864.0,
+                "last": -1467719.0,
+                "pct_change": 171.37,
+                "direction": "decreasing",
+                "peak": -540864.0,
+                "peak_period": "2002",
+                "trough": -25469171.0,
+                "trough_period": "2007"
+              },
+              " Aðrar fjárfestingahreyfingar": {
+                "first": 544493.0,
+                "last": 7187578.0,
+                "pct_change": 1220.05,
+                "direction": "increasing",
+                "peak": 7187578.0,
+                "peak_period": "2017",
+                "trough": -7012327.0,
+                "trough_period": "2011"
+              },
+              " Aðrar fjármögnunarhreyfingar": {
+                "first": 188891.0,
+                "last": -821394.0,
+                "pct_change": -534.85,
+                "direction": "decreasing",
+                "peak": 400409.0,
+                "peak_period": "2003",
+                "trough": -1721609.0,
+                "trough_period": "2011",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 305.1,
+                "drop_from_peak": 1221803.0
+              },
+              " Aðrar rekstrarhreyfingar": {
+                "first": 0.0,
+                "last": 2000.0,
+                "pct_change": 0,
+                "direction": "increasing",
+                "peak": 1223270.0,
+                "peak_period": "2009",
+                "trough": 0.0,
+                "trough_period": "2002",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 99.8,
+                "drop_from_peak": 1221270.0
+              },
+              " Breytingar á skammtímaliðum": {
+                "first": -195593.0,
+                "last": -10216862.0,
+                "pct_change": 5123.53,
+                "direction": "decreasing",
+                "peak": 640402.0,
+                "peak_period": "2012",
+                "trough": -10216862.0,
+                "trough_period": "2017",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 1695.4,
+                "drop_from_peak": 10857264.0
+              },
+              " Eignarhlutir í félögum, breyting": {
+                "first": -328311.0,
+                "last": -729315.0,
+                "pct_change": 122.14,
+                "direction": "decreasing",
+                "peak": 26944636.0,
+                "peak_period": "2007",
+                "trough": -729315.0,
+                "trough_period": "2017",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 102.7,
+                "drop_from_peak": 27673951.0
+              },
+              " Fjárfesting í varanlegum rekstrarfjármunum": {
+                "first": -6373566.0,
+                "last": -15419796.0,
+                "pct_change": 141.93,
+                "direction": "decreasing",
+                "peak": -3561771.0,
+                "peak_period": "2003",
+                "trough": -15419796.0,
+                "trough_period": "2017"
+              },
+              " Reiknaðar afskriftir": {
+                "first": 1746909.0,
+                "last": 4663706.0,
+                "pct_change": 166.97,
+                "direction": "increasing",
+                "peak": 4663706.0,
+                "peak_period": "2017",
+                "trough": 1746909.0,
+                "trough_period": "2002"
+              },
+              " Söluverð seldra rekstrarfjármuna": {
+                "first": 178536.0,
+                "last": 2543632.0,
+                "pct_change": 1324.72,
+                "direction": "increasing",
+                "peak": 10077069.0,
+                "peak_period": "2007",
+                "trough": 27000.0,
+                "trough_period": "2009",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 74.8,
+                "drop_from_peak": 7533437.0,
+                "recovery_from_trough_pct": 9320.9
+              },
+              " Tekin ný langtímalán": {
+                "first": 3347264.0,
+                "last": 8132694.0,
+                "pct_change": 142.97,
+                "direction": "increasing",
+                "peak": 8132694.0,
+                "peak_period": "2017",
+                "trough": 0.0,
+                "trough_period": "2007"
+              },
+              " Verðbætur og gengismunur": {
+                "first": -1092126.0,
+                "last": 636084.0,
+                "pct_change": -158.24,
+                "direction": "increasing",
+                "peak": 2486087.0,
+                "peak_period": "2008",
+                "trough": -1274600.0,
+                "trough_period": "2004",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 74.4,
+                "drop_from_peak": 1850003.0
+              },
+              "Breytingar á lífeyrisskuldbindingum": {
+                "first": 3760336.0,
+                "last": 7002362.0,
+                "pct_change": 86.22,
+                "direction": "increasing",
+                "peak": 14623036.0,
+                "peak_period": "2015",
+                "trough": -1530559.0,
+                "trough_period": "2009",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 52.1,
+                "drop_from_peak": 7620674.0
+              },
+              "Fjárfestingarhreyfingar samtals": {
+                "first": -5978848.0,
+                "last": -6417901.0,
+                "pct_change": 7.34,
+                "direction": "decreasing",
+                "peak": 29084625.0,
+                "peak_period": "2007",
+                "trough": -13024392.0,
+                "trough_period": "2011",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 122.1,
+                "drop_from_peak": 35502526.0
+              },
+              "Fjármögnunarhreyfingar samtals": {
+                "first": 2995291.0,
+                "last": 5968018.0,
+                "pct_change": 99.25,
+                "direction": "increasing",
+                "peak": 5968018.0,
+                "peak_period": "2017",
+                "trough": -25246939.0,
+                "trough_period": "2007"
+              },
+              "Handbært fé frá rekstri, samtals": {
+                "first": 3191460.0,
+                "last": 1008478.0,
+                "pct_change": -68.4,
+                "direction": "decreasing",
+                "peak": 7793268.0,
+                "peak_period": "2012",
+                "trough": 1008478.0,
+                "trough_period": "2017",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 87.1,
+                "drop_from_peak": 6784790.0
+              },
+              "Hækkun (lækkun) á handbæru fé": {
+                "first": 207903.0,
+                "last": -1458362.0,
+                "pct_change": -801.46,
+                "direction": "decreasing",
+                "peak": 11576223.0,
+                "peak_period": "2007",
+                "trough": -3757498.0,
+                "trough_period": "2008",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 112.6,
+                "drop_from_peak": 13034585.0
+              },
+              "Rekstrarniðurstaða": {
+                "first": -1030842.0,
+                "last": 4971331.0,
+                "pct_change": -582.26,
+                "direction": "increasing",
+                "peak": 22468053.0,
+                "peak_period": "2007",
+                "trough": -13635637.0,
+                "trough_period": "2015",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 77.9,
+                "drop_from_peak": 17496722.0
+              },
+              "Veltufé frá rekstri, samtals": {
+                "first": 3387053.0,
+                "last": 9208383.0,
+                "pct_change": 171.87,
+                "direction": "increasing",
+                "peak": 10932749.0,
+                "peak_period": "2016",
+                "trough": 2497176.0,
+                "trough_period": "2003",
+                "shape": "rise_then_fall",
+                "drop_from_peak_pct": 15.8,
+                "drop_from_peak": 1724366.0,
+                "recovery_from_trough_pct": 268.8
+              }
+            },
+            "latest_period_comparison": {
+              "period": "2017",
+              "values": {
+                " (Hagnaður), tap af sölu rekstrarfjármuna": -8067099.0,
+                " Afborganir langtímalána": -1467719.0,
+                " Aðrar fjárfestingahreyfingar": 7187578.0,
+                " Aðrar fjármögnunarhreyfingar": -821394.0,
+                " Aðrar rekstrarhreyfingar": 2000.0,
+                " Breytingar á skammtímaliðum": -10216862.0,
+                " Eignarhlutir í félögum, breyting": -729315.0,
+                " Fjárfesting í varanlegum rekstrarfjármunum": -15419796.0,
+                " Reiknaðar afskriftir": 4663706.0,
+                " Söluverð seldra rekstrarfjármuna": 2543632.0,
+                " Tekin ný langtímalán": 8132694.0,
+                " Verðbætur og gengismunur": 636084.0,
+                "Breytingar á lífeyrisskuldbindingum": 7002362.0,
+                "Fjárfestingarhreyfingar samtals": -6417901.0,
+                "Fjármögnunarhreyfingar samtals": 5968018.0,
+                "Handbært fé frá rekstri, samtals": 1008478.0,
+                "Hækkun (lækkun) á handbæru fé": -1458362.0,
+                "Rekstrarniðurstaða": 4971331.0,
+                "Veltufé frá rekstri, samtals": 9208383.0
+              },
+              "highest": {
+                "group": "Veltufé frá rekstri, samtals",
+                "value": 9208383.0
+              },
+              "lowest": {
+                "group": " Fjárfesting í varanlegum rekstrarfjármunum",
+                "value": -15419796.0
+              },
+              "gap": 24628179.0,
+              "gap_pct": null
+            }
+          }
+        },
+        "period_aggregations": [],
+        "summary_stats": {
+          "Sveitarsjóður": {
+            "mean": 394480.35,
+            "min": -25469171.0,
+            "max": 29084625.0,
+            "total": 119922025.0,
+            "std": 5279627.71
+          }
+        }
+      },
+      "visualizations": [
+        {
+          "chart_type": "line",
+          "title": "Dataset overview (2002–2017)",
+          "description": "Trend lines per group over time.",
+          "vega_lite_spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "Dataset overview (2002–2017)",
+            "width": "container",
+            "height": 400,
+            "data": {
+              "values": [
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -1030842,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 2776,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 1746909,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -1092126,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 3760336,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 3387053,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -195593,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 3191460,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -6373566,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 178536,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -328311,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 544493,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -5978848,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 3347264,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -540864,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 188891,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 2995291,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 207903,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -1210232,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -322121,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 1873205,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -277187,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 2433511,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 2497176,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 240296,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 2737472,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -3561771,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 197100,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -205300,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -682713,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -4252684,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 2074700,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -1173713,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 400409,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 1301396,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -213816,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -74311,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -346951,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 1996318,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -1274600,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 3530221,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 1278,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 3831955,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -646387,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 3185568,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -5183946,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 874300,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -115000,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 573871,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -3850775,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 2543674,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -1138183,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -680752,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 724739,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 59532,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -124847,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -1434493,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 2190118,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -717919,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 4132814,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 4045673,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -316228,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 3729445,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -4334936,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 1020679,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 370858,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 342256,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -2601143,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 2488405,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -1856764,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -624030,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 7611,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 1135913,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -2286695,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -3279449,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 2237089,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 1068082,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 7096699,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 480,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 4836206,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -1682124,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 3154082,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -9543152,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 9332611,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -98265,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 3640044,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 3331238,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 35215,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -6341304,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 64356,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -6241733,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 243587,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 22468053,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -17514991,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 2282676,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -281954,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 1078250,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 822,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 8032856,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -294319,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 7738537,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -7886167,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 10077069,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 26944636,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -50913,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 29084625,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -25469171,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 222232,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -25246939,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 11576223,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 2326850,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 743736,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 2024814,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 2486087,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -1135566,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 6445921,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -292760,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 6153161,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -10263940,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 705355,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -496611,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 1721215,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -8333981,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -1394074,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -182604,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -1576678,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -3757498,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 3298882,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 244065,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 2311425,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 1075366,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -1530559,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 1223270,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 6622449,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -2565024,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 4057425,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -4840114,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 27000,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -199725,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 169650,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -4843189,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 6000000,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -1329062,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 13993,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 4684931,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 3899167,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 1472372,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -171283,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 2969868,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 329485,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 369950,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 1147305,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 6117697,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -1858350,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 4259347,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -5328022,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 361200,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -81356,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 257693,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -4790485,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 4201308,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -1694947,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -513265,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 1993096,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 1461958,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -2808152,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -146280,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 3157651,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 1734119,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 4380439,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 554053,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 6871830,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 216176,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 7088006,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -5924246,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 256686,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -344505,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -7012327,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -13024392,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 6524607,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -1736921,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -1721609,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 3066077,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -2870309,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -43702,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -121765,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 3357412,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 1059606,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 2901315,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 7152866,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 640402,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 7793268,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -6760444,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 188407,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -545081,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -57991,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -7175109,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 2852934,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -3468959,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -35686,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -651711,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -33552,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 3007722,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -727034,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 3573325,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 817951,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 159008,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 9200,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 6840172,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -83898,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 6756274,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -7204657,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 29959,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -424685,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -905833,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -8505216,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 2738111,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -1819879,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -1161376,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -243144,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -1992086,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -2830873,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -70098,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 3842786,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 232560,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 3322301,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 4900,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 4501576,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -29703,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 4471873,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -8172453,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 430982,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -197346,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 2511329,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -5427488,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 2785755,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -2928802,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -668991,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -812038,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -1767653,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -13635637,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -957842,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 4150801,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 788327,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 14623036,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 243021,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 5211706,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -2509930,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 2701776,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -9454763,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 228911,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -50148,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 3106022,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -6169978,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 3062921,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -1237014,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -765426,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 1060481,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -2407721,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 2636965,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -1826496,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 4493723,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 541659,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 5038127,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 48771,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 10932749,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -4425517,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 6507232,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -9493658,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 825953,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -144188,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 5322391,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -3489502,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 2201159,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -1327834,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -809929,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 63396,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 3081126,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 4971331,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -8067099,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 4663706,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 636084,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 7002362,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 2000,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 9208383,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -10216862,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 1008478,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -15419796,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 2543632,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -729315,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 7187578,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -6417901,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 8132694,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -1467719,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -821394,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 5968018,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -1458362,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                }
+              ]
+            },
+            "config": {
+              "view": {
+                "stroke": "transparent"
+              },
+              "axis": {
+                "labelFontSize": 12,
+                "titleFontSize": 13
+              },
+              "title": {
+                "fontSize": 16,
+                "anchor": "start",
+                "orient": "top"
+              }
+            },
+            "mark": {
+              "type": "line",
+              "point": true,
+              "tooltip": true
+            },
+            "encoding": {
+              "x": {
+                "field": "Ár",
+                "type": "temporal",
+                "title": "Year",
+                "timeUnit": "year"
+              },
+              "y": {
+                "field": "Sveitarsjóður",
+                "type": "quantitative",
+                "title": "Value"
+              },
+              "color": {
+                "field": "Tegund",
+                "type": "nominal",
+                "title": "Type"
+              }
+            }
+          },
+          "is_primary": true
+        },
+        {
+          "chart_type": "bar",
+          "title": "Tegund (2017)",
+          "description": "Bar chart comparing groups for the most recent period.",
+          "vega_lite_spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "Tegund (2017)",
+            "width": "container",
+            "height": 400,
+            "data": {
+              "values": [
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 4971331,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": -8067099,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 4663706,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 636084,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 7002362,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 2000,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 9208383,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": -10216862,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 1008478,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": -15419796,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 2543632,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": -729315,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 7187578,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": -6417901,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 8132694,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": -1467719,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": -821394,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": 5968018,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": 2017,
+                  "Sveitarsjóður": -1458362,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                }
+              ]
+            },
+            "config": {
+              "view": {
+                "stroke": "transparent"
+              },
+              "axis": {
+                "labelFontSize": 12,
+                "titleFontSize": 13
+              },
+              "title": {
+                "fontSize": 16,
+                "anchor": "start",
+                "orient": "top"
+              }
+            },
+            "mark": {
+              "type": "bar",
+              "tooltip": true
+            },
+            "encoding": {
+              "y": {
+                "field": "Tegund",
+                "type": "nominal",
+                "sort": "-x",
+                "title": "Type"
+              },
+              "x": {
+                "field": "Sveitarsjóður",
+                "type": "quantitative",
+                "title": "Value"
+              },
+              "color": {
+                "field": "Tegund",
+                "type": "nominal",
+                "legend": null
+              }
+            }
+          },
+          "is_primary": false
+        },
+        {
+          "chart_type": "area",
+          "title": "Sveitarsj  Ur (2002–2017)",
+          "description": "Stacked area showing combined total and each group's share.",
+          "vega_lite_spec": {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "title": "Sveitarsj  Ur (2002–2017)",
+            "width": "container",
+            "height": 400,
+            "data": {
+              "values": [
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -1030842,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 2776,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 1746909,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -1092126,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 3760336,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 3387053,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -195593,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 3191460,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -6373566,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 178536,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -328311,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 544493,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -5978848,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 3347264,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": -540864,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 188891,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 2995291,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2002-01-01",
+                  "Sveitarsjóður": 207903,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -1210232,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -322121,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 1873205,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -277187,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 2433511,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 2497176,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 240296,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 2737472,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -3561771,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 197100,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -205300,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -682713,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -4252684,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 2074700,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -1173713,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 400409,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": 1301396,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2003-01-01",
+                  "Sveitarsjóður": -213816,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -74311,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -346951,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 1996318,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -1274600,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 3530221,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 1278,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 3831955,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -646387,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 3185568,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -5183946,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 874300,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -115000,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 573871,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -3850775,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 2543674,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -1138183,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": -680752,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 724739,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2004-01-01",
+                  "Sveitarsjóður": 59532,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -124847,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -1434493,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 2190118,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -717919,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 4132814,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 4045673,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -316228,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 3729445,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -4334936,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 1020679,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 370858,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 342256,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -2601143,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 2488405,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -1856764,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": -624030,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 7611,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2005-01-01",
+                  "Sveitarsjóður": 1135913,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -2286695,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -3279449,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 2237089,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 1068082,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 7096699,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 480,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 4836206,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -1682124,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 3154082,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -9543152,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 9332611,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -98265,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 3640044,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 3331238,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 35215,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -6341304,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 64356,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": -6241733,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2006-01-01",
+                  "Sveitarsjóður": 243587,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 22468053,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -17514991,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 2282676,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -281954,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 1078250,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 822,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 8032856,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -294319,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 7738537,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -7886167,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 10077069,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 26944636,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -50913,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 29084625,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -25469171,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 222232,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": -25246939,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2007-01-01",
+                  "Sveitarsjóður": 11576223,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 2326850,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 743736,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 2024814,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 2486087,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -1135566,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 6445921,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -292760,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 6153161,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -10263940,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 705355,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -496611,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 1721215,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -8333981,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -1394074,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -182604,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -1576678,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2008-01-01",
+                  "Sveitarsjóður": -3757498,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 3298882,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 244065,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 2311425,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 1075366,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -1530559,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 1223270,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 6622449,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -2565024,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 4057425,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -4840114,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 27000,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -199725,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 169650,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -4843189,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 6000000,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": -1329062,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 13993,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 4684931,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2009-01-01",
+                  "Sveitarsjóður": 3899167,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 1472372,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -171283,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 2969868,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 329485,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 369950,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 1147305,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 6117697,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -1858350,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 4259347,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -5328022,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 361200,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -81356,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 257693,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -4790485,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 4201308,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -1694947,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": -513265,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 1993096,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2010-01-01",
+                  "Sveitarsjóður": 1461958,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -2808152,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -146280,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 3157651,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 1734119,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 4380439,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 554053,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 6871830,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 216176,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 7088006,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -5924246,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 256686,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -344505,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -7012327,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -13024392,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 6524607,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -1736921,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -1721609,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": 3066077,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2011-01-01",
+                  "Sveitarsjóður": -2870309,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -43702,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -121765,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 3357412,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 1059606,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 2901315,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 0,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 7152866,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 640402,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 7793268,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -6760444,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 188407,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -545081,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -57991,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -7175109,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": 2852934,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -3468959,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -35686,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -651711,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2012-01-01",
+                  "Sveitarsjóður": -33552,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 3007722,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -727034,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 3573325,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 817951,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 159008,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 9200,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 6840172,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -83898,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 6756274,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -7204657,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 29959,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -424685,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -905833,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -8505216,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": 2738111,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -1819879,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -1161376,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -243144,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2013-01-01",
+                  "Sveitarsjóður": -1992086,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -2830873,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -70098,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 3842786,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 232560,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 3322301,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 4900,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 4501576,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -29703,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 4471873,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -8172453,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 430982,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -197346,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 2511329,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -5427488,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": 2785755,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -2928802,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -668991,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -812038,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2014-01-01",
+                  "Sveitarsjóður": -1767653,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -13635637,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -957842,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 4150801,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 788327,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 14623036,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 243021,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 5211706,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -2509930,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 2701776,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -9454763,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 228911,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -50148,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 3106022,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -6169978,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 3062921,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -1237014,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -765426,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": 1060481,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2015-01-01",
+                  "Sveitarsjóður": -2407721,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 2636965,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -1826496,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 4493723,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 541659,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 5038127,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 48771,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 10932749,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -4425517,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 6507232,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -9493658,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 825953,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -144188,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 5322391,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -3489502,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 2201159,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -1327834,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": -809929,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 63396,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2016-01-01",
+                  "Sveitarsjóður": 3081126,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 4971331,
+                  "Tegund": "Rekstrarniðurstaða"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -8067099,
+                  "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 4663706,
+                  "Tegund": " Reiknaðar afskriftir"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 636084,
+                  "Tegund": " Verðbætur og gengismunur"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 7002362,
+                  "Tegund": "Breytingar á lífeyrisskuldbindingum"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 2000,
+                  "Tegund": " Aðrar rekstrarhreyfingar"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 9208383,
+                  "Tegund": "Veltufé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -10216862,
+                  "Tegund": " Breytingar á skammtímaliðum"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 1008478,
+                  "Tegund": "Handbært fé frá rekstri, samtals"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -15419796,
+                  "Tegund": " Fjárfesting í varanlegum rekstrarfjármunum"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 2543632,
+                  "Tegund": " Söluverð seldra rekstrarfjármuna"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -729315,
+                  "Tegund": " Eignarhlutir í félögum, breyting"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 7187578,
+                  "Tegund": " Aðrar fjárfestingahreyfingar"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -6417901,
+                  "Tegund": "Fjárfestingarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 8132694,
+                  "Tegund": " Tekin ný langtímalán"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -1467719,
+                  "Tegund": " Afborganir langtímalána"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -821394,
+                  "Tegund": " Aðrar fjármögnunarhreyfingar"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": 5968018,
+                  "Tegund": "Fjármögnunarhreyfingar samtals"
+                },
+                {
+                  "Ár": "2017-01-01",
+                  "Sveitarsjóður": -1458362,
+                  "Tegund": "Hækkun (lækkun) á handbæru fé"
+                }
+              ]
+            },
+            "config": {
+              "view": {
+                "stroke": "transparent"
+              },
+              "axis": {
+                "labelFontSize": 12,
+                "titleFontSize": 13
+              },
+              "title": {
+                "fontSize": 16,
+                "anchor": "start",
+                "orient": "top"
+              }
+            },
+            "mark": {
+              "type": "area",
+              "point": true,
+              "tooltip": true,
+              "opacity": 0.6,
+              "line": true
+            },
+            "encoding": {
+              "x": {
+                "field": "Ár",
+                "type": "temporal",
+                "title": "Year",
+                "timeUnit": "year"
+              },
+              "y": {
+                "field": "Sveitarsjóður",
+                "type": "quantitative",
+                "title": "Value",
+                "stack": true
+              },
+              "color": {
+                "field": "Tegund",
+                "type": "nominal",
+                "title": "Type"
+              }
+            }
+          },
+          "is_primary": false
+        }
+      ],
+      "narrative_context": {
+        "template_name": "Time series",
+        "focus": "Trends, patterns, and significant changes over time.",
+        "suggested_questions": [
+          "What is the overall trend?",
+          "Are there seasonal patterns?",
+          "When did significant changes occur?",
+          "What is the most recent value compared to historical average?"
+        ],
+        "key_findings": [
+          "Sveitarsjóður is increasing (+67.7% change from 4010762.0 to 6725818.0)",
+          "Sveitarsjóður peaked at 42761525.0 (2007) then dropped 84% to 6725818.0",
+          "Data covers 2002 to 2017 (16 periods)"
+        ]
+      },
+      "data_sample": [
+        {
+          "Ár": 2002,
+          "Sveitarsjóður": -1030842,
+          "Tegund": "Rekstrarniðurstaða"
+        },
+        {
+          "Ár": 2002,
+          "Sveitarsjóður": 2776,
+          "Tegund": " (Hagnaður), tap af sölu rekstrarfjármuna"
+        },
+        {
+          "Ár": 2002,
+          "Sveitarsjóður": 1746909,
+          "Tegund": " Reiknaðar afskriftir"
+        },
+        {
+          "Ár": 2002,
+          "Sveitarsjóður": -1092126,
+          "Tegund": " Verðbætur og gengismunur"
+        },
+        {
+          "Ár": 2002,
+          "Sveitarsjóður": 3760336,
+          "Tegund": "Breytingar á lífeyrisskuldbindingum"
+        }
+      ],
+      "categorical_values": {
+        "Tegund": [
+          "Rekstrarniðurstaða",
+          " (Hagnaður), tap af sölu rekstrarfjármuna",
+          " Reiknaðar afskriftir",
+          " Verðbætur og gengismunur",
+          "Breytingar á lífeyrisskuldbindingum",
+          " Aðrar rekstrarhreyfingar",
+          "Veltufé frá rekstri, samtals",
+          " Breytingar á skammtímaliðum",
+          "Handbært fé frá rekstri, samtals",
+          " Fjárfesting í varanlegum rekstrarfjármunum",
+          " Söluverð seldra rekstrarfjármuna",
+          " Eignarhlutir í félögum, breyting",
+          " Aðrar fjárfestingahreyfingar",
+          "Fjárfestingarhreyfingar samtals",
+          " Tekin ný langtímalán",
+          " Afborganir langtímalána",
+          " Aðrar fjármögnunarhreyfingar",
+          "Fjármögnunarhreyfingar samtals",
+          "Hækkun (lækkun) á handbæru fé"
+        ]
+      },
+      "fallback_note": null
+    },
     "dataset": {
       "dataset_id": "sjodstreymi",
       "source": "https://gagnagatt.reykjavik.is/en/dataset/f82b7469-bf52-44fb-90a7-6ff48f19ef57/resource/a8ffb3e0-484e-4c14-b028-77c152924cae/download/sjodstreymi_heild.csv",
@@ -3356,9 +7100,9 @@
       "dataset_source": "https://gagnagatt.reykjavik.is/en/dataset/f82b7469-bf52-44fb-90a7-6ff48f19ef57/resource/a8ffb3e0-484e-4c14-b028-77c152924cae/download/sjodstreymi_heild.csv",
       "template_type": "time_series",
       "llm_provider": "openai",
-      "llm_model": "gpt-4o",
+      "llm_model": "gpt-4.1",
       "generation_attempts": 1,
-      "generated_at": "2026-04-04T21:04:44.495127",
+      "generated_at": "2026-04-05T01:02:46.985873",
       "pipeline_version": "0.1.0"
     },
     "dataset_name": "Sjóðstreymi",

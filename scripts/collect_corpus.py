@@ -1,8 +1,9 @@
 """
 Collect a corpus of NARR narrative responses for later analysis.
 
-Sends 10 predefined queries to the /narratives/ask endpoint, saves each
-full response (or error) as a JSON file under corpus/.
+Sends 10 predefined queries to the /narratives/ask endpoint, twice each (a/b),
+and saves each full response (or error) as JSON under corpus/ — 20 files:
+run_01a_query.json, run_01b_query.json, … run_10b_query.json.
 
 Usage:
     python scripts/collect_corpus.py
@@ -31,6 +32,7 @@ QUERIES = [
 ]
 
 TIMEOUT = 300  # seconds per request
+REPLICATES = ("a", "b")  # two runs per query → 20 JSON files
 
 
 def run(base_url: str) -> None:
@@ -38,65 +40,75 @@ def run(base_url: str) -> None:
     corpus_dir = Path("corpus")
     corpus_dir.mkdir(exist_ok=True)
 
-    total = len(QUERIES)
+    n_queries = len(QUERIES)
+    total_runs = n_queries * len(REPLICATES)
     succeeded = 0
     failed = 0
     total_start = time.time()
+    run_counter = 0
 
     for idx, query in enumerate(QUERIES, start=1):
-        run_id = f"run_{idx:02d}"
-        print(f"[{idx}/{total}] {run_id}: {query}")
+        for rep in REPLICATES:
+            run_counter += 1
+            run_id = f"run_{idx:02d}{rep}"
+            print(f"[{run_counter}/{total_runs}] {run_id}: {query}")
 
-        start = time.time()
-        try:
-            resp = requests.post(
-                endpoint,
-                json={"user_message": query},
-                timeout=TIMEOUT,
-            )
-            elapsed = round(time.time() - start, 2)
+            start = time.time()
+            try:
+                resp = requests.post(
+                    endpoint,
+                    json={"user_message": query},
+                    timeout=TIMEOUT,
+                )
+                elapsed = round(time.time() - start, 2)
 
-            if resp.status_code == 200:
+                if resp.status_code == 200:
+                    result = {
+                        "run_id": run_id,
+                        "query": query,
+                        "replicate": rep,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "status_code": resp.status_code,
+                        "response_time_seconds": elapsed,
+                        "response": resp.json(),
+                    }
+                    succeeded += 1
+                    print(f"  ✓ Success ({elapsed}s)")
+                else:
+                    result = {
+                        "run_id": run_id,
+                        "query": query,
+                        "replicate": rep,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "status_code": resp.status_code,
+                        "response_time_seconds": elapsed,
+                        "error": resp.text,
+                    }
+                    failed += 1
+                    print(f"  ✗ Failed — HTTP {resp.status_code} ({elapsed}s)")
+
+            except requests.RequestException as exc:
+                elapsed = round(time.time() - start, 2)
                 result = {
                     "run_id": run_id,
                     "query": query,
+                    "replicate": rep,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "status_code": resp.status_code,
+                    "status_code": None,
                     "response_time_seconds": elapsed,
-                    "response": resp.json(),
-                }
-                succeeded += 1
-                print(f"  ✓ Success ({elapsed}s)")
-            else:
-                result = {
-                    "run_id": run_id,
-                    "query": query,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "status_code": resp.status_code,
-                    "response_time_seconds": elapsed,
-                    "error": resp.text,
+                    "error": str(exc),
                 }
                 failed += 1
-                print(f"  ✗ Failed — HTTP {resp.status_code} ({elapsed}s)")
+                print(f"  ✗ Error — {exc} ({elapsed}s)")
 
-        except requests.RequestException as exc:
-            elapsed = round(time.time() - start, 2)
-            result = {
-                "run_id": run_id,
-                "query": query,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "status_code": None,
-                "response_time_seconds": elapsed,
-                "error": str(exc),
-            }
-            failed += 1
-            print(f"  ✗ Error — {exc} ({elapsed}s)")
-
-        out_path = corpus_dir / f"{run_id}_query.json"
-        out_path.write_text(json.dumps(result, indent=2, ensure_ascii=False))
+            out_path = corpus_dir / f"{run_id}_query.json"
+            out_path.write_text(json.dumps(result, indent=2, ensure_ascii=False))
 
     total_elapsed = round(time.time() - total_start, 2)
-    print(f"\nDone. {succeeded} succeeded, {failed} failed, {total_elapsed}s total.")
+    print(
+        f"\nDone. {total_runs} files written ({n_queries} queries × {len(REPLICATES)}). "
+        f"{succeeded} succeeded, {failed} failed, {total_elapsed}s total."
+    )
 
 
 if __name__ == "__main__":
