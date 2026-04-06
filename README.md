@@ -100,7 +100,7 @@ Notes:
 │   ├── intent.py           # Natural language → structured intent
 │   ├── prompts.py          # Prompt assembly with guardrails
 │   ├── narrative.py        # Narrative generation & validation
-│   └── chart_labels.py     # Deterministic chart title generation
+│   └── ...                 # Provider integration modules
 ├── visualization/          # Vega-Lite spec generation
 │   ├── charts.py           # Chart type selection & spec building
 │   └── templates/          # Chart template configurations
@@ -212,8 +212,10 @@ restrict allowed origins.
    hedging, data interpretation rules). The LLM produces a structured JSON story
    with a headline, lede, story blocks, and data notes.
 
-7. **Chart labeling** — Chart titles are generated deterministically (no LLM call)
-   using the narrative context and localized templates.
+7. **Chart labeling** — Chart titles are generated deterministically in the
+   analytics/evidence-bundle step (metric phrases, template type, and
+   ``by year`` / ``by category`` patterns). Axis labels follow the CKAN portal
+   language when available (e.g. Icelandic column names for Icelandic portals).
 
 8. **Delivery** — The client renders the narrative text alongside interactive
    Vega-Lite charts.

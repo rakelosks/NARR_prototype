@@ -23,35 +23,43 @@ logger = logging.getLogger(__name__)
 
 def _build_column_labels(columns: dict[str, str], metrics: dict | None = None) -> dict[str, str]:
     """
-    Build a mapping from raw column names to English-readable labels.
+    Build a mapping from raw column names to display labels for chart axes/legends.
 
-    Uses the keyword dictionary's resolve_column() to find canonical English
-    terms for non-English column names (e.g. "ar" → "Year", "fjoldi" → "Count").
-    Falls back to title-casing the raw name.
+    When ``metrics["_chart_locale"]`` starts with ``"is"`` (portal language Icelandic),
+    labels keep the original column text (spaces instead of underscores) so axes
+    match the dataset language. Otherwise, the keyword dictionary maps to English
+    canonicals where possible (e.g. "ár" → "Year").
     """
-    try:
-        from data.profiling.keyword_dictionary import resolve_column
-    except ImportError:
-        logger.warning("keyword_dictionary not available; using raw column names")
-        return {}
-
     labels: dict[str, str] = {}
-    # Collect all column names from both the role mapping and the measure list
     all_col_names = set(columns.values())
     if metrics:
         for mc in metrics.get("measure_columns", []):
             all_col_names.add(mc)
+
+    locale = (metrics or {}).get("_chart_locale", "en") or "en"
+    if str(locale).lower().startswith("is"):
+        for col_name in all_col_names:
+            if col_name:
+                labels[col_name] = col_name.replace("_", " ").strip()
+        return labels
+
+    try:
+        from data.profiling.keyword_dictionary import resolve_column
+    except ImportError:
+        logger.warning("keyword_dictionary not available; using raw column names")
+        for col_name in all_col_names:
+            if col_name:
+                labels[col_name] = col_name.replace("_", " ").title()
+        return labels
 
     for col_name in all_col_names:
         if not col_name:
             continue
         signal = resolve_column(col_name)
         if signal.matched_canonicals:
-            # Use the first matched canonical, title-cased, underscores → spaces
             label = " ".join(c.replace("_", " ").title() for c in signal.matched_canonicals[:2])
             labels[col_name] = label
         else:
-            # Fallback: title-case the raw name, replacing underscores
             labels[col_name] = col_name.replace("_", " ").title()
 
     return labels
@@ -86,6 +94,13 @@ def _english_label(col_name: str, metrics: dict, fallback: str) -> str:
     """
     if not col_name:
         return fallback
+
+    locale = str((metrics or {}).get("_chart_locale", "en") or "en").lower()
+    # When CKAN portal language is Icelandic, avoid destructive year/time
+    # replacements (e.g. "Ár" → "Year") and keep the raw axis labels.
+    if locale.startswith("is") or locale == "raw":
+        return _label(col_name, metrics)
+
     label = _label(col_name, metrics)
     if _is_fallback_label(col_name, label):
         raw = _to_ascii(col_name)
@@ -400,18 +415,12 @@ def _select_time_series_chart(metrics: dict) -> ChartSelection:
 
         if scales_differ:
             # Individual chart per measure — each gets its own y-axis scale
-            # Try to use English labels for the title suffix
-            try:
-                from data.profiling.keyword_dictionary import resolve_column
-                _resolve = lambda c: (
-                    " ".join(s.title() for s in resolve_column(c).matched_canonicals[:2])
-                    or c
-                )
-            except ImportError:
-                _resolve = lambda c: c
+            # Use raw column names for title suffix to avoid mixing
+            # translated English tokens into Icelandic column-driven charts.
+            _display_raw = lambda c: (c or "").replace("_", " ").strip()
 
             for m in measures[:5]:  # cap at 5 charts
-                english_name = _resolve(m)
+                measure_name = _display_raw(m)
                 mmax = (stats.get(m) or {}).get("max")
                 try:
                     # Small annual counts (fatalities, etc.) read well as period bars.
@@ -420,15 +429,15 @@ def _select_time_series_chart(metrics: dict) -> ChartSelection:
                     prefer_bar = False
                 charts.append(ChartEntry(
                     chart_type="bar" if prefer_bar else "line",
-                    title_suffix=f"— {english_name}",
+                    title_suffix=f"— {measure_name}",
                     description=(
-                        f"{'Counts' if prefer_bar else 'Trend'} over time for {english_name}."
+                        f"{'Counts' if prefer_bar else 'Trend'} over time for {measure_name}."
                     ),
                     spec_overrides={"single_measure": m},
                 ))
             # Add a latest-year bar chart for the primary measure if grouped
             if group_col:
-                primary_name = _resolve(measures[0])
+                primary_name = _display_raw(measures[0])
                 charts.append(ChartEntry(
                     chart_type="bar",
                     title_suffix=f"— {primary_name} (latest)",

@@ -143,17 +143,6 @@ async def run_generation_job(job_id: str):
             )
 
             if result.success:
-                try:
-                    from llm.chart_labels import ChartLabeler
-                    labeler = ChartLabeler()
-                    label_language = parsed_intent.language if parsed_intent else "en"
-                    await labeler.relabel_bundle(
-                        bundle,
-                        language=label_language,
-                        narrative=result.narrative,
-                    )
-                except Exception as e:
-                    logger.warning(f"Job {job_id}: chart title relabeling skipped: {e}")
                 llm_model_name = getattr(generation_provider, "model", "")
                 package = pkg_builder.build(
                     result,

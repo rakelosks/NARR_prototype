@@ -1288,18 +1288,6 @@ async def generate_narrative(request: GenerateRequest):
                 detail=f"Narrative generation failed: {result.error}",
             )
 
-        try:
-            from llm.chart_labels import ChartLabeler
-            labeler = ChartLabeler()
-            label_language = parsed_intent.language if parsed_intent else "en"
-            await labeler.relabel_bundle(
-                bundle,
-                language=label_language,
-                narrative=result.narrative,
-            )
-        except Exception as e:
-            logger.warning(f"Chart title relabeling skipped: {e}")
-
         pkg_builder = PackageBuilder()
         llm_model_name = getattr(generation_provider, "model", "")
         package = pkg_builder.build(
@@ -1403,17 +1391,6 @@ async def ask_narrative(request: AskRequest):
             result = await generator.generate(bundle, intent=intent)
 
             if result.success:
-                try:
-                    from llm.chart_labels import ChartLabeler
-                    labeler = ChartLabeler()
-                    label_language = intent.language if intent else "en"
-                    await labeler.relabel_bundle(
-                        bundle,
-                        language=label_language,
-                        narrative=result.narrative,
-                    )
-                except Exception as e:
-                    logger.warning(f"Chart title relabeling skipped: {e}")
                 llm_model_name = getattr(generation_provider, "model", "")
                 package = pkg_builder.build(
                     result,

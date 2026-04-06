@@ -27,6 +27,24 @@ from visualization.charts import select_chart_type, generate_spec, ChartSelectio
 
 logger = logging.getLogger(__name__)
 
+
+def _chart_locale_from_metadata(metadata: Optional[NormalizedMetadata]) -> str:
+    """Use portal language for chart/axis copy when CKAN metadata is available."""
+    if not metadata or not metadata.portal_language.available:
+        return "en"
+    pl = (metadata.portal_language.value or "").strip().lower()
+    if pl.startswith("is"):
+        return "is"
+    return "en"
+
+
+# English keyword-canonicals that are often wrong for Icelandic/long column names
+# (mis-match → prefer the raw column text in titles).
+_GENERIC_EN_CANONICALS = {
+    "district", "category", "value", "count", "measure", "total", "number",
+    "type", "name", "status", "amount", "population", "area",
+}
+
 # Substrings (ASCII or common local spellings) that suggest a total / population series
 _AGGREGATE_NAME_TOKENS = (
     "total",
@@ -806,24 +824,51 @@ class BundleBuilder:
         # Step 1: Run analytics
         analytics_result = self.analytics.analyze(df, match)
 
+        label_lang = _chart_locale_from_metadata(metadata)
+        base_metrics = {**analytics_result.metrics, "_chart_locale": label_lang}
+
         # Step 2: Select chart type
-        chart_selection = select_chart_type(template_type, analytics_result.metrics)
+        chart_selection = select_chart_type(template_type, base_metrics)
 
         # Step 3: Generate visualization specs
         viz_title = title or self._generate_title(
-            profile, template_type, columns, analytics_result.metrics, metadata
+            profile,
+            template_type,
+            columns,
+            base_metrics,
+            metadata,
+            label_lang=label_lang,
         )
         visualizations = []
 
         for idx, entry in enumerate(chart_selection.charts):
-            chart_title = viz_title
-            if entry.title_suffix:
-                chart_title = f"{viz_title} {entry.title_suffix}"
-
-            # Pass spec_overrides so generators can use per-chart hints
-            chart_metrics = analytics_result.metrics
+            # Per-measure charts (e.g. waste per resident vs bin count)
+            # get their own titles based on the single measure column,
+            # instead of a shared base title plus suffix.
+            chart_metrics = dict(base_metrics)
             if entry.spec_overrides:
                 chart_metrics = {**chart_metrics, "_spec_overrides": entry.spec_overrides}
+
+            single_measure = (
+                chart_metrics.get("_spec_overrides", {}).get("single_measure")
+                if isinstance(chart_metrics.get("_spec_overrides"), dict)
+                else None
+            )
+
+            if single_measure:
+                chart_title = self._generate_title(
+                    profile,
+                    template_type,
+                    columns,
+                    base_metrics,
+                    metadata,
+                    label_lang=label_lang,
+                    override_measure=single_measure,
+                )
+            else:
+                chart_title = viz_title
+                if entry.title_suffix:
+                    chart_title = f"{viz_title} {entry.title_suffix}"
 
             spec = generate_spec(
                 chart_type=entry.chart_type,
@@ -878,7 +923,7 @@ class BundleBuilder:
             matched_columns=columns,
             all_columns=all_columns,
             normalized_metadata=metadata,
-            metrics=analytics_result.metrics,
+            metrics=base_metrics,
             visualizations=visualizations,
             narrative_context=narrative_context,
             data_sample=data_sample,
@@ -899,54 +944,146 @@ class BundleBuilder:
         columns: dict[str, str],
         metrics: dict,
         metadata: Optional[NormalizedMetadata] = None,
+        label_lang: str = "en",
+        override_measure: Optional[str] = None,
     ) -> str:
-        """Generate a descriptive chart title from the data context.
+        """Generate a descriptive chart title from metrics and column roles.
 
-        Uses the CKAN metadata title when available (it's more descriptive
-        than raw column names, especially for non-English datasets).
+        English titles use keyword-canonical phrases plus templates like
+        \"… by year\" / \"… by year and …\". Icelandic titles use raw column
+        names plus short Icelandic connectors (no machine translation).
         """
         measure_cols = metrics.get("measure_columns", [])
-        measure_label = measure_cols[0] if measure_cols else ""
-        english_measure_label = self._canonical_english_label(measure_label)
-
-        # Prefer metadata title over raw column name for the base label
-        base_label = ""
-        if english_measure_label:
-            base_label = english_measure_label
-        elif metadata and metadata.title.available and self._is_ascii_like(metadata.title.value):
-            base_label = metadata.title.value
-        elif measure_label:
-            base_label = measure_label
+        if override_measure:
+            measure_label = override_measure
         else:
-            base_label = profile.dataset_id
+            measure_label = measure_cols[0] if measure_cols else ""
+        time_suffix = self._time_span_suffix(metrics)
 
-        # Resolve to parent archetype for title formatting
         parent = get_parent_archetype(template_type)
         base_type = parent if parent else template_type
 
-        if base_type == TemplateType.TIME_SERIES:
-            date_range = metrics.get("date_range", {})
-            time_span = ""
-            if date_range.get("min") and date_range.get("max"):
-                min_str = str(date_range["min"])[:4]
-                max_str = str(date_range["max"])[:4]
-                if min_str != max_str:
-                    time_span = f" ({min_str}\u2013{max_str})"
-                else:
-                    time_span = f" ({min_str})"
-            return f"{base_label}{time_span}"
+        lang = (label_lang or "en").lower()
+        if lang.startswith("is"):
+            return self._generate_title_is(
+                profile, base_type, columns, metrics, measure_label, time_suffix,
+            )
 
-        elif base_type == TemplateType.CATEGORICAL:
+        return self._generate_title_en(
+            profile, base_type, columns, metrics, metadata, measure_label, time_suffix,
+        )
+
+    def _generate_title_en(
+        self,
+        profile,
+        base_type: TemplateType,
+        columns: dict[str, str],
+        metrics: dict,
+        metadata: Optional[NormalizedMetadata],
+        measure_label: str,
+        time_suffix: str,
+    ) -> str:
+        """English chart titles: metric phrase + template (by year, by category, …)."""
+        if base_type == TemplateType.TIME_SERIES:
+            phrase = self._english_metric_phrase(measure_label, metrics, columns)
+            group_col = metrics.get("group_column")
+            if group_col:
+                gphrase = self._english_metric_phrase(group_col, metrics, columns)
+                return f"{phrase} by year and {gphrase}{time_suffix}"
+            return f"{phrase} by year{time_suffix}"
+
+        if base_type == TemplateType.CATEGORICAL:
+            phrase = self._english_metric_phrase(measure_label, metrics, columns)
             cat_col = columns.get("category", "")
             if cat_col:
-                return f"{base_label} — {cat_col}"
-            return base_label
+                cphrase = self._english_metric_phrase(cat_col, metrics, columns)
+                return f"{phrase} by {cphrase}"
+            return phrase
 
-        elif base_type == TemplateType.GEOSPATIAL:
+        if base_type == TemplateType.GEOSPATIAL:
+            phrase = self._english_metric_phrase(measure_label, metrics, columns)
             total = metrics.get("total_points", 0)
-            return f"{base_label} — {total} locations"
+            return f"{phrase} — {total} locations"
 
-        return base_label
+        phrase = self._english_metric_phrase(measure_label, metrics, columns)
+        if not phrase:
+            if metadata and metadata.title.available and self._is_ascii_like(metadata.title.value or ""):
+                return (metadata.title.value or "").strip() or profile.dataset_id
+            return measure_label or profile.dataset_id
+        return phrase
+
+    def _generate_title_is(
+        self,
+        profile,
+        base_type: TemplateType,
+        columns: dict[str, str],
+        metrics: dict,
+        measure_label: str,
+        time_suffix: str,
+    ) -> str:
+        """Icelandic chart titles: use dataset column text + short Icelandic phrasing."""
+        def _dim(s: str) -> str:
+            return (s or "").replace("_", " ").strip()
+
+        m = _dim(measure_label) or profile.dataset_id
+
+        if base_type == TemplateType.TIME_SERIES:
+            gc = metrics.get("group_column")
+            if gc:
+                return f"{m} eftir árum og {_dim(gc)}{time_suffix}"
+            return f"{m} eftir árum{time_suffix}"
+
+        if base_type == TemplateType.CATEGORICAL:
+            cat_col = columns.get("category", "")
+            if cat_col:
+                return f"{m} eftir {_dim(cat_col)}"
+            return m
+
+        if base_type == TemplateType.GEOSPATIAL:
+            total = metrics.get("total_points", 0)
+            return f"{m} — {total} staðsetningar"
+
+        return m
+
+    @staticmethod
+    def _time_span_suffix(metrics: dict) -> str:
+        date_range = metrics.get("date_range", {})
+        if not date_range.get("min") or not date_range.get("max"):
+            return ""
+        min_str = str(date_range["min"])[:4]
+        max_str = str(date_range["max"])[:4]
+        if min_str != max_str:
+            return f" ({min_str}\u2013{max_str})"
+        return f" ({min_str})"
+
+    def _english_metric_phrase(
+        self, col_name: str, _metrics: dict, _columns: dict[str, str],
+    ) -> str:
+        """Readable English phrase for a measure or dimension column."""
+        if not col_name:
+            return ""
+        folded = self._ascii_fold_lower(col_name)
+        if ("kilo" in folded or "kg" in folded) and (
+            "ibua" in folded or "resident" in folded or "capita" in folded
+        ):
+            return "Kilograms of waste per resident"
+        if "sorp" in folded and ("ibua" in folded or "resident" in folded):
+            return "Waste per resident"
+        if "bidlist" in folded or "biðlist" in col_name.lower():
+            return "Waiting list"
+        canon = self._canonical_english_label(col_name)
+        non_ascii = any(ord(ch) > 127 for ch in col_name)
+        if canon:
+            if non_ascii and canon.strip().lower() in _GENERIC_EN_CANONICALS:
+                return col_name.replace("_", " ").strip()
+            return canon
+        return col_name.replace("_", " ").strip()
+
+    @staticmethod
+    def _ascii_fold_lower(text: str) -> str:
+        """Lowercase ASCII for matching Icelandic column names (no translation)."""
+        nf = unicodedata.normalize("NFKD", text or "")
+        return "".join(ch.lower() if ord(ch) < 128 else " " for ch in nf if not unicodedata.combining(ch))
 
     def _canonical_english_label(self, col_name: str) -> str:
         """Resolve a canonical English label for a raw column name when possible."""
