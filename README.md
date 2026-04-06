@@ -169,10 +169,14 @@ Copy `.env.example` to `.env` and adjust. Key settings:
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama base URL (local dev default) |
 | `OLLAMA_INTENT_MODEL` | `qwen3:4b` | Model for intent parsing |
 | `OLLAMA_GENERATION_MODEL` | `qwen3:4b` | Model for narrative generation |
+| `OLLAMA_INTENT_THINK` | `false` | Enable/disable Ollama "thinking" mode for intent parsing |
+| `OLLAMA_GENERATION_THINK` | `true` | Enable/disable Ollama "thinking" mode for narrative generation |
+| `OLLAMA_TIMEOUT` | `180` | Timeout (seconds) for Ollama requests |
 | `CKAN_PORTAL_URL` | Reykjavik portal | CKAN API base URL |
 | `CKAN_PORTAL_LANGUAGE` | `is` | Portal metadata language (ISO 639-1) |
 | `NARR_API_KEY` | _(empty)_ | API key for authentication (empty = disabled) |
 | `RATE_LIMIT_RPM` | `60` | Rate limit per client per minute |
+| `TRUST_PROXY_HEADERS` | `false` | Trust `X-Forwarded-For` for rate limiting (only behind trusted proxy) |
 
 See `.env.example` for the full list.
 

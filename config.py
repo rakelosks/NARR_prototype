@@ -10,6 +10,14 @@ from dotenv import load_dotenv
 load_dotenv()  # reads .env from project root
 
 
+def _get_bool(name: str, default: bool) -> bool:
+    """Parse a boolean environment variable with common truthy values."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass
 class Settings:
     """Application settings."""
@@ -42,6 +50,7 @@ class Settings:
     # API security
     narr_api_key: str = ""           # empty = auth disabled (local dev)
     rate_limit_rpm: int = 60         # requests per minute per client (0 = disabled)
+    trust_proxy_headers: bool = False  # trust X-Forwarded-For only behind trusted proxy
 
     # Streamlit
     api_base_url: str = "http://localhost:8000"
@@ -50,11 +59,14 @@ class Settings:
 def load_settings() -> Settings:
     """Load settings from environment variables."""
     return Settings(
-        debug=os.getenv("DEBUG", "false").lower() == "true",
+        debug=_get_bool("DEBUG", False),
         llm_provider=os.getenv("LLM_PROVIDER", "ollama"),
         ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         ollama_intent_model=os.getenv("OLLAMA_INTENT_MODEL", "qwen3:4b"),
         ollama_generation_model=os.getenv("OLLAMA_GENERATION_MODEL", "qwen3:4b"),
+        ollama_intent_think=_get_bool("OLLAMA_INTENT_THINK", False),
+        ollama_generation_think=_get_bool("OLLAMA_GENERATION_THINK", True),
+        ollama_timeout=float(os.getenv("OLLAMA_TIMEOUT", "180")),
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),
         openai_intent_model=os.getenv("OPENAI_INTENT_MODEL", "gpt-4o-mini"),
         openai_generation_model=os.getenv("OPENAI_GENERATION_MODEL", "gpt-4o"),
@@ -65,6 +77,7 @@ def load_settings() -> Settings:
         cache_ttl_hours=int(os.getenv("CACHE_TTL_HOURS", "24")),
         narr_api_key=os.getenv("NARR_API_KEY", ""),
         rate_limit_rpm=int(os.getenv("RATE_LIMIT_RPM", "60")),
+        trust_proxy_headers=_get_bool("TRUST_PROXY_HEADERS", False),
         api_base_url=os.getenv("API_BASE_URL", "http://localhost:8000"),
     )
 

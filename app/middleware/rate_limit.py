@@ -13,6 +13,7 @@ Exempt paths:
 
 import logging
 import time
+import hashlib
 from collections import defaultdict
 
 from fastapi import Request, Response
@@ -51,11 +52,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         """
         api_key = request.headers.get("x-api-key")
         if api_key:
-            return f"key:{api_key[:8]}"
-        # X-Forwarded-For for reverse proxies, else direct IP
-        forwarded = request.headers.get("x-forwarded-for")
-        if forwarded:
-            return f"ip:{forwarded.split(',')[0].strip()}"
+            digest = hashlib.sha256(api_key.encode("utf-8")).hexdigest()[:16]
+            return f"key:{digest}"
+        # Only trust X-Forwarded-For when explicitly enabled behind a trusted proxy.
+        if settings.trust_proxy_headers:
+            forwarded = request.headers.get("x-forwarded-for")
+            if forwarded:
+                return f"ip:{forwarded.split(',')[0].strip()}"
         return f"ip:{request.client.host}" if request.client else "ip:unknown"
 
     def _prune(self, timestamps: list[float], now: float) -> list[float]:
