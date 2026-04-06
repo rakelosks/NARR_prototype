@@ -31,28 +31,38 @@ generative AI can make public data more accessible to non-technical audiences.
 ### Local Development
 
 ```bash
-# 1. Create and activate a virtual environment
+# 1. Create and activate a virtual environment (recommended)
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# 2. Install dependencies
-pip install -r requirements.txt
+# 2. Install dependencies (use python -m pip to avoid PATH issues)
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 
 # 3. Copy environment config and edit as needed
 cp .env.example .env
 
-# 4. Pull the default LLM model (if using Ollama)
+# 4. Sanity check (verifies dependencies + imports)
+python -c "import fastapi, uvicorn, pandas, duckdb; import app.main; print('OK: environment + imports')"
+
+# 5. Pull the default LLM model (if using Ollama)
 ollama pull qwen3:4b
 
-# 5. Start the API server
+# 6. Start the API server
 uvicorn app.main:app --reload
 
-# 6. (In a separate terminal) Start the Streamlit client
+# 7. (In a separate terminal) Start the Streamlit client
 streamlit run client/streamlit_app.py
 ```
 
 The API will be available at `http://localhost:8000` and the Streamlit client at
 `http://localhost:8501`.
+
+### Tests (optional)
+
+```bash
+python -m pytest -q
+```
 
 ### Docker
 

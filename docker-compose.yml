@@ -8,14 +8,17 @@ services:
     volumes:
       - .:/app                          # live-reload in development
       - narr_data:/app/data/cache       # persist parquet cache
-      - narr_db:/app/db                 # persist SQLite outside code dir
+      - narr_db:/var/lib/narr           # persist SQLite outside bind-mounted /app
     env_file:
       - .env
     environment:
-      - METADATA_DB_PATH=/app/db/metadata.sqlite
+      - METADATA_DB_PATH=/var/lib/narr/metadata.sqlite
       - CACHE_DIR=/app/data/cache/snapshots
       - OLLAMA_BASE_URL=http://ollama:11434
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # Ensure the named volume mount is writable before SQLite creates the DB.
+    command: >
+      sh -lc "mkdir -p /var/lib/narr && chmod 777 /var/lib/narr &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
