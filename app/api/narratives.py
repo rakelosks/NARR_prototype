@@ -1208,8 +1208,8 @@ async def preview_narrative(request: GenerateRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Preview generation failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception(f"Preview generation failed: {e}")
+        raise HTTPException(status_code=500, detail="Preview generation failed")
 
 
 @router.post("/generate")
@@ -1314,8 +1314,8 @@ async def generate_narrative(request: GenerateRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Narrative generation failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception(f"Narrative generation failed: {e}")
+        raise HTTPException(status_code=500, detail="Narrative generation failed")
 
 
 # ---------------------------------------------------------------------------
@@ -1438,5 +1438,5 @@ async def ask_narrative(request: AskRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Ask narrative failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception(f"Ask narrative failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate narrative")

@@ -112,5 +112,5 @@ async def generate_visualization(request: VizRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Visualization generation failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception(f"Visualization generation failed: {e}")
+        raise HTTPException(status_code=500, detail="Visualization generation failed")

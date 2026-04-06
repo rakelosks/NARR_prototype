@@ -57,12 +57,17 @@ The API will be available at `http://localhost:8000` and the Streamlit client at
 ### Docker
 
 ```bash
-# Start API + Streamlit (uses host Ollama or set LLM_PROVIDER=openai in .env)
+# Start API + Streamlit
 docker compose up
 
-# Or include the bundled Ollama service
+# If using bundled Ollama, include the ollama profile:
 docker compose --profile ollama up
 ```
+
+Notes:
+- In `docker-compose.yml`, the API container uses `OLLAMA_BASE_URL=http://ollama:11434` by default (Docker service hostname).
+- For OpenAI mode, set `LLM_PROVIDER=openai` and `OPENAI_API_KEY` in `.env`.
+- To use a host Ollama instance from Docker, override `OLLAMA_BASE_URL` accordingly for your host setup.
 
 | Service | Port |
 |---------|------|
@@ -160,6 +165,8 @@ Copy `.env.example` to `.env` and adjust. Key settings:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `LLM_PROVIDER` | `ollama` | `ollama` or `openai` |
+| `OPENAI_API_KEY` | _(empty)_ | Required when `LLM_PROVIDER=openai` |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama base URL (local dev default) |
 | `OLLAMA_INTENT_MODEL` | `qwen3:4b` | Model for intent parsing |
 | `OLLAMA_GENERATION_MODEL` | `qwen3:4b` | Model for narrative generation |
 | `CKAN_PORTAL_URL` | Reykjavik portal | CKAN API base URL |
@@ -168,6 +175,13 @@ Copy `.env.example` to `.env` and adjust. Key settings:
 | `RATE_LIMIT_RPM` | `60` | Rate limit per client per minute |
 
 See `.env.example` for the full list.
+
+## Prototype Security Posture
+
+This repository is currently optimized for local development and proof-of-concept
+demonstration. By default, authentication is disabled when `NARR_API_KEY` is empty,
+and CORS is permissive. Before any public deployment, set `NARR_API_KEY` and
+restrict allowed origins.
 
 ## How It Works
 

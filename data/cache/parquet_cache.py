@@ -20,7 +20,8 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-CACHE_DIR = os.path.join(os.path.dirname(__file__), "snapshots")
+# Read from central config to keep local and Docker behavior consistent.
+CACHE_DIR = settings.cache_dir
 
 
 def _snapshot_stem(dataset_id: str, resource_url: Optional[str] = None) -> str:

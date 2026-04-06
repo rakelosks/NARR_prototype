@@ -21,6 +21,7 @@ __pycache__/
 *.sqlite
 *.duckdb
 data/cache/snapshots/*.parquet
+corpus/
 
 # Environment (injected via docker-compose)
 .env

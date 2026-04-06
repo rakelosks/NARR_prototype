@@ -44,9 +44,11 @@ async def refresh_catalog(request: CatalogRefreshRequest):
         count = catalog_index.count(portal_url=request.portal_url)
         return {"status": "success", "datasets_indexed": count}
     except CKANError as e:
-        raise HTTPException(status_code=502, detail=f"CKAN API error: {str(e)}")
+        logger.exception("Catalog refresh failed due to CKAN API error")
+        raise HTTPException(status_code=502, detail="Failed to refresh catalog from CKAN portal")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Catalog refresh failed unexpectedly")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/catalog/search")
