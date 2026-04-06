@@ -340,7 +340,13 @@ _TOPIC_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
 
 
 def _topic_hint_terms(text: str) -> list[str]:
-    """Add deterministic Icelandic aliases for known English topics."""
+    """Add deterministic Icelandic aliases for known English topics.
+
+    These aliases are Reykjavik-focused. Keep them disabled for non-Icelandic
+    portals to avoid biasing retrieval in other catalogs (e.g., Madrid/London).
+    """
+    if (settings.ckan_portal_language or "").strip().lower() != "is":
+        return []
     folded = _ascii_fold(text)
     hints: list[str] = []
     for triggers, terms in _TOPIC_HINTS:
@@ -377,6 +383,88 @@ def _dedupe_terms(terms: list[str]) -> list[str]:
         seen.add(key)
         cleaned.append(value)
     return cleaned
+
+
+def _extract_ckan_id_candidates(*texts: str) -> list[str]:
+    """Extract likely CKAN dataset IDs embedded in the query text.
+
+    Keeps this intentionally conservative to avoid treating normal words as IDs.
+    """
+    out: list[str] = []
+    seen: set[str] = set()
+    blob = " ".join(t for t in texts if t)
+    for token in re.findall(r"\b[a-z0-9][a-z0-9_-]{3,31}\b", blob.lower()):
+        if len(token) > 12:
+            continue
+        if not any(ch.isdigit() for ch in token):
+            continue
+        if token in seen:
+            continue
+        seen.add(token)
+        out.append(token)
+    return out
+
+
+async def _scan_portal_candidates(
+    client: CKANClient,
+    scoring_keywords: list[str],
+    require_geojson: bool = False,
+    max_scan: int = 120,
+) -> tuple[str, str]:
+    """Last-resort dataset discovery for portals with weak/disabled keyword search.
+
+    Scans a bounded prefix of package_list and ranks package_show metadata
+    using the same candidate scorer as normal retrieval.
+    """
+    if not scoring_keywords:
+        return "", ""
+
+    names: list[str] = []
+    offset = 0
+    page = 100
+    while len(names) < max_scan:
+        batch = await client.list_datasets(limit=min(page, max_scan - len(names)), offset=offset)
+        if not batch:
+            break
+        names.extend(batch)
+        if len(batch) < page:
+            break
+        offset += page
+
+    best_name = ""
+    best_slug = ""
+    best_score = 0.0
+    for slug in names:
+        try:
+            ds = await client.get_dataset(slug)
+        except Exception:
+            continue
+
+        supported = ds.supported_resources
+        if require_geojson:
+            supported = [r for r in supported if r.normalized_format == "geojson"]
+        if not supported:
+            continue
+
+        title = ds.title or ds.name or slug
+        tags = ds.tags if isinstance(ds.tags, list) else []
+        score = _score_candidate(title, ds.notes or "", tags, scoring_keywords)
+        score = _adjust_population_demographic_score(
+            score, title, ds.notes or "", tags, scoring_keywords,
+        )
+        if score > best_score:
+            best_score = score
+            best_name = title
+            best_slug = ds.name or slug
+            if best_score >= 2.0:
+                break
+
+    if best_slug:
+        logger.info(
+            f"Portal scan fallback match: '{best_name}' "
+            f"(score={best_score:.2f}, scanned={len(names)})"
+        )
+    return best_name, best_slug
 
 
 async def _parse_intent(user_message: str):
@@ -714,6 +802,22 @@ async def _find_dataset(
 
     client = CKANClient(settings.ckan_portal_url)
 
+    # Fast path: if the user already provided a CKAN-like dataset ID,
+    # try resolving it directly via package_show.
+    for candidate in _extract_ckan_id_candidates(
+        user_message, dataset_query, dataset_query_local or "",
+    ):
+        try:
+            ds = await client.get_dataset(candidate)
+            supported = ds.supported_resources
+            if require_geojson:
+                supported = [r for r in supported if r.normalized_format == "geojson"]
+            if supported:
+                logger.info(f"Direct CKAN ID match: {candidate}")
+                return ds.title or ds.name or candidate, ds.name or candidate
+        except Exception:
+            continue
+
     # Strategy 1: Search CKAN portal API (multi-candidate scoring)
     dataset_name, ckan_slug = await _search_ckan(
         client, search_terms, scoring_keywords,
@@ -756,6 +860,15 @@ async def _find_dataset(
                 f"Local catalog best match: '{best_name}' "
                 f"(score={best_score}, {len(local_candidates)} candidates)"
             )
+
+    # Strategy 3: Last-resort bounded scan for portals where keyword search
+    # returns empty (observed on some CKAN variants).
+    if not ckan_slug:
+        dataset_name, ckan_slug = await _scan_portal_candidates(
+            client,
+            scoring_keywords=scoring_keywords,
+            require_geojson=require_geojson,
+        )
 
     if not ckan_slug:
         if require_geojson:

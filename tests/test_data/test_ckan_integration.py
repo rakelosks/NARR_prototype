@@ -1,13 +1,14 @@
 """
 Quick test script for the CKAN connector.
-Run from project root: python -m tests.test_ckan_integration
+Run from project root: python -m tests.test_data.test_ckan_integration
 
-Tests against: https://gagnagatt.reykjavik.is/en/api/3
+Defaults to Reykjavik but supports any CKAN portal URL.
 """
 
 import asyncio
 import sys
 import os
+import argparse
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,13 +16,17 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data.ingestion.ckan_client import CKANClient, CKANError
 from data.storage.catalog_index import CatalogIndex
 
-REYKJAVIK_API = "https://gagnagatt.reykjavik.is/en/api/3"
+DEFAULT_PORTAL_URL = os.getenv(
+    "CKAN_TEST_PORTAL_URL",
+    "https://gagnagatt.reykjavik.is/en/api/3",
+)
+DEFAULT_PORTAL_LANGUAGE = os.getenv("CKAN_TEST_PORTAL_LANGUAGE", "is")
 
 
-async def test_list_datasets():
+async def test_list_datasets(portal_url: str):
     """Test listing dataset names from the portal."""
     print("\n--- Test: List datasets ---")
-    client = CKANClient(REYKJAVIK_API)
+    client = CKANClient(portal_url)
     names = await client.list_datasets(limit=10)
     print(f"Found {len(names)} dataset names (showing first 10):")
     for name in names:
@@ -30,10 +35,10 @@ async def test_list_datasets():
     return names
 
 
-async def test_search_datasets():
+async def test_search_datasets(portal_url: str):
     """Test searching datasets by keyword."""
     print("\n--- Test: Search datasets ---")
-    client = CKANClient(REYKJAVIK_API)
+    client = CKANClient(portal_url)
     datasets = await client.search_datasets("transport", rows=5)
     print(f"Search 'transport' returned {len(datasets)} results:")
     for ds in datasets:
@@ -42,10 +47,10 @@ async def test_search_datasets():
     return datasets
 
 
-async def test_get_dataset(dataset_name: str):
+async def test_get_dataset(portal_url: str, dataset_name: str):
     """Test fetching full metadata for a single dataset."""
     print(f"\n--- Test: Get dataset '{dataset_name}' ---")
-    client = CKANClient(REYKJAVIK_API)
+    client = CKANClient(portal_url)
     dataset = await client.get_dataset(dataset_name)
     print(f"Title: {dataset.title}")
     print(f"Description: {dataset.notes[:200]}..." if len(dataset.notes) > 200 else f"Description: {dataset.notes}")
@@ -59,10 +64,10 @@ async def test_get_dataset(dataset_name: str):
     return dataset
 
 
-async def test_download_resource(dataset_name: str):
+async def test_download_resource(portal_url: str, dataset_name: str):
     """Test downloading a CSV resource and parsing to DataFrame."""
     print(f"\n--- Test: Download resource from '{dataset_name}' ---")
-    client = CKANClient(REYKJAVIK_API)
+    client = CKANClient(portal_url)
     dataset = await client.get_dataset(dataset_name)
 
     csv_resources = [r for r in dataset.resources if r.normalized_format == "csv"]
@@ -85,62 +90,63 @@ async def test_download_resource(dataset_name: str):
     return df
 
 
-async def test_catalog_index():
+async def test_catalog_index(portal_url: str):
     """Test building and querying the catalog index."""
     print("\n--- Test: Catalog index ---")
-    client = CKANClient(REYKJAVIK_API)
+    client = CKANClient(portal_url)
 
     # Use a temp database for testing
     index = CatalogIndex(db_path=":memory:")
 
     # Build catalog (fetches all datasets)
     print("Building catalog index...")
-    await index.refresh(client, portal_url=REYKJAVIK_API)
+    await index.refresh(client, portal_url=portal_url)
 
-    count = index.count(portal_url=REYKJAVIK_API)
+    count = index.count(portal_url=portal_url)
     print(f"Total datasets indexed: {count}")
 
     # Search the local index
-    results = index.search(query="transport", portal_url=REYKJAVIK_API, limit=5)
+    results = index.search(query="transport", portal_url=portal_url, limit=5)
     print(f"\nLocal search for 'transport': {len(results)} results")
     for r in results:
         print(f"  - {r['title']} (formats: {r['resource_formats']})")
 
     # Filter by format
-    csv_results = index.search(format_filter="csv", portal_url=REYKJAVIK_API, limit=5)
+    csv_results = index.search(format_filter="csv", portal_url=portal_url, limit=5)
     print(f"\nDatasets with CSV resources: {len(csv_results)}")
     for r in csv_results:
         print(f"  - {r['title']}")
 
     # Check sync log
-    last = index.last_sync(REYKJAVIK_API)
+    last = index.last_sync(portal_url)
     print(f"\nLast sync: {last}")
 
     return index
 
 
-async def main():
+async def main(portal_url: str, portal_language: str):
     print("=" * 60)
     print("CKAN Connector Integration Test")
-    print(f"Portal: {REYKJAVIK_API}")
+    print(f"Portal: {portal_url}")
+    print(f"Language: {portal_language}")
     print("=" * 60)
 
     try:
         # 1. List datasets
-        names = await test_list_datasets()
+        names = await test_list_datasets(portal_url)
 
         # 2. Search
-        await test_search_datasets()
+        await test_search_datasets(portal_url)
 
         # 3. Get single dataset
         if names:
-            dataset = await test_get_dataset(names[0])
+            dataset = await test_get_dataset(portal_url, names[0])
 
             # 4. Download a resource
-            await test_download_resource(names[0])
+            await test_download_resource(portal_url, names[0])
 
         # 5. Catalog index
-        await test_catalog_index()
+        await test_catalog_index(portal_url)
 
         print("\n" + "=" * 60)
         print("ALL TESTS PASSED")
@@ -157,4 +163,16 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    parser = argparse.ArgumentParser(description="Run CKAN integration checks")
+    parser.add_argument(
+        "--portal-url",
+        default=DEFAULT_PORTAL_URL,
+        help=f"CKAN API base URL (default: {DEFAULT_PORTAL_URL})",
+    )
+    parser.add_argument(
+        "--portal-language",
+        default=DEFAULT_PORTAL_LANGUAGE,
+        help=f"Portal language code (default: {DEFAULT_PORTAL_LANGUAGE})",
+    )
+    args = parser.parse_args()
+    asyncio.run(main(args.portal_url, args.portal_language))

@@ -11,6 +11,8 @@ import logging
 from typing import Optional
 from pydantic import BaseModel, Field
 from enum import Enum
+from urllib.parse import urlparse
+from pathlib import Path
 
 from data.ingestion.throttle import Throttle, retry_with_backoff
 
@@ -43,7 +45,19 @@ class CKANResource(BaseModel):
     @property
     def normalized_format(self) -> str:
         """Normalize format string for comparison."""
-        return self.format.strip().lower()
+        fmt = (self.format or "").strip().lower()
+        if fmt:
+            return fmt
+
+        # Some CKAN portals leave `format` empty; infer from name/URL.
+        for candidate in (self.name, self.url):
+            if not candidate:
+                continue
+            path = urlparse(candidate).path if "://" in candidate else candidate
+            suffix = Path(path).suffix.lower().lstrip(".")
+            if suffix:
+                return suffix
+        return ""
 
     @property
     def is_supported(self) -> bool:
@@ -139,7 +153,9 @@ class CKANClient:
 
         async def _do_request():
             async with self._throttle:
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                # Some CKAN deployments (e.g. London Datastore) redirect
+                # /api/3/action/* to /api/action/*.
+                async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=True) as client:
                     response = await client.get(url, params=params)
                     response.raise_for_status()
                     return response.json()
@@ -292,7 +308,19 @@ class CKANClient:
             "package_search",
             params={"q": "*:*", "rows": limit, "start": offset},
         )
-        return [self._parse_dataset(pkg) for pkg in result.get("results", [])]
+        datasets = [self._parse_dataset(pkg) for pkg in result.get("results", [])]
+        if datasets:
+            return datasets
+
+        # Fallback for CKAN variants where q='*:*' does not return datasets.
+        names = await self.list_datasets(limit=limit, offset=offset)
+        out: list[CKANDataset] = []
+        for name in names:
+            try:
+                out.append(await self.get_dataset(name))
+            except CKANError as e:
+                logger.warning(f"Skipping dataset '{name}' during fallback metadata fetch: {e}")
+        return out
 
     async def build_catalog(self) -> list[CKANCatalogEntry]:
         """
