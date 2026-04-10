@@ -48,11 +48,11 @@ python -c "import fastapi, uvicorn, pandas, duckdb; import app.main; print('OK: 
 # 5. Pull the default LLM model (if using Ollama)
 ollama pull qwen3:4b
 
-# 6. Start the API server
-uvicorn app.main:app --reload
+# 6. Start the API server (use python -m so the venv’s Uvicorn is found)
+python -m uvicorn app.main:app --reload
 
 # 7. (In a separate terminal) Start the Streamlit client
-streamlit run client/streamlit_app.py
+python -m streamlit run client/streamlit_app.py
 ```
 
 The API will be available at `http://localhost:8000` and the Streamlit client at

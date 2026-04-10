@@ -1,6 +1,6 @@
 """
 Main FastAPI application entry point.
-Run with: uvicorn app.main:app --reload
+Run with: python -m uvicorn app.main:app --reload
 """
 
 import logging

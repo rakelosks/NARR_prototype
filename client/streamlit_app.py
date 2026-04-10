@@ -361,7 +361,7 @@ def api_get(path: str, params: dict = None) -> dict | None:
     except requests.ConnectionError:
         st.error(
             "Cannot connect to API. Make sure it's running: "
-            "`uvicorn app.main:app --reload`"
+            "`python -m uvicorn app.main:app --reload`"
         )
         return None
     except requests.HTTPError as e:
@@ -380,7 +380,7 @@ def api_post(path: str, data: dict, timeout: int = 600) -> dict | None:
     except requests.ConnectionError:
         st.error(
             "Cannot connect to API. Make sure it's running: "
-            "`uvicorn app.main:app --reload`"
+            "`python -m uvicorn app.main:app --reload`"
         )
         return None
     except requests.HTTPError as e:
